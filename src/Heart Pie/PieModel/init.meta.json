@@ -1,0 +1,11 @@
+{
+    "className": "Model",
+    "ignoreUnknownInstances": true,
+    "properties": {
+        "Attributes": {
+            "EquippedSkinId": {"Float64": 1},
+            "InternalLaunchVelocity": {"Vector3": [0, 0, 0]},
+            "InternalSpinByVelocity": {"Bool": false}
+        }
+    }
+}

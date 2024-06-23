@@ -1,0 +1,35 @@
+{
+    "ClassName": "Part",
+    "Properties": {
+        "BrickColor": {"BrickColor": 105},
+        "Size": [2, 2, 1],
+        "Massless": true
+    },
+    "Children": [
+        {
+            "Name": "Mesh",
+            "ClassName": "SpecialMesh",
+            "Properties": {
+                "MeshId": "rbxassetid://18453224",
+                "Scale": [0.8, 0.8, 0.8],
+                "TextureId": "rbxassetid://6405187802"
+            }
+        },
+        {
+            "id": "Attachment-TenMou",
+            "Name": "PieSkinAttachment",
+            "ClassName": "Attachment",
+            "Properties": {
+                "CFrame": [0, 0, 0.5, 1, 0, 0, 0, 1, 0, 0, 0, 1]
+            }
+        },
+        {
+            "Name": "RigidConstraint",
+            "ClassName": "RigidConstraint",
+            "Attributes": {
+                "Rojo_Target_Attachment0": "Attachment-TenMou",
+                "Rojo_Target_Attachment1": "PieAttachment"
+            }
+        }
+    ]
+}

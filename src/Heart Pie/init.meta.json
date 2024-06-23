@@ -1,0 +1,19 @@
+{
+    "className": "Tool",
+    "ignoreUnknownInstances": true,
+    "properties": {
+        "Attributes": {
+            "CanSwitchType": {"Bool": true},
+            "IsClientPieType": {"Bool": false},
+            "LaunchOffsetStuds": {"Float64": 10},
+            "LaunchVelocity": {"Float64": 50},
+            "NoCollideTransparency": {"Float64": 0.6},
+            "PieAlignSpin": {"Bool": true},
+            "PieSpinByVelocity": {"Bool": false},
+            "PrintDebug": {"Bool": true},
+            "ShowGui": {"Bool": true}
+        },
+        "CanBeDropped": false,
+        "Grip": [0, -0.25, 0.3, 1, -0, 0, 0, 0.952966928, 0.303074419, -0, -0.303074419, 0.952966928]
+    }
+}

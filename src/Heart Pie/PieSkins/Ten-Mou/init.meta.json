@@ -1,0 +1,11 @@
+{
+    "className": "Model",
+    "ignoreUnknownInstances": true,
+    "properties": {
+        "Attributes": {
+            "SkinId": {"Float64": 2},
+            "ToolTextureId": {"String": "rbxassetid://6405205431"},
+            "ToolTip": {"String": "Ten-Mou Pie: Semi-Hiking Tool"}
+        }
+    }
+}

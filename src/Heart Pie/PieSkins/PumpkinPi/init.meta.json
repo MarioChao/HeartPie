@@ -1,0 +1,11 @@
+{
+    "className": "Model",
+    "ignoreUnknownInstances": true,
+    "properties": {
+        "Attributes": {
+            "SkinId": {"Float64": 3},
+            "ToolTextureId": {"String": "rbxassetid://11626019487"},
+            "ToolTip": {"String": "Pumpkin Pi: Usually goes up in price during Pi Day"}
+        }
+    }
+}

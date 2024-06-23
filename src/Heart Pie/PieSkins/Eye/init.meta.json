@@ -1,0 +1,11 @@
+{
+    "className": "Model",
+    "ignoreUnknownInstances": true,
+    "properties": {
+        "Attributes": {
+            "SkinId": {"Float64": 4},
+            "ToolTextureId": {"String": "rbxassetid://11625809049"},
+            "ToolTip": {"String": "Eye of The Pie: A achievement in the scope of our smallness"}
+        }
+    }
+}

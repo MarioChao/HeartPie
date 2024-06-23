@@ -1,0 +1,17 @@
+{
+    "ClassName": "Folder",
+    "Children": [
+        {
+            "Name": "CSCPieRemoteEvent",
+            "ClassName": "RemoteEvent"
+        },
+        {
+            "Name": "PieHikeEvent",
+            "ClassName": "BindableEvent"
+        },
+        {
+            "Name": "PieHikeRemoteEvent",
+            "ClassName": "RemoteEvent"
+        }
+    ]
+}

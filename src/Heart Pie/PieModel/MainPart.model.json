@@ -1,0 +1,78 @@
+{
+    "ClassName": "Part",
+    "Properties": {
+        "BrickColor": {"BrickColor": 105},
+        "Transparency": 1,
+        "Size": [1, 1, 1],
+        "CanCollide": false,
+        "CanQuery": false,
+        "CanTouch": false,
+        "Massless": true
+    },
+    "Children": [
+        {
+            "Name": "FireSound",
+            "ClassName": "Sound",
+            "Properties": {
+                "SoundId": "rbxassetid://18426149",
+                "Volume": 0.7
+            }
+        },
+        {
+            "Name": "HitSound",
+            "ClassName": "Sound",
+            "Properties": {
+                "SoundId": "rbxassetid://18424769"
+            }
+        },
+        {
+            "Name": "AlignOrientation",
+            "ClassName": "AlignOrientation",
+            "Properties": {
+                "Enabled": false,
+                "Mode": "OneAttachment",
+                "RigidityEnabled": true
+            },
+            "Attributes": {
+                "Rojo_Target_Attachment0": "PieAttachment"
+            }
+        },
+        {
+            "id": "PieAttachment",
+            "Name": "PieAttachment",
+            "ClassName": "Attachment",
+            "Properties": {
+                "CFrame": [0, 0, 0.5, 1, 0, 0, 0, 1, 0, 0, 0, 1]
+            }
+        },
+        {
+            "id": "PieRightGripAttachment",
+            "Name": "PieRightGripAttachment",
+            "ClassName": "Attachment",
+            "Properties": {
+                "CFrame": [0, 0, 0.5, 0, 0, -1, 0, 1, 0, 1, 0, 0]
+            }
+        },
+        {
+            "Name": "RigidConstraint",
+            "ClassName": "RigidConstraint",
+            "Attributes": {
+                "Rojo_Target_Attachment0": "PieRightGripAttachment",
+                "Rojo_Target_Attachment1": "RightGripAttachment"
+            }
+        },
+        {
+            "Name": "UpwardsForce",
+            "ClassName": "VectorForce",
+            "Properties": {
+                "Enabled": false,
+                "ApplyAtCenterOfMass": true,
+                "Force": [0, 240, 0],
+                "RelativeTo": "World"
+            },
+            "Attributes": {
+                "Rojo_Target_Attachment0": "PieAttachment"
+            }
+        }
+    ]
+}
