@@ -59,6 +59,9 @@ local function setUpPieSkinsReferences()
 end
 
 local function setUpPieModelReferences()
+    -- Model primary part
+    PieModel.PrimaryPart = PieMainPart
+
     -- Align orientation
     local alignOrientation = PieMainPart:WaitForChild("AlignOrientation")
     alignOrientation.Attachment0 = PieAttachment

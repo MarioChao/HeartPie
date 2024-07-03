@@ -1,4 +1,5 @@
 {
+    "id": "PieMainPart",
     "ClassName": "Part",
     "Properties": {
         "BrickColor": {"BrickColor": 105},
