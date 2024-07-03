@@ -1,7 +1,7 @@
 {
     "name": "Heart Pie",
     "tree": {
-        "$path": "src"
+        "$path": "src/Heart Pie"
     },
     "emitLegacyScripts": false
 }
