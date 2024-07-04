@@ -5,9 +5,6 @@
         "Transparency": 1,
         "Locked": true,
         "Size": [1, 1, 1],
-        "CanCollide": false,
-        "CanQuery": false,
-        "CanTouch": false,
         "CustomPhysicalProperties": {
             "PhysicalProperties": {
                 "density": 0.01,

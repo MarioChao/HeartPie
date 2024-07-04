@@ -3,6 +3,7 @@
 ## Plans
 
 - Improve how skins are unlocked.
+- Allow pies to be visible if they are initially in the workspace.
 
 ## Porting Progress | 2024/6/22 - 6/23
 
