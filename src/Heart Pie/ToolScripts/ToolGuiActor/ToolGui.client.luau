@@ -100,6 +100,11 @@ local function setupPieToolScreen()
 		if not canSwitchType then
 			return
 		end
+
+		-- Check button
+		if not pieTypeButton then
+			return
+		end
 		
 		-- Create connection
 		pieTypeConnection = pieTypeButton.MouseButton1Click:Connect(onPieTypeClick)
