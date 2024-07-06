@@ -10,12 +10,18 @@ local Icon = ToolValues:WaitForChild("Icon")
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 
+-- Variables
+local toolMouse: Mouse
+
 -- Functions
 local function setCursor(icon: string)
 	if icon ~= "" and Players:GetPlayerFromCharacter(Tool.Parent) ~= Players.LocalPlayer then
 		return
 	end
 	UserInputService.MouseIcon = icon
+	if toolMouse then
+		toolMouse.Icon = icon
+	end
 end
 
 local function changeCursor()
@@ -30,14 +36,16 @@ local function changeCursor()
 	end
 end
 
-local function onEquipped(toolmouse: Mouse)
-	if toolmouse == nil then
+local function onEquipped(currentMouse: Mouse)
+	if not currentMouse then
 		return
 	end
+	toolMouse = currentMouse
 	changeCursor()
 end
 
 local function onUnequipped()
+	toolMouse = nil
 	setCursor("")
 end
 
