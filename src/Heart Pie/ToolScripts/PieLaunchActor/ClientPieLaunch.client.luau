@@ -182,6 +182,10 @@ local function createPieAmmoModel()
 			if originalCanTouch then
 				part.CanTouch = originalCanTouch.Value
 			end
+			local originalCanQuery = part:FindFirstChild("OriginalCanQuery") :: BoolValue
+			if originalCanQuery then
+				part.CanQuery = originalCanQuery.Value
+			end
 		end
 	end
 	if rigidConstraint then

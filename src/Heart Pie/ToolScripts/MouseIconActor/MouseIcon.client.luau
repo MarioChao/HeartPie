@@ -11,7 +11,7 @@ local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 
 -- Variables
-local toolMouse: Mouse
+local toolMouse: Mouse?
 
 -- Functions
 local function setCursor(icon: string)

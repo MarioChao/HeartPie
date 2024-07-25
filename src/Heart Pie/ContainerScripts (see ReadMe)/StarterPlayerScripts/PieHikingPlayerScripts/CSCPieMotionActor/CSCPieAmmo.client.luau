@@ -69,6 +69,7 @@ local function getPieAmmoModel(pieModel: Model, canCollide: boolean, noCollideTr
 				-- Collision & touch
 				part.CanCollide = false
 				part.CanTouch = false
+				part.CanQuery = false
 			end
 		elseif part:IsA("Decal") then
 			-- Transparency
@@ -211,6 +212,10 @@ local function makeCSCPieVisible(pieModel: Model)
 			if originalCanTouch then
 				part.CanTouch = originalCanTouch.Value
 			end
+			local originalCanQuery = part:FindFirstChild("OriginalCanQuery") :: BoolValue
+			if originalCanQuery then
+				part.CanQuery = originalCanQuery.Value
+			end
 		end
 	end
 end
@@ -227,7 +232,7 @@ local function runClientHitEffect(throwPieMainPart: Part, hitPart: BasePart)
 	if not clientHitEffectModule then
 		return
 	end
-	
+
 	-- Quick validation (redundant)
 	local throwerCharacter = creatorPlayer.Character
 	local throwerHumanoid = throwerCharacter and throwerCharacter:FindFirstChildOfClass("Humanoid")

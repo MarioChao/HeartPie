@@ -94,10 +94,16 @@ local function recordOriginalProperties(part: Part)
 		originalCanCollide.Parent = part
 	end
 	if not part:FindFirstChild("OriginalCanTouch") then
-		local originalCanCollide = Instance.new("BoolValue")
-		originalCanCollide.Name = "OriginalCanTouch"
-		originalCanCollide.Value = part.CanTouch
-		originalCanCollide.Parent = part
+		local originalCanTouch = Instance.new("BoolValue")
+		originalCanTouch.Name = "OriginalCanTouch"
+		originalCanTouch.Value = part.CanTouch
+		originalCanTouch.Parent = part
+	end
+	if not part:FindFirstChild("OriginalCanQuery") then
+		local originalCanQuery = Instance.new("BoolValue")
+		originalCanQuery.Name = "OriginalCanQuery"
+		originalCanQuery.Value = part.CanQuery
+		originalCanQuery.Parent = part
 	end
 end
 
@@ -127,9 +133,10 @@ local function setupPieSkins()
 				-- Make invisible
 				part.Transparency = 1
 				
-				-- Disable CanCollide and CanTouch
+				-- Disable CanCollide, CanTouch, and CanQuery
 				part.CanCollide = false
 				part.CanTouch = false
+				part.CanQuery = false
 			end
 		end
 	end
@@ -150,9 +157,10 @@ local function setupPieModel()
 			-- Record original properties
 			recordOriginalProperties(part)
 			
-			-- Disable CanCollide and CanTouch
+			-- Disable CanCollide, CanTouch, and CanQuery
 			part.CanCollide = false
 			part.CanTouch = false
+			part.CanQuery = false
 		end
 	end
 end
