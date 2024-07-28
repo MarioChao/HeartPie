@@ -1,11 +1,11 @@
 --!strict
 -- Client Pie Ammo Script
 
--- PlayerScripts validation check
-local function ancestorIsPlayerScripts(): boolean
-	return script:FindFirstAncestorWhichIsA("PlayerScripts") ~= nil
-end
-if not ancestorIsPlayerScripts() then
+---------- Validate container ----------
+-- Validate the script's container before running any code
+
+-- For certain client scripts
+if not script:FindFirstAncestorWhichIsA("PlayerScripts") then
 	return
 end
 
