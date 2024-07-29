@@ -10,17 +10,16 @@ local PieSkinRemoteEvent = ToolEvents:WaitForChild("PieSkinRemoteEvent")
 local UserInputService = game:GetService("UserInputService")
 
 -- Variables
-local changeSkinIdDebounce = false
+local changeSkinIdThrottle = false
 
 -- Functions
 local function changeSkinIdBy(amount: number)
-	if not changeSkinIdDebounce then
-		changeSkinIdDebounce = true
-		
+	if not changeSkinIdThrottle then
+		changeSkinIdThrottle = true
 		task.delay(0.1, function()
-			changeSkinIdDebounce = false
+			changeSkinIdThrottle = false
 		end)
-		
+
 		PieSkinRemoteEvent:FireServer("Change Skin Id By", amount)
 	end
 end

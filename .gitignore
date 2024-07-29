@@ -1,3 +1,14 @@
-# Project build
-/*.rbxm
+# DS Store
 .DS_Store
+
+# Rojo build files
+/*.rbxm
+
+# Wally lock files
+wally.lock
+
+# Packages
+**/Packages/
+**/ServerPackages/
+**/DevPackages/
+**/TestPackages/

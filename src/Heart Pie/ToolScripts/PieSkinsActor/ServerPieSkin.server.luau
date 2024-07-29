@@ -21,7 +21,7 @@ local pieSkinsTable: {[number]: Model}
 local character: Model? = nil
 local player: Player? = nil
 
-local changeSkinIdDebounce = false
+local changeSkinIdThrottle = false
 
 -- Functions
 local function setSkinIdTo(newSkinId: number)
@@ -62,19 +62,18 @@ local function setSkinIdTo(newSkinId: number)
 end
 
 local function changeSkinIdBy(caller: Player, amount: number)
-	if not changeSkinIdDebounce then
-		changeSkinIdDebounce = true
-		
+	if not changeSkinIdThrottle then
+		changeSkinIdThrottle = true
 		task.delay(0.2, function()
-			changeSkinIdDebounce = false
+			changeSkinIdThrottle = false
 		end)
-		
+
 		-- Validate
 		task.desynchronize()
 		if not (caller == player and tonumber(amount)) then
 			return
 		end
-		
+
 		-- Get new skin id of the pie model
 		local oldSkinId = PieModel:GetAttribute("EquippedSkinId")
 		-- About positive modulo: https://devforum.roblox.com/t/how-to-get-value-which-will-follow-formula-y-x-1-16-1-but-also-for-negative-numbers/2322681
@@ -82,15 +81,15 @@ local function changeSkinIdBy(caller: Player, amount: number)
 		if not pieSkinsTable[newSkinId] then
 			return
 		end
-		
+
 		-- Remove old skin
 		setSkinIdTo(newSkinId)
 	end
 end
 
 local function setupPieSkinsTable()
-	changeSkinIdDebounce = true
-	
+	changeSkinIdThrottle = true
+
 	-- Record valid pie skins
 	task.desynchronize()
 	local validPieSkinsInfo = {} :: {{["Id"]: number, ["Model"]: Model}}
@@ -100,24 +99,24 @@ local function setupPieSkinsTable()
 		if not (pieSkin:IsA("Model") and skinId) then
 			continue
 		end
-		
+
 		-- Add to valid pie skins
 		local skinInfo = {["Id"] = skinId, ["Model"] = pieSkin}
 		table.insert(validPieSkinsInfo, skinInfo)
 	end
-	
+
 	-- Sort valid pie skins by id
 	table.sort(validPieSkinsInfo, function (a, b)
 		return a.Id < b.Id
 	end)
-	
+
 	-- Store pie skins in table
 	pieSkinsTable = {}
 	for _, pieSkinInfo in validPieSkinsInfo do
 		table.insert(pieSkinsTable, pieSkinInfo.Model)
 	end
-	
-	changeSkinIdDebounce = false
+
+	changeSkinIdThrottle = false
 end
 
 local function onToolEquipped()

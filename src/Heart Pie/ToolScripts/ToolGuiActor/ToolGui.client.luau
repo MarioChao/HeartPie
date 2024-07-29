@@ -20,7 +20,7 @@ local pieToolScreen: ScreenGui? = nil
 local pieTypeButton: TextButton? = nil
 local pieTypeConnection: RBXScriptConnection? = nil
 
-local pieTypeClickDebounce = false
+local pieTypeClickThrottle = false
 
 -- Functions
 local function updatePieTypeButton()
@@ -49,13 +49,12 @@ local function setPieType(launchType: string)
 end
 
 local function onPieTypeClick()
-	if not pieTypeClickDebounce then
-		pieTypeClickDebounce = true
-		
+	if not pieTypeClickThrottle then
+		pieTypeClickThrottle = true
 		task.delay(0.2, function()
-			pieTypeClickDebounce = false
+			pieTypeClickThrottle = false
 		end)
-		
+
 		local isClientPieType = Tool:GetAttribute("IsClientPieType")
 		if isClientPieType then
 			-- Change to server pie

@@ -1,0 +1,12 @@
+[package]
+name = "mariochao/heart-pie"
+description = "A complete revamp of the classic pie hiking gear."
+
+version = "1.0.0"
+license = "MIT"
+authors = ["Mario Chao"]
+realm = "shared"
+registry = "https://github.com/UpliftGames/wally-index"
+exclude = ["HeartPie.rbxm", "heart-pie.rbxm", "**/TestPackages"]
+
+[dependencies]

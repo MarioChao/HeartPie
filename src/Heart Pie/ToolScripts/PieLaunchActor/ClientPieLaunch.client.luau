@@ -36,8 +36,6 @@ local pieAmmoMaxSeconds = 12
 
 local printDebug = Tool:GetAttribute("PrintDebug")
 
-local createPieDebounce = false
-
 local character: Model? = nil
 local player: Player? = nil
 
