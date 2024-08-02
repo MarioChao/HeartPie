@@ -5,9 +5,11 @@
 - Improve how skins are unlocked.
 - Allow pies to be visible if they are initially in the workspace.
 
-## Future log | 2024/?/??
+## Future log | 2024/08/02
 
+Small modifications to some container scripts.
 
+Pies no longer stick if they first touched a part 7.5 seconds after launch.
 
 ## Porting Progress | 2024/6/22 - 6/23
 

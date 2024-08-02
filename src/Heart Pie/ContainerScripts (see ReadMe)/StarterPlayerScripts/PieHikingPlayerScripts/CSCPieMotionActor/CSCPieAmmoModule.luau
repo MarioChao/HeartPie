@@ -2,14 +2,14 @@
 -- Client-Server-Client Pie Ammo Module
 
 -- Services
+
 local Debris = game:GetService("Debris")
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 -- Variables
-local PieHikingEvents = ReplicatedStorage:WaitForChild("PieHikingEvents") :: Folder
-local CSCPieRemoteEvent = PieHikingEvents:WaitForChild("CSCPieRemoteEvent") :: RemoteEvent
+
+local unstickPieTime = 7.5
+local removePieTime = 12
 
 ---------- Module ----------
 -- Pie Ammo Class
@@ -39,7 +39,7 @@ function PieAmmo.new(ammoModel: Model, hasHitCharacterEffect: boolean)
 	newPieAmmo.launchTime = nil :: number?
 	newPieAmmo.HasHitCharacterEffect = hasHitCharacterEffect
 	newPieAmmo.Connections = {} :: {RBXScriptConnection}
-	
+
 	-- Check valid
 	local isValid = true
 	if not (newPieAmmo.AmmoInternalLaunchVelocity and newPieAmmo.AmmoMainPart:FindFirstChild("PieAttachment")) then
@@ -52,7 +52,7 @@ function PieAmmo.new(ammoModel: Model, hasHitCharacterEffect: boolean)
 	if not humanoidRootPart or (throwDistance > maxThrowDistance) then
 		isValid = false
 	end
-	
+
 	-- Return
 	if not isValid then
 		newPieAmmo.AmmoModel = nil
@@ -71,7 +71,7 @@ function PieAmmo:unstickPie()
 	if not self.AmmoMainPart then
 		return
 	end
-	
+
 	-- Unstick pie in the script
 	for _, instance in self.AmmoMainPart:GetChildren() do
 		if instance:IsA("WeldConstraint") and instance.Enabled then
@@ -90,7 +90,7 @@ function PieAmmo:launchPie()
 	if not self.AmmoMainPart then
 		return
 	end
-	
+
 	-- Configure and shoot pie with initial velocity
 	self.launchTime = os.clock()
 	self.AmmoSounds.Fire:Play()
@@ -104,16 +104,12 @@ function PieAmmo:launchPie()
 		self:matchAmmoSpin()
 	end
 
-	-- Unstick 7.5 seconds after launch
-	while os.clock() - self.launchTime < 7.5 do
-		task.wait(0.03)
-	end
+	-- Unstick seconds after launch
+	task.wait(unstickPieTime + self.launchTime - os.clock())
 	self:unstickPie()
 
-	-- Remove 12 seconds after launch
-	while os.clock() - self.launchTime < 12 do
-		task.wait(0.03)
-	end
+	-- Remove seconds after launch
+	task.wait(removePieTime + self.launchTime - os.clock())
 	self:removePie()
 	self:cleanup()
 end

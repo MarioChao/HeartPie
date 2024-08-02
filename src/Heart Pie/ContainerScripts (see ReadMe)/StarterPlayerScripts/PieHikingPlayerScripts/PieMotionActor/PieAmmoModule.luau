@@ -2,17 +2,25 @@
 -- Pie Ammo Module
 
 -- Services
+
 local Debris = game:GetService("Debris")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
--- Variables
+-- Instances
+
 local PieHikingEvents = ReplicatedStorage:WaitForChild("PieHikingEvents") :: Folder
 local PieHikeRemoteEvent = PieHikingEvents:WaitForChild("PieHikeRemoteEvent") :: RemoteEvent
 local CSCPieRemoteEvent = PieHikingEvents:WaitForChild("CSCPieRemoteEvent") :: RemoteEvent
 
+-- Variables
+
+local unstickPieTime = 7.5
+local removePieTime = 12
+
 -- Functions
+
 local function getConnectedCharacter(instance: Instance?): Model?
 	-- Find a player's character by looking through root parts and parent instances
 	local loopCount = 0
@@ -43,7 +51,7 @@ local function checkCanHitCharacter(characterThrow: Model?, characterHit: Model?
 	if not (characterThrow and characterHit) then
 		return false
 	end
-	
+
 	-- Check for hitting enemy npc
 	local hitHumanoid = characterHit:FindFirstChildOfClass("Humanoid")
 	if not hitHumanoid then
@@ -53,12 +61,12 @@ local function checkCanHitCharacter(characterThrow: Model?, characterHit: Model?
 		-- (Enemy NPCs of Dream Game)
 		return true
 	end
-	
+
 	-- Check for pvp value
 	if characterThrow:FindFirstChild("pvp") and characterHit:FindFirstChild("pvp") then
 		return true
 	end
-	
+
 	return false
 end
 
@@ -70,9 +78,9 @@ local function getPieModel(instance: Instance?): Model?
 		if instance:IsA("Model") and instance.Name == "PieModel" and instance:FindFirstChild("MainPart") then
 			return instance
 		end
-		
+
 		-- Update variables
-		local parent: Instance? = instance.Parent
+		local parent: Instance? = instance:FindFirstAncestorWhichIsA("Model")
 		instance = parent
 		loopCount += 1
 	end
@@ -107,7 +115,7 @@ function PieAmmo.new(ammoModel: Model, hasHitCharacterEffect: boolean)
 	newPieAmmo.launchTime = nil :: number?
 	newPieAmmo.HasHitCharacterEffect = hasHitCharacterEffect
 	newPieAmmo.Connections = {} :: {RBXScriptConnection}
-	
+
 	-- Check valid
 	local isValid = true
 	if not (newPieAmmo.AmmoInternalLaunchVelocity and newPieAmmo.AmmoMainPart:FindFirstChild("PieAttachment")) then
@@ -120,7 +128,7 @@ function PieAmmo.new(ammoModel: Model, hasHitCharacterEffect: boolean)
 	if not humanoidRootPart or (throwDistance > maxThrowDistance) then
 		isValid = false
 	end
-	
+
 	-- Return
 	if not isValid then
 		newPieAmmo.AmmoModel = nil
@@ -139,14 +147,14 @@ function PieAmmo:canStickTo(hitPart: BasePart): boolean
 	local uniquePieId = self.AmmoModel:FindFirstChild("UniquePieId") :: StringValue
 	local pieTag = uniquePieId and uniquePieId.Value
 	local isThrowClientPie = pieTag
-	
+
 	-- Check if hit part is a Client or CSC pie
 	local hitPieModel = getPieModel(hitPart)
 	local hitPieMainPart = hitPieModel and hitPieModel:FindFirstChild("MainPart") :: Part
 	local hitPieUniqueId = hitPieModel and hitPieModel:FindFirstChild("UniquePieId") :: StringValue
 	local hitPieTag = hitPieUniqueId and hitPieUniqueId.Value
 	local isHitClientPie = hitPieMainPart and hitPieMainPart:IsA("Part") and hitPieTag and typeof(hitPieTag) == "string"
-	
+
 	-- Return
 	if (isThrowClientPie) or (not isThrowClientPie and not isHitClientPie) then
 		return true
@@ -166,7 +174,7 @@ function PieAmmo:runClientHitEffect(hitPart: BasePart)
 	if not clientHitEffectModule then
 		return
 	end
-	
+
 	-- Quick validation
 	local throwerCharacter = creatorPlayer.Character
 	local throwerHumanoid = throwerCharacter and throwerCharacter:FindFirstChildOfClass("Humanoid")
@@ -175,7 +183,7 @@ function PieAmmo:runClientHitEffect(hitPart: BasePart)
 	if throwerCharacter ~= creator.Character then
 		return
 	end
-	
+
 	-- Run effect
 	local clientHitEffect = require(clientHitEffectModule) :: {[string]: any}
 	clientHitEffect.onHit(throwerCharacter, throwPieMainPart, hitPart)
@@ -189,13 +197,13 @@ function PieAmmo:stickPieReplicate(hitPart: BasePart, relativeCFrame: CFrame)
 	local hitPieUniqueId = hitPieModel and hitPieModel:FindFirstChild("UniquePieId") :: StringValue
 	local hitPieTag = hitPieUniqueId and hitPieUniqueId.Value
 	local isHitClientPie = hitPieMainPart and hitPieMainPart:IsA("Part") and hitPieTag and typeof(hitPieTag) == "string"
-	
+
 	-- Check if the current pie is a Client pie
 	local uniquePieId = self.AmmoModel:FindFirstChild("UniquePieId") :: StringValue
 	local pieTag = uniquePieId and uniquePieId.Value
 	if not pieTag then
 		--[[ Current pie is a Server pie ]]
-		
+
 		-- Check if hit part is a Client or CSC pie
 		task.synchronize()
 		if isHitClientPie and hitPieMainPart then
@@ -208,7 +216,7 @@ function PieAmmo:stickPieReplicate(hitPart: BasePart, relativeCFrame: CFrame)
 		end
 	else
 		--[[ Current pie is a Client pie ]]
-		
+
 		-- Check if hit part is a Client or CSC pie
 		task.synchronize()
 		if not (hitPieMainPart and isHitClientPie) then
@@ -219,7 +227,7 @@ function PieAmmo:stickPieReplicate(hitPart: BasePart, relativeCFrame: CFrame)
 			relativeCFrame = hitPieMainPart.CFrame:ToObjectSpace(self.AmmoMainPart.CFrame)
 			CSCPieRemoteEvent:FireServer("Stick CSC Pie To CSC Pie", pieTag, hitPieTag, hitPieMainPart.CFrame, relativeCFrame)
 		end
-		
+
 		-- Run hit effect
 		self:runClientHitEffect(hitPart)
 	end
@@ -232,12 +240,12 @@ function PieAmmo:stickPie(hitPart: BasePart, relativeCFrame: CFrame)
 	if not mainPart then
 		return
 	end
-	
+
 	-- Stick pie in the other environments
 	task.defer(function()
 		self:stickPieReplicate(hitPart, relativeCFrame)
 	end)
-	
+
 	-- Disable forces and align orientation in the client
 	task.synchronize()
 	local upwardsForce = mainPart:FindFirstChild("UpwardsForce") :: VectorForce
@@ -248,7 +256,7 @@ function PieAmmo:stickPie(hitPart: BasePart, relativeCFrame: CFrame)
 	if alignOrientation then
 		alignOrientation.Enabled = false
 	end
-	
+
 	-- Stick pie in the client
 	local targetCFrame = hitPart.CFrame:ToWorldSpace(relativeCFrame)
 	mainPart:PivotTo(targetCFrame)
@@ -265,7 +273,7 @@ function PieAmmo:unstickPie()
 	if not self.AmmoMainPart then
 		return
 	end
-	
+
 	-- Unstick pie in the server
 	PieHikeRemoteEvent:FireServer("Unstick", self.AmmoMainPart)
 
@@ -282,7 +290,7 @@ function PieAmmo:removePie()
 	if not self.AmmoModel then
 		return
 	end
-	
+
 	-- Remove pie in the server
 	PieHikeRemoteEvent:FireServer("Remove", self.AmmoModel)
 
@@ -295,7 +303,7 @@ function PieAmmo:launchPie()
 	if not self.AmmoMainPart then
 		return
 	end
-	
+
 	-- Configure and shoot pie with initial velocity
 	self.launchTime = os.clock()
 	self.AmmoSounds.Fire:Play()
@@ -309,16 +317,12 @@ function PieAmmo:launchPie()
 		self:matchAmmoSpin()
 	end
 
-	-- Unstick 7.5 seconds after launch
-	while os.clock() - self.launchTime < 7.5 do
-		task.wait(0.03)
-	end
+	-- Unstick seconds after launch
+	task.wait(unstickPieTime + self.launchTime - os.clock())
 	self:unstickPie()
 
-	-- Remove 12 seconds after launch
-	while os.clock() - self.launchTime < 12 do
-		task.wait(0.03)
-	end
+	-- Remove seconds after launch
+	task.wait(removePieTime + self.launchTime - os.clock())
 	self:removePie()
 	self:cleanup()
 end
@@ -330,7 +334,7 @@ function PieAmmo:matchAmmoSpin()
 	if not (mainPart and alignOrientation and alignOrientation.Enabled) then
 		return
 	end
-	
+
 	-- Match align orientation's CFrame with main part's velocity
 	local connection = RunService.Heartbeat:Connect(function()
 		if mainPart and alignOrientation then
@@ -340,18 +344,25 @@ function PieAmmo:matchAmmoSpin()
 	table.insert(self.Connections, connection)
 end
 
-function PieAmmo:onTouched(otherPart: BasePart, mainPartRelativeCFrame: CFrame)	
+function PieAmmo:onTouched(otherPart: BasePart, mainPartRelativeCFrame: CFrame)
 	-- Validate touch
 	task.desynchronize()
 	if not (otherPart and otherPart.Parent) or self.pieStuck then
 		return
 	end
+
+	-- Validate unstick time
+	if not (os.clock() - self.launchTime <= unstickPieTime) then
+		return
+	end
+
 	-- Check for touching non-pvp character
 	local touchedCharacter = getConnectedCharacter(otherPart)
 	local creatorPlayer = self.AmmoCreator.Value :: Player
 	if creatorPlayer and touchedCharacter and (creatorPlayer.Character == touchedCharacter or not checkCanHitCharacter(creatorPlayer.Character, touchedCharacter)) then
 		return
 	end
+
 	-- Validate hitting pie
 	if not self:canStickTo(otherPart) then
 		return
@@ -366,7 +377,7 @@ function PieAmmo:onTouched(otherPart: BasePart, mainPartRelativeCFrame: CFrame)
 	self.AmmoSounds.Hit:Play()
 	task.defer(function()
 		self:stickPie(otherPart, mainPartRelativeCFrame)
-		
+
 		-- Hit character effect
 		if creatorPlayer and touchedCharacter and self.HasHitCharacterEffect then
 			PieHikeRemoteEvent:FireServer("Pie Hit Character Effect", creatorPlayer.Character, touchedCharacter, self.AmmoMainPart)
@@ -385,7 +396,7 @@ function PieAmmo:setupAmmo()
 			local connection = part.Touched:Connect(function(otherPart: BasePart)
 				-- Calculate immediate offset
 				local mainPartRelativeCFrame = otherPart.CFrame:ToObjectSpace(self.AmmoMainPart.CFrame)
-				
+
 				self:onTouched(otherPart, mainPartRelativeCFrame)
 			end)
 			table.insert(self.Connections, connection)
