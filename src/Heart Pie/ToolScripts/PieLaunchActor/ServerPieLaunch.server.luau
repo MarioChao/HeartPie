@@ -70,18 +70,18 @@ local function onLaunchPie(caller: Player, launchMotion: Motion)
 		end
 		return
 	end
-	
+
 	-- Sanity check for Client pies
 	local isClientPieType = Tool:GetAttribute("IsClientPieType")
 	if isClientPieType then
 		return
 	end
-	
+
 	-- Sanity check for launch time
 	if os.clock() - lastLaunchTime < launchMinIntervalSeconds then
 		return
 	end
-	
+
 	-- Validate ammo model
 	if not PieAmmoModel then
 		return
@@ -108,12 +108,12 @@ local function onLaunchPie(caller: Player, launchMotion: Motion)
 	newPieCreator.Parent = newPieAmmoModel
 	local pieSpinByVelocity = Tool:GetAttribute("PieSpinByVelocity")
 	newPieAmmoModel:SetAttribute("InternalSpinByVelocity", pieSpinByVelocity)
-	
+
 	-- Setup pie effects
 	local newPieSkinFolder = newPieAmmoModel:FindFirstChild("PieSkin")
 	local newEffectsList = EffectsList:Clone()
 	newEffectsList.Parent = newPieSkinFolder
-	
+
 	-- Setup pie align orientation
 	local pieAlignSpin = Tool:GetAttribute("PieAlignSpin")
 	local newPieAlignOrientation = newPieAmmoMainPart:FindFirstChild("AlignOrientation") :: AlignOrientation
@@ -122,7 +122,6 @@ local function onLaunchPie(caller: Player, launchMotion: Motion)
 
 	-- Setup pie ammo position
 	newPieAmmoModel.Parent = workspace -- Might cause exception
-
 	newPieAmmoMainPart:PivotTo(launchCFrame)
 	newPieAmmoMainPart.Anchored = false
 	newPieAmmoMainPart.CanCollide = true
@@ -141,7 +140,7 @@ local function createPieAmmoModel()
 	if not PieModel:FindFirstChild("PieSkin") then
 		return
 	end
-	
+
 	-- Clone the pie model
 	local pieAmmoModel = PieModel:Clone()
 	local pieAmmoMainPart = pieAmmoModel:FindFirstChild("MainPart") :: Part
@@ -179,7 +178,7 @@ local function createPieAmmoModel()
 	if upwardsForce then
 		upwardsForce.Enabled = true
 	end
-	
+
 	-- Update pie ammo model
 	if PieAmmoModel then
 		Debris:AddItem(PieAmmoModel, 0)
@@ -190,7 +189,7 @@ end
 local function onEquipped()
 	character = Tool.Parent
 	player = character and Players:GetPlayerFromCharacter(character)
-	
+
 	createPieAmmoModel()
 end
 

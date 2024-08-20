@@ -3,7 +3,7 @@
     "ignoreUnknownInstances": true,
     "properties": {
         "Attributes": {
-            "SkinId": {"Float64": 1},
+            "SkinId": {"Float64": 2},
             "ToolTextureId": {"String": "rbxassetid://5668571834"},
             "ToolTip": {"String": "Moon Pie: Hiking Tool"}
         }

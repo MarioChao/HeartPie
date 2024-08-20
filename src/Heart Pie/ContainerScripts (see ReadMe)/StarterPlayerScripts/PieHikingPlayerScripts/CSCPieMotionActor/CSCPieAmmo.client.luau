@@ -44,7 +44,7 @@ local function getPieAmmoModel(pieModel: Model, canCollide: boolean, noCollideTr
 	local pieAttachment = pieAmmoMainPart:FindFirstChild("PieAttachment") :: Attachment
 	local rigidConstraint = pieAmmoMainPart and pieAmmoMainPart:FindFirstChild("RigidConstraint") :: RigidConstraint
 	local upwardsForce = pieAmmoMainPart and pieAmmoMainPart:FindFirstChild("UpwardsForce") :: VectorForce
-	
+
 	-- Set up objects
 	for _, part in pieAmmoModel:GetDescendants() do
 		if part:IsA("BasePart") then
@@ -56,14 +56,14 @@ local function getPieAmmoModel(pieModel: Model, canCollide: boolean, noCollideTr
 			else
 				newTransparency = part.Transparency
 			end
-			
+
 			part.Transparency = newTransparency
-			
+
 			-- No collide transparency
 			if not canCollide then
 				part.LocalTransparencyModifier = noCollideTransparency
 			end
-			
+
 			-- Collisions
 			if part:IsA("BasePart") then
 				-- Collision & touch
@@ -96,7 +96,7 @@ local function getPieAmmoModel(pieModel: Model, canCollide: boolean, noCollideTr
 	if upwardsForce then
 		upwardsForce.Enabled = true
 	end
-	
+
 	return pieAmmoModel
 end
 
@@ -105,23 +105,23 @@ local function onLaunchCSCPie(creatorPlayer: Player, launchMotion: FinalizedMoti
 	if not (pieModel and pieModel.Parent and typeof(clientPieId) == "string") then
 		return
 	end
-	
+
 	-- Get launch motion
 	local launchCFrame = launchMotion.CFrame :: CFrame
 	local launchDirection = launchMotion.Direction :: Vector3
 	local launchVelocity = launchMotion.Velocity :: number
-	
+
 	-- Setup pie ammo
 	local pieAmmoModel = getPieAmmoModel(pieModel, canCollide, noCollideTransparency)
 	local pieAmmoMainPart = pieAmmoModel:FindFirstChild("MainPart") :: Part
-	
+
 	-- Tag the pie ammo model
 	CollectionService:AddTag(pieAmmoModel, clientPieId)
 	local uniquePieId = Instance.new("StringValue")
 	uniquePieId.Name = "UniquePieId"
 	uniquePieId.Value = clientPieId
 	uniquePieId.Parent = pieAmmoModel
-	
+
 	-- Setup pie values
 	local internalLaunchVelocity = launchDirection.Unit * launchVelocity
 	pieAmmoModel:SetAttribute("InternalLaunchVelocity", internalLaunchVelocity)
@@ -133,7 +133,7 @@ local function onLaunchCSCPie(creatorPlayer: Player, launchMotion: FinalizedMoti
 	pieAmmoModel:SetAttribute("InternalSpinByVelocity", internalSpinByVelocity)
 	local onlyCollideLocal = not canCollide
 	pieAmmoModel:SetAttribute("OnlyCollideLocal", onlyCollideLocal)
-	
+
 	-- Setup pie effects
 	local pieTool = pieModel.Parent :: Tool
 	local pieSkins = pieTool:FindFirstChild("PieSkins") :: Folder
@@ -141,23 +141,23 @@ local function onLaunchCSCPie(creatorPlayer: Player, launchMotion: FinalizedMoti
 	local newEffectsList = effectsList:Clone()
 	local pieSkinFolder = pieAmmoModel:FindFirstChild("PieSkin") :: Folder
 	newEffectsList.Parent = pieSkinFolder
-	
+
 	-- Setup pie align orientation
 	local pieAlignSpin = (pieSpinInfo.AlignSpin == true)
 	local pieAlignOrientation = pieAmmoMainPart:FindFirstChild("AlignOrientation") :: AlignOrientation
 	pieAlignOrientation.CFrame = CFrame.new(Vector3.zero, launchDirection.Unit)
 	pieAlignOrientation.Enabled = pieAlignSpin
-	
+
 	-- Setup pie ammo position
 	pieAmmoModel.Parent = workspace
 	pieAmmoMainPart:PivotTo(launchCFrame)
 	pieAmmoMainPart.Anchored = false
-	
+
 	-- Launch pie
 	task.defer(function()
 		newAmmo(pieAmmoModel)
 	end)
-	
+
 	-- Remove pie after a while
 	Debris:AddItem(pieAmmoModel, 12)
 end
@@ -169,7 +169,7 @@ local function getPieFromPieId(pieId: string): Model?
 	if #taggedObjects ~= 1 then
 		return nil
 	end
-	
+
 	-- Validate pie model
 	local taggedPieModel = taggedObjects[1] :: Model
 	local taggedPieMainPart = taggedPieModel and taggedPieModel:FindFirstChild("MainPart") :: Part
@@ -183,7 +183,7 @@ local function getPieFromPieId(pieId: string): Model?
 	if not (pieUniqueId and pieId == pieUniqueId.Value) then
 		return
 	end
-	
+
 	return taggedPieModel
 end
 
@@ -193,7 +193,7 @@ local function makeCSCPieVisible(pieModel: Model)
 	if pieOnlyCollideLocal then
 		return
 	end
-	
+
 	-- Change pie's collision and touch
 	for _, part in pieModel:GetDescendants() do
 		if part:IsA("BasePart") then
@@ -262,7 +262,7 @@ local function stickPiePartToPart(throwPieModel: Model, throwPieMainPart: Part, 
 	if alignOrientation then
 		alignOrientation.Enabled = false
 	end
-	
+
 	-- Offset main part and stick
 	local targetCFrame = hitPart.CFrame:ToWorldSpace(relativeCFrame)
 	throwPieMainPart:PivotTo(targetCFrame)
@@ -270,9 +270,9 @@ local function stickPiePartToPart(throwPieModel: Model, throwPieMainPart: Part, 
 	weldConstraint.Part0 = throwPieMainPart
 	weldConstraint.Part1 = hitPart
 	weldConstraint.Parent = throwPieMainPart
-	
+
 	--print("CSC stick")
-	
+
 	-- Run hit effect (disabled for now)
 	--runClientHitEffect(throwPieMainPart, hitPart)
 end
@@ -288,7 +288,7 @@ local function onStickCSCPieToPart(throwPieId: string, hitPart: BasePart?, hitCF
 	if not (hitPart and hitPart:IsA("BasePart")) then
 		return
 	end
-	
+
 	-- Stick pie part
 	task.synchronize()
 	stickPiePartToPart(throwPieModel, throwPieMainPart, hitPart, relativeCFrame)
@@ -306,7 +306,7 @@ local function onStickCSCPieToCSCPie(throwPieId: string, hitPieId: string, hitCF
 	if not (hitPieMainPart and hitPieMainPart:FindFirstChild("PieAttachment") and hitPieMainPart:IsA("Part")) then
 		return
 	end
-	
+
 	-- Stick pie part
 	task.synchronize()
 	stickPiePartToPart(throwPieModel, throwPieMainPart, hitPieMainPart, relativeCFrame)

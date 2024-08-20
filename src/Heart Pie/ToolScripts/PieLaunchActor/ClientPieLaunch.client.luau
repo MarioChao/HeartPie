@@ -78,7 +78,7 @@ local function onLaunchPie(caller: Player, launchMotion: Motion)
 	if os.clock() - lastLaunchTime < launchMinIntervalSeconds then
 		return
 	end
-	
+
 	-- Validate ammo model
 	if not PieAmmoModel then
 		return
@@ -89,10 +89,10 @@ local function onLaunchPie(caller: Player, launchMotion: Motion)
 	local launchDirection = launchMotion.Direction :: Vector3
 	local launchOffsetStuds = Tool:GetAttribute("LaunchOffsetStuds")
 	launchCFrame += launchDirection.Unit * launchOffsetStuds
-	
+
 	-- Create Client pie's unique id
 	local clientPieId = HttpService:GenerateGUID(true)
-	
+
 	-- Launch CSC Pie
 	task.synchronize()
 	local finalizedLaunchMotion = {
@@ -105,7 +105,7 @@ local function onLaunchPie(caller: Player, launchMotion: Motion)
 	-- Setup new pie ammo
 	local newPieAmmoModel = PieAmmoModel:Clone()
 	local newPieAmmoMainPart = newPieAmmoModel:FindFirstChild("MainPart") :: Part
-	
+
 	-- Tag the new pie ammo model
 	CollectionService:AddTag(newPieAmmoModel, clientPieId)
 	local uniquePieId = Instance.new("StringValue")
@@ -123,12 +123,12 @@ local function onLaunchPie(caller: Player, launchMotion: Motion)
 	newPieCreator.Parent = newPieAmmoModel
 	local pieSpinByVelocity = Tool:GetAttribute("PieSpinByVelocity")
 	newPieAmmoModel:SetAttribute("InternalSpinByVelocity", pieSpinByVelocity)
-	
+
 	-- Setup pie effects
 	local newPieSkinFolder = newPieAmmoModel:FindFirstChild("PieSkin")
 	local newEffectsList = EffectsList:Clone()
 	newEffectsList.Parent = newPieSkinFolder
-	
+
 	-- Setup pie align orientation
 	local pieAlignSpin = Tool:GetAttribute("PieAlignSpin")
 	local newPieAlignOrientation = newPieAmmoMainPart:FindFirstChild("AlignOrientation") :: AlignOrientation
@@ -154,7 +154,7 @@ local function createPieAmmoModel()
 	if not PieModel:FindFirstChild("PieSkin") then
 		return
 	end
-	
+
 	-- Clone the pie model
 	local pieAmmoModel = PieModel:Clone()
 	local pieAmmoMainPart = pieAmmoModel:FindFirstChild("MainPart") :: Part
@@ -203,7 +203,7 @@ end
 local function onEquipped()
 	character = Tool.Parent
 	player = character and Players:GetPlayerFromCharacter(character)
-	
+
 	createPieAmmoModel()
 end
 

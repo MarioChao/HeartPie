@@ -1,53 +1,51 @@
 --!strict
 -- Client-Server-Client Pie Ammo Module
 
--- Services
+---------- Module ----------
+local PieAmmo = {}
+PieAmmo.__index = PieAmmo
+
+---------- Services ----------
 
 local Debris = game:GetService("Debris")
 local RunService = game:GetService("RunService")
 
--- Variables
+---------- Variables ----------
 
 local unstickPieTime = 7.5
 local removePieTime = 12
 
----------- Module ----------
--- Pie Ammo Class
-local PieAmmo = {}
-PieAmmo.mt = {}
-PieAmmo.mt.__index = PieAmmo
+---------- Module functions ----------
 
--- Class Attributes
+-- Constructor
 function PieAmmo.new(ammoModel: Model, hasHitCharacterEffect: boolean)
-	-- Constructor
-	local newPieAmmo = {} :: {[string]: any}
-	setmetatable(newPieAmmo, PieAmmo.mt)
+	local self = setmetatable({}, PieAmmo)
 
 	-- Ammo Info
-	newPieAmmo.AmmoModel = ammoModel
-	newPieAmmo.AmmoMainPart = newPieAmmo.AmmoModel:WaitForChild("MainPart") :: Part
-	newPieAmmo.AmmoSounds = {
-		["Fire"] = newPieAmmo.AmmoMainPart:WaitForChild("FireSound") :: Sound,
-		["Hit"] = newPieAmmo.AmmoMainPart:WaitForChild("HitSound") :: Sound
+	self.AmmoModel = ammoModel
+	self.AmmoMainPart = self.AmmoModel:WaitForChild("MainPart") :: Part
+	self.AmmoSounds = {
+		["Fire"] = self.AmmoMainPart:WaitForChild("FireSound") :: Sound,
+		["Hit"] = self.AmmoMainPart:WaitForChild("HitSound") :: Sound
 	}
-	newPieAmmo.AmmoInternalLaunchVelocity = newPieAmmo.AmmoModel:GetAttribute("InternalLaunchVelocity") :: Vector3
-	newPieAmmo.AmmoCreator = newPieAmmo.AmmoModel:WaitForChild("Creator") :: ObjectValue
-	newPieAmmo.AmmoPieSpins = newPieAmmo.AmmoModel:GetAttribute("InternalSpinByVelocity") :: boolean
+	self.AmmoInternalLaunchVelocity = self.AmmoModel:GetAttribute("InternalLaunchVelocity") :: Vector3
+	self.AmmoCreator = self.AmmoModel:WaitForChild("Creator") :: ObjectValue
+	self.AmmoPieSpins = self.AmmoModel:GetAttribute("InternalSpinByVelocity") :: boolean
 
 	-- Variables
-	newPieAmmo.pieStuck = false
-	newPieAmmo.launchTime = nil :: number?
-	newPieAmmo.HasHitCharacterEffect = hasHitCharacterEffect
-	newPieAmmo.Connections = {} :: {RBXScriptConnection}
+	self.pieStuck = false
+	self.launchTime = nil :: number?
+	self.HasHitCharacterEffect = hasHitCharacterEffect
+	self.Connections = {} :: {RBXScriptConnection}
 
 	-- Check valid
 	local isValid = true
-	if not (newPieAmmo.AmmoInternalLaunchVelocity and newPieAmmo.AmmoMainPart:FindFirstChild("PieAttachment")) then
+	if not (self.AmmoInternalLaunchVelocity and self.AmmoMainPart:FindFirstChild("PieAttachment")) then
 		isValid = false
 	end
-	local character = newPieAmmo.AmmoCreator and newPieAmmo.AmmoCreator.Value.Character
+	local character = self.AmmoCreator and self.AmmoCreator.Value.Character
 	local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart") :: Part
-	local throwDistance = humanoidRootPart and (newPieAmmo.AmmoMainPart.Position - humanoidRootPart.Position).Magnitude
+	local throwDistance = humanoidRootPart and (self.AmmoMainPart.Position - humanoidRootPart.Position).Magnitude
 	local maxThrowDistance = humanoidRootPart and (20 + humanoidRootPart.AssemblyLinearVelocity.Magnitude / 6)
 	if not humanoidRootPart or (throwDistance > maxThrowDistance) then
 		isValid = false
@@ -55,17 +53,18 @@ function PieAmmo.new(ammoModel: Model, hasHitCharacterEffect: boolean)
 
 	-- Return
 	if not isValid then
-		newPieAmmo.AmmoModel = nil
-		newPieAmmo.AmmoMainPart = nil
-		newPieAmmo.AmmoSounds = nil
-		newPieAmmo.AmmoInternalLaunchVelocity = nil
-		newPieAmmo.AmmoCreator = nil
-		newPieAmmo.AmmoPieSpins = nil
+		self.AmmoModel = nil
+		self.AmmoMainPart = nil
+		self.AmmoSounds = nil
+		self.AmmoInternalLaunchVelocity = nil
+		self.AmmoCreator = nil
+		self.AmmoPieSpins = nil
 	end
-	return newPieAmmo
+	return self
 end
 
 -- Functions
+
 function PieAmmo:unstickPie()
 	-- Validate ammo main part
 	if not self.AmmoMainPart then
@@ -93,7 +92,6 @@ function PieAmmo:launchPie()
 
 	-- Configure and shoot pie with initial velocity
 	self.launchTime = os.clock()
-	self.AmmoSounds.Fire:Play()
 	-- Check if ammo is not stuck before giving velocity
 	local ammoMainPart = self.AmmoMainPart :: Part
 	local ammoAssemblyRootPart = ammoMainPart.AssemblyRootPart
@@ -110,7 +108,6 @@ function PieAmmo:launchPie()
 
 	-- Remove seconds after launch
 	task.wait(removePieTime + self.launchTime - os.clock())
-	self:removePie()
 	self:cleanup()
 end
 
@@ -132,12 +129,17 @@ function PieAmmo:matchAmmoSpin()
 end
 
 function PieAmmo:cleanup()
+	self:removePie()
 	for _, connection in self.Connections do
 		if connection.Connected then
 			connection:Disconnect()
 			connection = nil
 		end
 	end
+end
+
+function PieAmmo:destroy()
+	self:cleanup()
 end
 
 return PieAmmo

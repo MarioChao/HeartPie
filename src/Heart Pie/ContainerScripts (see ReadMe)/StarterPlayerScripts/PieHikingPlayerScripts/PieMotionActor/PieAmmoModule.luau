@@ -1,25 +1,30 @@
 --!strict
 -- Pie Ammo Module
 
--- Services
+---------- Module ----------
+local PieAmmo = {}
+PieAmmo.__index = PieAmmo
+
+---------- Services ----------
 
 local Debris = game:GetService("Debris")
+local PhysicsService = game:GetService("PhysicsService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
--- Instances
+---------- Instances ----------
 
 local PieHikingEvents = ReplicatedStorage:WaitForChild("PieHikingEvents") :: Folder
 local PieHikeRemoteEvent = PieHikingEvents:WaitForChild("PieHikeRemoteEvent") :: RemoteEvent
 local CSCPieRemoteEvent = PieHikingEvents:WaitForChild("CSCPieRemoteEvent") :: RemoteEvent
 
--- Variables
+---------- Variables ----------
 
 local unstickPieTime = 7.5
 local removePieTime = 12
 
--- Functions
+---------- Local functions ----------
 
 local function getConnectedCharacter(instance: Instance?): Model?
 	-- Find a player's character by looking through root parts and parent instances
@@ -87,43 +92,38 @@ local function getPieModel(instance: Instance?): Model?
 	return nil
 end
 
----------- Module ----------
--- Pie Ammo Class
-local PieAmmo = {}
-PieAmmo.mt = {}
-PieAmmo.mt.__index = PieAmmo
+---------- Module functions ----------
 
--- Class Attributes
+-- Constructor
 function PieAmmo.new(ammoModel: Model, hasHitCharacterEffect: boolean)
-	-- Constructor
-	local newPieAmmo = {} :: {[string]: any}
-	setmetatable(newPieAmmo, PieAmmo.mt)
+	local self = setmetatable({}, PieAmmo)
 
 	-- Ammo Info
-	newPieAmmo.AmmoModel = ammoModel
-	newPieAmmo.AmmoMainPart = newPieAmmo.AmmoModel:WaitForChild("MainPart") :: Part
-	newPieAmmo.AmmoSounds = {
-		["Fire"] = newPieAmmo.AmmoMainPart:WaitForChild("FireSound") :: Sound,
-		["Hit"] = newPieAmmo.AmmoMainPart:WaitForChild("HitSound") :: Sound
+	self.AmmoModel = ammoModel
+	self.AmmoMainPart = self.AmmoModel:WaitForChild("MainPart") :: Part
+	self.AmmoSounds = {
+		["Fire"] = self.AmmoMainPart:WaitForChild("FireSound") :: Sound,
+		["Hit"] = self.AmmoMainPart:WaitForChild("HitSound") :: Sound
 	}
-	newPieAmmo.AmmoInternalLaunchVelocity = newPieAmmo.AmmoModel:GetAttribute("InternalLaunchVelocity") :: Vector3
-	newPieAmmo.AmmoCreator = newPieAmmo.AmmoModel:WaitForChild("Creator") :: ObjectValue
-	newPieAmmo.AmmoPieSpins = newPieAmmo.AmmoModel:GetAttribute("InternalSpinByVelocity") :: boolean
+	self.AmmoInternalLaunchVelocity = self.AmmoModel:GetAttribute("InternalLaunchVelocity") :: Vector3
+	self.AmmoCreator = self.AmmoModel:WaitForChild("Creator") :: ObjectValue
+	self.AmmoPieSpins = self.AmmoModel:GetAttribute("InternalSpinByVelocity") :: boolean
+	self.AmmoCanOverlapPart = self.AmmoModel:GetAttribute("CanOverlapPart") :: boolean
 
 	-- Variables
-	newPieAmmo.pieStuck = false
-	newPieAmmo.launchTime = nil :: number?
-	newPieAmmo.HasHitCharacterEffect = hasHitCharacterEffect
-	newPieAmmo.Connections = {} :: {RBXScriptConnection}
+	self.pieStuck = false
+	self.launchTime = nil :: number?
+	self.HasHitCharacterEffect = hasHitCharacterEffect
+	self.Connections = {} :: {RBXScriptConnection}
 
 	-- Check valid
 	local isValid = true
-	if not (newPieAmmo.AmmoInternalLaunchVelocity and newPieAmmo.AmmoMainPart:FindFirstChild("PieAttachment")) then
+	if not (self.AmmoInternalLaunchVelocity and self.AmmoMainPart:FindFirstChild("PieAttachment")) then
 		isValid = false
 	end
-	local character = newPieAmmo.AmmoCreator and newPieAmmo.AmmoCreator.Value.Character
+	local character = self.AmmoCreator and self.AmmoCreator.Value.Character
 	local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart") :: Part
-	local throwDistance = humanoidRootPart and (newPieAmmo.AmmoMainPart.Position - humanoidRootPart.Position).Magnitude
+	local throwDistance = humanoidRootPart and (self.AmmoMainPart.Position - humanoidRootPart.Position).Magnitude
 	local maxThrowDistance = humanoidRootPart and (20 + humanoidRootPart.AssemblyLinearVelocity.Magnitude / 6)
 	if not humanoidRootPart or (throwDistance > maxThrowDistance) then
 		isValid = false
@@ -131,17 +131,19 @@ function PieAmmo.new(ammoModel: Model, hasHitCharacterEffect: boolean)
 
 	-- Return
 	if not isValid then
-		newPieAmmo.AmmoModel = nil
-		newPieAmmo.AmmoMainPart = nil
-		newPieAmmo.AmmoSounds = nil
-		newPieAmmo.AmmoInternalLaunchVelocity = nil
-		newPieAmmo.AmmoCreator = nil
-		newPieAmmo.AmmoPieSpins = nil
+		self.AmmoModel = nil
+		self.AmmoMainPart = nil
+		self.AmmoSounds = nil
+		self.AmmoInternalLaunchVelocity = nil
+		self.AmmoCreator = nil
+		self.AmmoPieSpins = nil
+		self.AmmoCanOverlapPart = nil
 	end
-	return newPieAmmo
+	return self
 end
 
 -- Functions
+
 function PieAmmo:canStickTo(hitPart: BasePart): boolean
 	-- Check if the current pie is a Client pie
 	local uniquePieId = self.AmmoModel:FindFirstChild("UniquePieId") :: StringValue
@@ -301,6 +303,7 @@ end
 function PieAmmo:launchPie()
 	-- Validate ammo main part
 	if not self.AmmoMainPart then
+		print("not main part")
 		return
 	end
 
@@ -323,7 +326,6 @@ function PieAmmo:launchPie()
 
 	-- Remove seconds after launch
 	task.wait(removePieTime + self.launchTime - os.clock())
-	self:removePie()
 	self:cleanup()
 end
 
@@ -347,7 +349,12 @@ end
 function PieAmmo:onTouched(otherPart: BasePart, mainPartRelativeCFrame: CFrame)
 	-- Validate touch
 	task.desynchronize()
-	if not (otherPart and otherPart.Parent) or self.pieStuck then
+	if not (otherPart and otherPart.Parent) then
+		return
+	end
+
+	-- Validate not stuck
+	if self.pieStuck then
 		return
 	end
 
@@ -385,32 +392,67 @@ function PieAmmo:onTouched(otherPart: BasePart, mainPartRelativeCFrame: CFrame)
 	end)
 end
 
+function PieAmmo:_onTouched(otherPart: BasePart)
+	-- Validate not self
+	if otherPart.AssemblyRootPart == self.AmmoMainPart.AssemblyRootPart then
+		return
+	end
+
+	-- Validate can touch
+	task.synchronize()
+	if not otherPart.CanTouch then
+		return
+	end
+	if not PhysicsService:CollisionGroupsAreCollidable(self.AmmoMainPart.CollisionGroup, otherPart.CollisionGroup) then
+		return
+	end
+
+	-- Calculate immediate offset
+	local mainPartRelativeCFrame = otherPart.CFrame:ToObjectSpace(self.AmmoMainPart.CFrame)
+
+	self:onTouched(otherPart, mainPartRelativeCFrame)
+end
+
 function PieAmmo:setupAmmo()
 	-- Validate ammo model
 	if not self.AmmoModel then
 		return
 	end
+	self.launchTime = os.clock()
 	-- Connect Touched events on every physical pie parts
 	for _, part in self.AmmoModel:GetDescendants() do
 		if part:IsA("BasePart") and part.CanTouch then
+			-- Touched connection
 			local connection = part.Touched:Connect(function(otherPart: BasePart)
-				-- Calculate immediate offset
-				local mainPartRelativeCFrame = otherPart.CFrame:ToObjectSpace(self.AmmoMainPart.CFrame)
-
-				self:onTouched(otherPart, mainPartRelativeCFrame)
+				self:_onTouched(otherPart)
 			end)
 			table.insert(self.Connections, connection)
+
+			-- Check initial touched
+			if self.AmmoCanOverlapPart then
+				task.defer(function()
+					local touchingParts = workspace:GetPartsInPart(part)
+					for _, otherPart in touchingParts do
+						self:_onTouched(otherPart)
+					end
+				end)
+			end
 		end
 	end
 end
 
 function PieAmmo:cleanup()
+	self:removePie()
 	for _, connection in self.Connections do
 		if connection.Connected then
 			connection:Disconnect()
 			connection = nil
 		end
 	end
+end
+
+function PieAmmo:destroy()
+	self:cleanup()
 end
 
 return PieAmmo

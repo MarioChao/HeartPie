@@ -3,7 +3,7 @@
     "ignoreUnknownInstances": true,
     "properties": {
         "Attributes": {
-            "SkinId": {"Float64": 6},
+            "SkinId": {"Float64": 888},
             "ToolTextureId": {"String": "rbxassetid://11060689491"},
             "ToolTip": {"String": "Heart Pie: Healthier Hiking Tool"}
         }

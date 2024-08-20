@@ -3,9 +3,9 @@
     "ignoreUnknownInstances": true,
     "properties": {
         "Attributes": {
-            "SkinId": {"Float64": 4},
+            "SkinId": {"Float64": 3},
             "ToolTextureId": {"String": "rbxassetid://11625809049"},
-            "ToolTip": {"String": "Eye of The Pie: A achievement in the scope of our smallness"}
+            "ToolTip": {"String": "Eye of The Pie: An achievement in the scope of our smallness."}
         }
     }
 }

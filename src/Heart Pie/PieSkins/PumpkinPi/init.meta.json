@@ -3,9 +3,9 @@
     "ignoreUnknownInstances": true,
     "properties": {
         "Attributes": {
-            "SkinId": {"Float64": 3},
+            "SkinId": {"Float64": 7},
             "ToolTextureId": {"String": "rbxassetid://11626019487"},
-            "ToolTip": {"String": "Pumpkin Pi: Usually goes up in price during Pi Day"}
+            "ToolTip": {"String": "Pumpkin Pi: Usually goes up in price during Pi Day."}
         }
     }
 }
