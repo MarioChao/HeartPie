@@ -1,11 +1,13 @@
 --!strict
 -- Server Setup Check Script
 
--- Services
+---------- Services ----------
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
--- Function
+---------- Local functions ----------
+
 local function checkForChild(parent: Instance, childName: string): Instance
 	local child = parent:WaitForChild(childName, 5)
 	if not child then
@@ -25,15 +27,21 @@ end
 local function checkReplicatedStorage()
 	local PieHikingEvents = checkForChild(ReplicatedStorage, "PieHikingEvents")
 	local CSCPieRemoteEvent = checkForChild(PieHikingEvents, "CSCPieRemoteEvent")
-	local PieHikeEvent = checkForChild(PieHikingEvents, "PieHikeEvent")
+	local PieHikeBindable = checkForChild(PieHikingEvents, "PieHikeBindable")
 	local PieHikeRemoteEvent = checkForChild(PieHikingEvents, "PieHikeRemoteEvent")
+
+	local PieHikingModules = checkForChild(ReplicatedStorage, "PieHikingModules")
+	local RegularPieAmmoModule = checkForChild(PieHikingModules, "RegularPieAmmoModule")
 end
 
 local function checkServerScriptService()
 	local PieHikingScripts = checkForChild(ServerScriptService, "PieHikingScripts")
 	local PieHikingActor = checkForChild(PieHikingScripts, "PieHikingActor")
 	local PieHikingServer = checkForChild(PieHikingActor, "PieHikingServer") :: Script
+	local ServerPieMotionActor = checkForChild(PieHikingScripts, "ServerPieMotionActor")
+	local ServerPieAmmo = checkForChild(ServerPieMotionActor, "ServerPieAmmo") :: Script
 	checkScriptEnabled(PieHikingServer)
+	checkScriptEnabled(ServerPieAmmo)
 end
 
 local function setupCheck()
@@ -41,12 +49,13 @@ local function setupCheck()
 		checkReplicatedStorage()
 		checkServerScriptService()
 	end)
-	
+
 	if not success then
 		warn("<Pie Hiking Tool (Server)>: please set up ContainerScripts correctly")
 		error(result)
 	end
 end
 
--- Calling functions
+---------- Calling functions ----------
+
 task.defer(setupCheck)

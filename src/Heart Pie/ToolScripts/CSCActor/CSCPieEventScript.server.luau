@@ -1,32 +1,36 @@
 --!strict
 -- Client-Server-Client Pie Event Script
 
--- Tool info
+---------- Services ----------
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+---------- Types ----------
+
+type FinalizedMotion = {["CFrame"]: CFrame?, ["Direction"]: Vector3?, ["Velocity"]: number?}
+
+---------- Instances ----------
+
 local Tool = script.Parent.Parent.Parent
 local ToolEvents = Tool:WaitForChild("ToolEvents")
 local CSCPieLaunchRemoteEvent = ToolEvents:WaitForChild("CSCPieLaunchRemoteEvent")
 
 local PieModel = Tool:WaitForChild("PieModel")
 
--- Services
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
--- Types
-type FinalizedMotion = {["CFrame"]: CFrame?, ["Direction"]: Vector3?, ["Velocity"]: number?}
-
--- Instances
 local PieHikingEvents = ReplicatedStorage:WaitForChild("PieHikingEvents") :: Folder
 local CSCPieRemoteEvent = PieHikingEvents:WaitForChild("CSCPieRemoteEvent") :: RemoteEvent
 
--- Variables
+---------- Variables ----------
+
 local launchMinIntervalSeconds = 0.7
 local lastLaunchTime = os.clock() - launchMinIntervalSeconds
 
 local character: Model? = nil
 local player: Player? = nil
 
--- Functions
+---------- Local functions ----------
+
 local function checkFinalizedLaunchMotion(player: Player, launchMotion: FinalizedMotion): boolean
 	-- Validate launch motion
 	local launchCFrame = launchMotion.CFrame
@@ -62,7 +66,7 @@ local function onLaunchCSCPie(caller: Player, launchMotion: FinalizedMotion, cli
 	if os.clock() - lastLaunchTime < launchMinIntervalSeconds then
 		return
 	end
-	
+
 	-- Validate and add velocity to launch direction
 	local launchVelocity = Tool:GetAttribute("LaunchVelocity")
 	if not launchVelocity then
@@ -87,7 +91,7 @@ local function onStickCSCPieToPart(caller: Player, throwPieId: string, hitPart: 
 	if not (caller == player) then
 		return
 	end
-	
+
 	-- More checks on the other side
 	fireOtherClients(caller, "Stick CSC Pie To Part", throwPieId, hitPart, hitCFrame, relativeCFrame)
 end
@@ -97,12 +101,13 @@ local function onStickCSCPieToCSCPie(caller: Player, throwPieId: string, hitPieI
 	if not (caller == player) then
 		return
 	end
-	
+
 	-- More checks on the other side
 	fireOtherClients(caller, "Stick CSC Pie To CSC Pie", throwPieId, hitPieId, hitCFrame, relativeCFrame)
 end
 
--- Event functions
+---------- Event functions ----------
+
 function fireOtherClients(except: Player, ...)
 	for _, otherPlayer in Players:GetPlayers() do
 		if otherPlayer ~= except then
@@ -135,7 +140,8 @@ local function onUnequipped()
 	player = nil
 end
 
--- Calling / connection functions
+---------- Calling / connection functions ----------
+
 CSCPieLaunchRemoteEvent.OnServerEvent:Connect(onCSCPieLaunchServerEvent)
 CSCPieRemoteEvent.OnServerEvent:Connect(onCSCPieServerEvent)
 Tool.Equipped:Connect(onEquipped)

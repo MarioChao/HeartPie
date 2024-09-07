@@ -1,13 +1,23 @@
 --!strict
 -- Pie Handler Script
 
--- Tool info
+---------- Services ----------
+
+local Players = game:GetService("Players")
+
+---------- Instances ----------
+
 local Tool = script.Parent.Parent.Parent
+
 local ToolEvents = Tool:WaitForChild("ToolEvents")
+local ActionsBindable = ToolEvents:WaitForChild("ActionsBindable")
+
 local PieTypeEvent = ToolEvents:WaitForChild("PieTypeEvent")
 local PieTypeRemoteEvent = ToolEvents:WaitForChild("PieTypeRemoteEvent")
+
 local PieLaunchEvent = ToolEvents:WaitForChild("PieLaunchEvent")
 local PieLaunchRemoteEvent = ToolEvents:WaitForChild("PieLaunchRemoteEvent")
+
 local ToolVisualEvent = ToolEvents:WaitForChild("ToolVisualEvent")
 local ToolVisualRemoteEvent = ToolEvents:WaitForChild("ToolVisualRemoteEvent")
 
@@ -18,10 +28,8 @@ local PieModel = Tool:WaitForChild("PieModel")
 
 local Handle = Tool:WaitForChild("Handle")
 
--- Services
-local Players = game:GetService("Players")
+---------- Variables ----------
 
--- Variables
 local throwSeconds = 0.6
 local reloadSeconds = 0.5
 
@@ -35,11 +43,14 @@ local pieStateIconValues = {
 	["Launching"] = 2,
 }
 
+local isLaunching = false
+
 local character: Model? = nil
 local humanoid: Humanoid? = nil
 local player: Player? = nil
 
--- Functions
+---------- Local functions ----------
+
 local function checkPlayerAlive()
 	-- Check whether the variables refer to an alive player
 	if not (character and character.Parent) then
@@ -60,7 +71,7 @@ local function setPieLaunchType(newLaunchType: string)
 	if not canSwitchType then
 		return
 	end
-	
+
 	-- Set pie launch type
 	if newLaunchType == "Client" or newLaunchType == "Server" then
 		local isClientPieType = (newLaunchType == "Client")
@@ -75,7 +86,7 @@ local function getLaunchMotion(): {["CFrame"]: CFrame?, ["Direction"]: Vector3?}
 	local mouse = player and player:GetMouse()
 	local mousePosition = mouse and mouse.Hit.Position
 	local handlePosition = Handle.Position
-	
+
 	-- Compute the launch motion
 	local launchCFrame = mousePosition and handlePosition and CFrame.new(handlePosition, mousePosition)
 	local launchDirection = mousePosition and handlePosition and (mousePosition - Handle.Position).Unit
@@ -89,7 +100,7 @@ end
 local function firePie()
 	-- Get launch motion
 	local launchMotion = getLaunchMotion()
-	
+
 	-- Launch Server or Client pies
 	if launchType == "Client" then
 		PieLaunchEvent:Fire("Launch Pie", launchMotion)
@@ -102,20 +113,46 @@ local function setPieState(state: string)
 	if pieStateIconValues[state] and state ~= pieState then
 		local oldState = pieState
 		pieState = state
-		
+
 		-- Mouse icon
 		Icon.Value = pieStateIconValues[state]
-		
+
 		-- Model visibility
 		if oldState == "Unloaded" and pieState == "Reloading" then
 			ToolVisualEvent:Fire("Set Pie Transparency", nil)
 		elseif oldState == "Loaded" and pieState == "Launching" then
 			ToolVisualEvent:Fire("Set Pie Transparency", 1)
 		end
-	end 
+	end
 end
 
--- Tool functions
+local function onPieLaunch()
+	if checkPlayerAlive() and not isLaunching then
+		-- Launch or reload pie
+		isLaunching = true
+		if pieState == "Loaded" then
+			-- Launch
+			setPieState("Launching")
+			task.defer(firePie)
+
+			-- Unload
+			task.delay(throwSeconds, function()
+				setPieState("Unloaded")
+				isLaunching = false
+			end)
+		elseif pieState == "Unloaded" then
+			-- Reload
+			setPieState("Reloading")
+			task.delay(reloadSeconds, function()
+				setPieState("Loaded")
+				isLaunching = false
+			end)
+		end
+	end
+end
+
+---------- Tool functions ----------
+
 local function onToolEquipped()
 	character = Tool.Parent
 	humanoid = character and character:FindFirstChildOfClass("Humanoid")
@@ -128,40 +165,29 @@ local function onToolUnequipped()
 	player = nil
 end
 
-local function onToolActivated()
-	if checkPlayerAlive() and Tool.Enabled then
-		-- Launch or reload pie
-		Tool.Enabled = false
-		if pieState == "Loaded" then
-			-- Launch
-			setPieState("Launching")
-			task.defer(firePie)
-			
-			-- Unload
-			task.delay(throwSeconds, function()
-				setPieState("Unloaded")
-				Tool.Enabled = true
-			end)
-		elseif pieState == "Unloaded" then
-			-- Reload
-			setPieState("Reloading")
-			task.delay(reloadSeconds, function()
-				setPieState("Loaded")
-				Tool.Enabled = true
-			end)
-		end
+---------- Event functions ----------
+
+local function onActionsEvent(mode: string, ...)
+	-- Validate equipped
+	if not Tool.Equipped then
+		return
+	end
+
+	-- Actions
+	if mode == "Pie Launch" then
+		onPieLaunch()
 	end
 end
 
--- Event functions
 local function onPieTypeEvent(mode: string, ...)
 	if mode == "Set Pie Type" then
 		setPieLaunchType(...)
 	end
 end
 
--- Calling / connecting functions
+---------- Calling / connecting functions ----------
+
+ActionsBindable.Event:Connect(onActionsEvent)
 PieTypeEvent.Event:Connect(onPieTypeEvent)
 Tool.Equipped:Connect(onToolEquipped)
 Tool.Unequipped:Connect(onToolUnequipped)
-Tool.Activated:Connect(onToolActivated)

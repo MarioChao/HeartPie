@@ -142,4 +142,5 @@ function PieAmmo:destroy()
 	self:cleanup()
 end
 
+---------- Return module ----------
 return PieAmmo

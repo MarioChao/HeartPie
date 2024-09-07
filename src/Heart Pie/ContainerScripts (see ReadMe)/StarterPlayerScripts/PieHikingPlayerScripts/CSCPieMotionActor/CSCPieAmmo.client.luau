@@ -10,24 +10,28 @@ if not script:FindFirstAncestorWhichIsA("PlayerScripts") then
 	return
 end
 
--- Ammo Info
-local CSCPieMotionActor = script.Parent
-local CSCPieAmmo = require(CSCPieMotionActor:WaitForChild("CSCPieAmmoModule"))
+---------- Services ----------
 
--- Services
 local CollectionService = game:GetService("CollectionService")
 local Debris = game:GetService("Debris")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
--- Variables
+---------- Imports ----------
+
+local CSCPieMotionActor = script.Parent
+local CSCPieAmmo = require(CSCPieMotionActor:WaitForChild("CSCPieAmmoModule"))
+
+---------- Variables ----------
+
 local PieHikingEvents = ReplicatedStorage:WaitForChild("PieHikingEvents") :: Folder
 local CSCPieRemoteEvent = PieHikingEvents:WaitForChild("CSCPieRemoteEvent") :: RemoteEvent
 
 type FinalizedMotion = {["CFrame"]: CFrame?, ["Direction"]: Vector3?, ["Velocity"]: number?}
 type SpinInfo = {["AlignSpin"]: boolean?, ["ByVelocity"]: boolean?}
 
--- Functions
+---------- Local functions ----------
+
 -- Launch functions
 local function newAmmo(ammoModel: Model)
 	if not ammoModel:IsA("Model") then
@@ -162,7 +166,7 @@ local function onLaunchCSCPie(creatorPlayer: Player, launchMotion: FinalizedMoti
 	Debris:AddItem(pieAmmoModel, 12)
 end
 
--- Stick functions
+---------- Stick functions ----------
 local function getPieFromPieId(pieId: string): Model?
 	-- There should only be one pie tagged with the pie id
 	local taggedObjects = CollectionService:GetTagged(pieId)
@@ -312,7 +316,8 @@ local function onStickCSCPieToCSCPie(throwPieId: string, hitPieId: string, hitCF
 	stickPiePartToPart(throwPieModel, throwPieMainPart, hitPieMainPart, relativeCFrame)
 end
 
--- Event functions
+---------- Event functions ----------
+
 local function onCSCPieClientEvent(mode: string, ...)
 	if mode == "Launch CSC Pie" then
 		onLaunchCSCPie(...)
@@ -323,5 +328,6 @@ local function onCSCPieClientEvent(mode: string, ...)
 	end
 end
 
--- Calling / connecting functions
+---------- Calling / connecting functions ----------
+
 CSCPieRemoteEvent.OnClientEvent:Connect(onCSCPieClientEvent)

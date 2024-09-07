@@ -2,6 +2,10 @@
     "ClassName": "Folder",
     "Children": [
         {
+            "Name": "ActionsBindable",
+            "ClassName": "BindableEvent"
+        },
+        {
             "Name": "CSCPieLaunchRemoteEvent",
             "ClassName": "RemoteEvent"
         },

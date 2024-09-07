@@ -1,15 +1,24 @@
 --!strict
 -- Tool Use Script
 
--- Tool info
-local Tool = script.Parent.Parent.Parent
-local ToolEvents = Tool:WaitForChild("ToolEvents")
-local PieTypeEvent = ToolEvents:WaitForChild("PieTypeEvent")
+---------- Services ----------
 
--- Services
 local Players = game:GetService("Players")
 
--- Variables
+---------- Instances ----------
+
+local Tool = script.Parent.Parent.Parent
+
+local ToolEvents = Tool:WaitForChild("ToolEvents")
+local ActionsBindable = ToolEvents:WaitForChild("ActionsBindable")
+
+local PieTypeEvent = ToolEvents:WaitForChild("PieTypeEvent")
+
+local ToolAssets = Tool:WaitForChild("ToolAssets")
+local DefaultPieToolScreen = ToolAssets:WaitForChild("PieToolScreen")
+
+---------- Variables ----------
+
 local pieTypeTexts = {
 	["Server"] = [[<stroke color="#008F00"><font color="#00BF00">Server</font></stroke>]],
 	["Client"] = [[<stroke color="#008F8F"><font color="#00BFBF">Client</font></stroke>]]
@@ -22,13 +31,14 @@ local pieTypeConnection: RBXScriptConnection? = nil
 
 local pieTypeClickThrottle = false
 
--- Functions
+---------- Local functions ----------
+
 local function updatePieTypeButton()
 	-- Validate button
 	if not (pieTypeButton and pieTypeButton:IsA("TextButton")) then
 		return
 	end
-	
+
 	-- Change the button's text
 	local isClientPieType = Tool:GetAttribute("IsClientPieType")
 	if isClientPieType then
@@ -48,13 +58,20 @@ local function setPieType(launchType: string)
 	end
 end
 
-local function onPieTypeClick()
+local function onSwitchPieType()
 	if not pieTypeClickThrottle then
 		pieTypeClickThrottle = true
 		task.delay(0.2, function()
 			pieTypeClickThrottle = false
 		end)
 
+		-- Check CanSwitchType
+		local canSwitchType = Tool:GetAttribute("CanSwitchType")
+		if not canSwitchType then
+			return
+		end
+
+		-- Switch type
 		local isClientPieType = Tool:GetAttribute("IsClientPieType")
 		if isClientPieType then
 			-- Change to server pie
@@ -66,27 +83,36 @@ local function onPieTypeClick()
 	end
 end
 
+local function getPieToolScreen()
+	local screenGui = playerGui:FindFirstChild("PieToolScreen")
+	if not screenGui then
+		screenGui = DefaultPieToolScreen:Clone()
+		screenGui.Parent = playerGui
+	end
+	return screenGui
+end
+
 local function setupPieToolScreen()
 	-- Validate ShowGui
 	if not Tool:GetAttribute("ShowGui") then
 		return
 	end
-	
+
 	-- Get gui instances
 	task.desynchronize()
-	pieToolScreen = playerGui:FindFirstChild("PieToolScreen") :: ScreenGui
+	pieToolScreen = getPieToolScreen()
 	pieTypeButton = pieToolScreen and pieToolScreen:FindFirstChild("PieTypeButton") :: TextButton
 	if not (pieToolScreen and pieTypeButton and pieTypeButton:IsA("TextButton")) then
 		return
 	end
-	
+
 	-- Enable gui
 	task.synchronize()
 	pieToolScreen.Enabled = true
-	
+
 	-- Update button text
 	task.defer(updatePieTypeButton)
-	
+
 	-- Create button clicked connection
 	if pieTypeConnection then
 		-- Disconnect if connection exists
@@ -104,13 +130,14 @@ local function setupPieToolScreen()
 		if not pieTypeButton then
 			return
 		end
-		
+
 		-- Create connection
-		pieTypeConnection = pieTypeButton.MouseButton1Click:Connect(onPieTypeClick)
+		pieTypeConnection = pieTypeButton.MouseButton1Click:Connect(onSwitchPieType)
 	end)
 end
 
--- Tool functions
+---------- Tool functions ----------
+
 local function onEquipped()
 	playerGui = Players.LocalPlayer:WaitForChild("PlayerGui", 5)
 	if playerGui then
@@ -125,7 +152,7 @@ local function onUnequipped()
 		pieToolScreen = nil
 		pieTypeButton = nil
 	end
-	
+
 	-- Cleanup connection
 	if pieTypeConnection then
 		pieTypeConnection:Disconnect()
@@ -133,6 +160,22 @@ local function onUnequipped()
 	end
 end
 
--- Calling / connecting functions
+---------- Event functions ----------
+
+local function onActionsEvent(mode: string, ...)
+	-- Validate equipped
+	if not Tool.Equipped then
+		return
+	end
+
+	-- Actions
+	if mode == "Switch Pie Type" then
+		onSwitchPieType()
+	end
+end
+
+---------- Calling / connecting functions ----------
+
+ActionsBindable.Event:Connect(onActionsEvent)
 Tool.Equipped:Connect(onEquipped)
 Tool.Unequipped:Connect(onUnequipped)

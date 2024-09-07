@@ -1,11 +1,11 @@
 --!strict
--- Client Pie Ammo Script
+-- Server Pie Ammo Script
 
 ---------- Validate container ----------
 -- Validate the script's container before running any code
 
--- For certain client scripts
-if not script:FindFirstAncestorWhichIsA("PlayerScripts") then
+-- For some server scripts
+if not script:FindFirstAncestorWhichIsA("ServerScriptService") then
 	return
 end
 
@@ -25,19 +25,20 @@ local PieHikeBindable = PieHikingEvents:WaitForChild("PieHikeBindable") :: Binda
 
 ---------- Local functions ----------
 
-local function newAmmo(ammoModel: Model)
+local function newAmmo(ammoModel: Model, player: Player)
 	if not ammoModel:IsA("Model") then
 		return
 	end
-	local ammo = PieAmmo.new(ammoModel, false)
+	local ammo = PieAmmo.new(ammoModel, true)
 	ammo:setupAmmo()
+	ammo:disablePieCollideCharacter(player.Character)
 	ammo:launchPie()
 end
 
 ---------- Event functions ----------
 
 local function onPieHikeBindableEvent(mode: string, ...)
-	--[[ Always launched from client ]]
+	--[[ Always launched from server ]]
 	if mode == "Start Launch" then
 		newAmmo(...)
 	end

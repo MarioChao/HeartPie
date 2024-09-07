@@ -1,25 +1,30 @@
 --!strict
 -- Client Tool Visual Script
 
--- Tool info
+---------- Services ----------
+
+local Players = game:GetService("Players")
+
+---------- Instances ----------
+
 local Tool = script.Parent.Parent.Parent
+
 local ToolEvents = Tool:WaitForChild("ToolEvents")
 local ToolVisualEvent = ToolEvents:WaitForChild("ToolVisualEvent")
 local ToolVisualRemoteEvent = ToolEvents:WaitForChild("ToolVisualRemoteEvent")
 
 local PieModel = Tool:WaitForChild("PieModel")
 
--- Services
-local Players = game:GetService("Players")
+---------- Variables ----------
 
--- Variables
 local currentTransparency: number? = nil
 
 local character: Model? = nil
 local humanoid: Humanoid? = nil
 local player: Player? = nil
 
--- Functions
+---------- Local functions ----------
+
 local function checkPlayerAlive() -- Copied from "PieHandler"
 	-- Check whether the variables refer to an alive player
 	if not (character and character.Parent) then
@@ -42,7 +47,7 @@ local function setPieModelTransparency(transparency: number?)
 	if not checkPlayerAlive() then
 		return
 	end
-	
+
 	-- Change transparency
 	currentTransparency = transparency
 	ToolVisualRemoteEvent:FireServer("Set Pie Transparency", transparency)
@@ -98,7 +103,8 @@ local function onToolUnequipped()
 	player = nil
 end
 
--- Event functions
+---------- Event functions ----------
+
 local function onToolVisualEvent(mode: string, ...)
 	if mode == "Set Pie Transparency" then
 		setPieModelTransparency(...)
@@ -111,7 +117,8 @@ local function onToolVisualClientEvent(mode: string, ...)
 	end
 end
 
--- Calling / connecting functions
+---------- Calling / connecting functions ----------
+
 ToolVisualEvent.Event:Connect(onToolVisualEvent)
 ToolVisualRemoteEvent.OnClientEvent:Connect(onToolVisualClientEvent)
 Tool.Equipped:Connect(onToolEquipped)

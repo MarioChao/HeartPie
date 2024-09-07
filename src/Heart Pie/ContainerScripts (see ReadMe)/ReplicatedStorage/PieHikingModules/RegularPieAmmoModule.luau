@@ -9,14 +9,13 @@ PieAmmo.__index = PieAmmo
 
 local Debris = game:GetService("Debris")
 local PhysicsService = game:GetService("PhysicsService")
-local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 ---------- Instances ----------
 
 local PieHikingEvents = ReplicatedStorage:WaitForChild("PieHikingEvents") :: Folder
-local PieHikeRemoteEvent = PieHikingEvents:WaitForChild("PieHikeRemoteEvent") :: RemoteEvent
+local PieHikeBindable = PieHikingEvents:WaitForChild("PieHikeBindable") :: BindableEvent
 local CSCPieRemoteEvent = PieHikingEvents:WaitForChild("CSCPieRemoteEvent") :: RemoteEvent
 
 ---------- Variables ----------
@@ -92,6 +91,39 @@ local function getPieModel(instance: Instance?): Model?
 	return nil
 end
 
+local function getDescendantParts(instance: Instance): {BasePart}
+	local descendantParts: {BasePart} = {}
+	for _, part in instance:GetDescendants() do
+		if part:IsA("BasePart") then
+			table.insert(descendantParts, part)
+		end
+	end
+	return descendantParts
+end
+
+local function isPieAClientPie(pieModel: Model)
+	local pieMainPart = pieModel and pieModel:FindFirstChild("MainPart") :: Part
+	local pieUniqueId = pieModel and pieModel:FindFirstChild("UniquePieId") :: StringValue
+	local pieTag = pieUniqueId and pieUniqueId.Value
+	local _isClientPie = pieMainPart and pieMainPart:IsA("Part") and pieTag and typeof(pieTag) == "string"
+	return _isClientPie
+end
+
+-- Nil for originalCanCollide
+local function setPieCollision(pieModel: Model, canCollide: boolean?)
+	for _, part in getDescendantParts(pieModel) do
+		-- Collision
+		if canCollide == nil then
+			local originalCanCollide = part:FindFirstChild("OriginalCanCollide") :: BoolValue
+			if originalCanCollide then
+				part.CanCollide = originalCanCollide.Value
+			end
+		else
+			part.CanCollide = canCollide
+		end
+	end
+end
+
 ---------- Module functions ----------
 
 -- Constructor
@@ -114,6 +146,7 @@ function PieAmmo.new(ammoModel: Model, hasHitCharacterEffect: boolean)
 	self.pieStuck = false
 	self.launchTime = nil :: number?
 	self.HasHitCharacterEffect = hasHitCharacterEffect
+	self.disabledCharacterCollisions = {} :: {Model: {NoCollisionConstraint}}
 	self.Connections = {} :: {RBXScriptConnection}
 
 	-- Check valid
@@ -152,10 +185,7 @@ function PieAmmo:canStickTo(hitPart: BasePart): boolean
 
 	-- Check if hit part is a Client or CSC pie
 	local hitPieModel = getPieModel(hitPart)
-	local hitPieMainPart = hitPieModel and hitPieModel:FindFirstChild("MainPart") :: Part
-	local hitPieUniqueId = hitPieModel and hitPieModel:FindFirstChild("UniquePieId") :: StringValue
-	local hitPieTag = hitPieUniqueId and hitPieUniqueId.Value
-	local isHitClientPie = hitPieMainPart and hitPieMainPart:IsA("Part") and hitPieTag and typeof(hitPieTag) == "string"
+	local isHitClientPie = isPieAClientPie(hitPieModel)
 
 	-- Return
 	if (isThrowClientPie) or (not isThrowClientPie and not isHitClientPie) then
@@ -198,26 +228,25 @@ function PieAmmo:stickPieReplicate(hitPart: BasePart, relativeCFrame: CFrame)
 	local hitPieMainPart = hitPieModel and hitPieModel:FindFirstChild("MainPart") :: Part
 	local hitPieUniqueId = hitPieModel and hitPieModel:FindFirstChild("UniquePieId") :: StringValue
 	local hitPieTag = hitPieUniqueId and hitPieUniqueId.Value
-	local isHitClientPie = hitPieMainPart and hitPieMainPart:IsA("Part") and hitPieTag and typeof(hitPieTag) == "string"
+	local isHitClientPie = isPieAClientPie(hitPieModel)
 
 	-- Check if the current pie is a Client pie
-	local uniquePieId = self.AmmoModel:FindFirstChild("UniquePieId") :: StringValue
-	local pieTag = uniquePieId and uniquePieId.Value
-	if not pieTag then
+	local isClientPie = isPieAClientPie(self.AmmoModel)
+
+	-- Stick pie
+	if not isClientPie then
 		--[[ Current pie is a Server pie ]]
 
-		-- Check if hit part is a Client or CSC pie
-		task.synchronize()
-		if isHitClientPie and hitPieMainPart then
-			-- [[ Hit a Client pie or CSC pie]]
-			relativeCFrame = hitPieMainPart.CFrame:ToObjectSpace(self.AmmoMainPart.CFrame)
-			PieHikeRemoteEvent:FireServer("Stick Server Pie To CSC Pie", self.AmmoMainPart, hitPieTag, hitPieMainPart.CFrame, hitPieMainPart.Size, relativeCFrame)
-		else
-			--[[ Hit a non-Client-pie or non-CSC-pie part ]]
-			PieHikeRemoteEvent:FireServer("Stick Server Pie To Part", self.AmmoMainPart, hitPart, hitPart.CFrame, relativeCFrame)
-		end
+		-- Server pies can't hit client parts
+
+		--[[ Hit a server part ]]
+		PieHikeBindable:Fire("Stick Server Pie To Part", self.AmmoMainPart, hitPart, hitPart.CFrame, relativeCFrame)
 	else
 		--[[ Current pie is a Client pie ]]
+
+		-- Get pie tag
+		local uniquePieId = self.AmmoModel:FindFirstChild("UniquePieId") :: StringValue
+		local pieTag = uniquePieId and uniquePieId.Value
 
 		-- Check if hit part is a Client or CSC pie
 		task.synchronize()
@@ -248,7 +277,7 @@ function PieAmmo:stickPie(hitPart: BasePart, relativeCFrame: CFrame)
 		self:stickPieReplicate(hitPart, relativeCFrame)
 	end)
 
-	-- Disable forces and align orientation in the client
+	-- Disable forces and align orientation in current environment
 	task.synchronize()
 	local upwardsForce = mainPart:FindFirstChild("UpwardsForce") :: VectorForce
 	if upwardsForce then
@@ -259,15 +288,15 @@ function PieAmmo:stickPie(hitPart: BasePart, relativeCFrame: CFrame)
 		alignOrientation.Enabled = false
 	end
 
-	-- Stick pie in the client
+	-- Stick pie in current environment
 	local targetCFrame = hitPart.CFrame:ToWorldSpace(relativeCFrame)
+	setPieCollision(self.AmmoModel, false)
 	mainPart:PivotTo(targetCFrame)
-	mainPart.CanCollide = false
 	local weldConstraint = Instance.new("WeldConstraint")
 	weldConstraint.Part0 = mainPart
 	weldConstraint.Part1 = hitPart
+	setPieCollision(self.AmmoModel)
 	weldConstraint.Parent = mainPart
-	mainPart.CanCollide = true
 end
 
 function PieAmmo:unstickPie()
@@ -277,7 +306,7 @@ function PieAmmo:unstickPie()
 	end
 
 	-- Unstick pie in the server
-	PieHikeRemoteEvent:FireServer("Unstick", self.AmmoMainPart)
+	PieHikeBindable:Fire("Unstick", self.AmmoMainPart)
 
 	-- Unstick pie in the script
 	for _, instance in self.AmmoMainPart:GetChildren() do
@@ -294,7 +323,7 @@ function PieAmmo:removePie()
 	end
 
 	-- Remove pie in the server
-	PieHikeRemoteEvent:FireServer("Remove", self.AmmoModel)
+	PieHikeBindable:Fire("Remove", self.AmmoModel)
 
 	-- Remove pie in the script
 	Debris:AddItem(self.AmmoModel, 0)
@@ -321,7 +350,13 @@ function PieAmmo:launchPie()
 	end
 
 	-- Unstick seconds after launch
-	task.wait(unstickPieTime + self.launchTime - os.clock())
+	local timeUntilUnstick: NumberValue = self.AmmoModel:FindFirstChild("TimeUntilUnstick")
+	while self.launchTime + unstickPieTime > os.clock() do
+		if timeUntilUnstick then
+			timeUntilUnstick.Value = self.launchTime + unstickPieTime - os.clock()
+		end
+		task.wait(0.03)
+	end
 	self:unstickPie()
 
 	-- Remove seconds after launch
@@ -367,6 +402,11 @@ function PieAmmo:onTouched(otherPart: BasePart, mainPartRelativeCFrame: CFrame)
 	local touchedCharacter = getConnectedCharacter(otherPart)
 	local creatorPlayer = self.AmmoCreator.Value :: Player
 	if creatorPlayer and touchedCharacter and (creatorPlayer.Character == touchedCharacter or not checkCanHitCharacter(creatorPlayer.Character, touchedCharacter)) then
+		-- Disable collision with character if server pie
+		if not isPieAClientPie(self.AmmoModel) then
+			task.synchronize()
+			self:disablePieCollideCharacter(touchedCharacter)
+		end
 		return
 	end
 
@@ -383,11 +423,14 @@ function PieAmmo:onTouched(otherPart: BasePart, mainPartRelativeCFrame: CFrame)
 	self.pieStuck = true
 	self.AmmoSounds.Hit:Play()
 	task.defer(function()
+		self:removeNoCollideConstraints()
+	end)
+	task.defer(function()
 		self:stickPie(otherPart, mainPartRelativeCFrame)
 
 		-- Hit character effect
 		if creatorPlayer and touchedCharacter and self.HasHitCharacterEffect then
-			PieHikeRemoteEvent:FireServer("Pie Hit Character Effect", creatorPlayer.Character, touchedCharacter, self.AmmoMainPart)
+			PieHikeBindable:Fire("Pie Hit Character Effect", creatorPlayer.Character, touchedCharacter, self.AmmoMainPart)
 		end
 	end)
 end
@@ -413,12 +456,74 @@ function PieAmmo:_onTouched(otherPart: BasePart)
 	self:onTouched(otherPart, mainPartRelativeCFrame)
 end
 
+function PieAmmo:disablePieCollideCharacter(character: Model)
+	-- Validate server-owned pie
+	if RunService:IsClient() then
+		return
+	end
+	if self.AmmoMainPart:GetNetworkOwner() ~= nil then
+		return
+	end
+
+	-- Validate new character
+	if not character then
+		return
+	end
+	if self.disabledCharacterCollisions[character] then
+		return
+	end
+	local constraints = {}
+	self.disabledCharacterCollisions[character] = constraints
+
+	-- Get base parts
+	local modelParts = getDescendantParts(self.AmmoModel)
+	local characterParts: {BasePart} = {}
+	for _, part in character:GetDescendants() do
+		if part:IsA("BasePart") then
+			table.insert(characterParts, part)
+		end
+	end
+
+	-- Get constraints folder
+	local ammoModel = self.AmmoModel
+	local constraintsFolder = ammoModel:FindFirstChild("ConstraintsFolder")
+	if not (constraintsFolder and constraintsFolder:IsA("Folder")) then
+		constraintsFolder = Instance.new("Folder")
+		constraintsFolder.Name = "ConstraintsFolder"
+		constraintsFolder.Parent = ammoModel
+	end
+
+	-- Add constraints
+	for _, part0 in modelParts do
+		for _, part1 in characterParts do
+			task.defer(function()
+				local noCollisionConstraint = Instance.new("NoCollisionConstraint")
+				noCollisionConstraint.Part0 = part0
+				noCollisionConstraint.Part1 = part1
+				noCollisionConstraint.Parent = constraintsFolder
+				table.insert(constraints, noCollisionConstraint)
+			end)
+		end
+	end
+end
+
+function PieAmmo:removeNoCollideConstraints()
+	for _, constraints in self.disabledCharacterCollisions do
+		for _, noCollisionConstraint: NoCollisionConstraint in constraints do
+			noCollisionConstraint.Enabled = false
+			Debris:AddItem(noCollisionConstraint, 0)
+		end
+	end
+	self.disabledCharacterCollisions = {}
+end
+
 function PieAmmo:setupAmmo()
 	-- Validate ammo model
 	if not self.AmmoModel then
 		return
 	end
 	self.launchTime = os.clock()
+
 	-- Connect Touched events on every physical pie parts
 	for _, part in self.AmmoModel:GetDescendants() do
 		if part:IsA("BasePart") and part.CanTouch then
@@ -455,4 +560,5 @@ function PieAmmo:destroy()
 	self:cleanup()
 end
 
+---------- Return module ----------
 return PieAmmo

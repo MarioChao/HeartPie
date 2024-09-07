@@ -1,18 +1,21 @@
 --!strict
 -- Client Pie Skins Script
 
--- Tool info
+---------- Instances ----------
+
 local Tool = script.Parent.Parent.Parent
+
 local ToolEvents = Tool:WaitForChild("ToolEvents")
+local ActionsBindable = ToolEvents:WaitForChild("ActionsBindable")
+
 local PieSkinRemoteEvent = ToolEvents:WaitForChild("PieSkinRemoteEvent")
 
--- Services
-local UserInputService = game:GetService("UserInputService")
+---------- Variables ----------
 
--- Variables
 local changeSkinIdThrottle = false
 
--- Functions
+---------- Local functions ----------
+
 local function changeSkinIdBy(amount: number)
 	if not changeSkinIdThrottle then
 		changeSkinIdThrottle = true
@@ -24,15 +27,22 @@ local function changeSkinIdBy(amount: number)
 	end
 end
 
-local function onInputBegan(input: InputObject, gameProcessed: boolean)
-	if not gameProcessed then
-		if input.KeyCode == Enum.KeyCode.E then
-			changeSkinIdBy(1)
-		elseif input.KeyCode == Enum.KeyCode.Q then
-			changeSkinIdBy(-1)
-		end
+---------- Event functions ----------
+
+local function onActionsEvent(mode: string, ...)
+	-- Validate equipped
+	if not Tool.Equipped then
+		return
+	end
+
+	-- Actions
+	if mode == "Next Skin" then
+		changeSkinIdBy(1)
+	elseif mode == "Previous Skin" then
+		changeSkinIdBy(-1)
 	end
 end
 
--- Calling / connecting functions
-UserInputService.InputBegan:Connect(onInputBegan)
+---------- Calling / connecting functions ----------
+
+ActionsBindable.Event:Connect(onActionsEvent)

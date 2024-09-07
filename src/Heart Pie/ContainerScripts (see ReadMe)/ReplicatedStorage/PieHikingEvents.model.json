@@ -6,7 +6,7 @@
             "ClassName": "RemoteEvent"
         },
         {
-            "Name": "PieHikeEvent",
+            "Name": "PieHikeBindable",
             "ClassName": "BindableEvent"
         },
         {

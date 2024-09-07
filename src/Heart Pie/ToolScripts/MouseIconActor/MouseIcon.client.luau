@@ -1,19 +1,23 @@
 --!strict
 -- Mouse Icon Script
 
--- Tool info
+---------- Services ----------
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+
+---------- Instances ----------
+
 local Tool = script.Parent.Parent.Parent
 local ToolValues = Tool:WaitForChild("ToolValues")
 local Icon = ToolValues:WaitForChild("Icon")
 
--- Services
-local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
+---------- Variables ----------
 
--- Variables
 local toolMouse: Mouse?
 
--- Functions
+---------- Local functions ----------
+
 local function setCursor(icon: string)
 	if icon ~= "" and Players:GetPlayerFromCharacter(Tool.Parent) ~= Players.LocalPlayer then
 		return
@@ -53,7 +57,8 @@ local function onChanged(Value)
 	changeCursor()
 end
 
--- Calling / connecting functions
+---------- Calling / connecting functions ----------
+
 Tool.Equipped:Connect(onEquipped)
 Tool.Unequipped:Connect(onUnequipped)
 Icon.Changed:Connect(onChanged)

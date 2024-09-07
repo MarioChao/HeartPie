@@ -1,24 +1,44 @@
 --!strict
 -- Pie Hiking Server Script
 
--- ServerScriptService validation check
-local function ancestorIsServerScriptService(): boolean
-	return script:FindFirstAncestorWhichIsA("ServerScriptService") ~= nil
-end
-if not ancestorIsServerScriptService() then
+---------- Validate container ----------
+-- Validate the script's container before running any code
+
+-- For some server scripts
+if not script:FindFirstAncestorWhichIsA("ServerScriptService") then
 	return
 end
 
--- Services
+---------- Services ----------
+
 local Debris = game:GetService("Debris")
-local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
--- Variables
+---------- Variables ----------
+
 local PieHikingEvents = ReplicatedStorage:WaitForChild("PieHikingEvents") :: Folder
+local PieHikeBindable = PieHikingEvents:WaitForChild("PieHikeBindable") :: BindableEvent
 local PieHikeRemoteEvent = PieHikingEvents:WaitForChild("PieHikeRemoteEvent") :: RemoteEvent
 
--- Functions
+---------- Local functions ----------
+
+-- Nil for originalCanCollide
+local function setPieCollision(pieModel: Model, canCollide: boolean?)
+	for _, part in pieModel:GetDescendants() do
+		if part:IsA("BasePart") then
+			-- Collision
+			if canCollide == nil then
+				local originalCanCollide = part:FindFirstChild("OriginalCanCollide") :: BoolValue
+				if originalCanCollide then
+					part.CanCollide = originalCanCollide.Value
+				end
+			else
+				part.CanCollide = canCollide
+			end
+		end
+	end
+end
+
 -- Pie hike functions
 local function checkCanHitCharacter(characterThrow: Model?, characterHit: Model?): boolean
 	-- Check existence
@@ -44,7 +64,7 @@ local function checkCanHitCharacter(characterThrow: Model?, characterHit: Model?
 	return false
 end
 
-local function runServerHitEffect(caller: Player, throwPieMainPart: Part, hitPart: BasePart)
+local function runServerHitEffect(throwPieMainPart: Part, hitPart: BasePart)
 	-- Validate effect module
 	local throwPieModel = throwPieMainPart.Parent :: Model
 	local throwPieSkinFolder = throwPieModel and throwPieModel:FindFirstChild("PieSkin")
@@ -54,27 +74,23 @@ local function runServerHitEffect(caller: Player, throwPieMainPart: Part, hitPar
 	if not serverHitEffectModule then
 		return
 	end
-	
-	-- Quick validation
-	local throwerCharacter = caller.Character
-	local throwerHumanoid = throwerCharacter and throwerCharacter:FindFirstChildOfClass("Humanoid")
+
+	-- Validate thrower character
 	local creatorObjectValue = throwPieModel and throwPieModel:FindFirstChild("Creator") :: ObjectValue
 	local creator = creatorObjectValue and creatorObjectValue.Value :: Player
-	if throwerCharacter ~= creator.Character then
-		return
-	end
-	
+	local throwerCharacter = creator.Character
+
 	-- Run effect
 	local serverHitEffect = require(serverHitEffectModule) :: {[string]: any}
-	serverHitEffect.onHit(caller.Character, throwPieMainPart, hitPart)
+	serverHitEffect.onHit(throwerCharacter, throwPieMainPart, hitPart)
 end
 
-local function stickPiePartToPart(caller: Player, throwPieModel: Model, throwPieMainPart: Part, hitPart: BasePart?, hitCFrame: CFrame, relativeCFrame: CFrame)
+local function stickPiePartToPart(throwPieModel: Model, throwPieMainPart: Part, hitPart: BasePart?, hitCFrame: CFrame, relativeCFrame: CFrame)
 	-- Offset main part and stick
 	if not hitPart then
-		-- Potential actions for sticking Server pies to CSC pies
+		-- Potential actions for sticking Server pies to client parts
 	end
-	
+
 	-- Disable forces and align orientation
 	local upwardsForce = throwPieMainPart:FindFirstChild("UpwardsForce") :: VectorForce
 	if upwardsForce then
@@ -84,24 +100,26 @@ local function stickPiePartToPart(caller: Player, throwPieModel: Model, throwPie
 	if alignOrientation then
 		alignOrientation.Enabled = false
 	end
-	
+
 	if hitPart then
 		-- Stick to Server part
 		local targetCFrame = hitPart.CFrame:ToWorldSpace(relativeCFrame)
+		setPieCollision(throwPieModel, false)
 		throwPieMainPart:PivotTo(targetCFrame)
 		local weldConstraint = Instance.new("WeldConstraint")
 		weldConstraint.Part0 = throwPieMainPart
 		weldConstraint.Part1 = hitPart
 		weldConstraint.Parent = throwPieMainPart
+		setPieCollision(throwPieModel)
 	end
-	
+
 	-- Run hit effect
 	if hitPart then
-		runServerHitEffect(caller, throwPieMainPart, hitPart)
+		runServerHitEffect(throwPieMainPart, hitPart)
 	end
 end
 
-local function stickServerPieToPart(caller: Player, throwPieMainPart: Part?, hitPart: BasePart?, hitCFrame: CFrame, relativeCFrame: CFrame)
+local function stickServerPieToPart(throwPieMainPart: Part?, hitPart: BasePart?, hitCFrame: CFrame, relativeCFrame: CFrame)
 	-- Validate parts
 	task.desynchronize()
 	local throwPieModel = throwPieMainPart and throwPieMainPart.Parent :: Model
@@ -110,48 +128,20 @@ local function stickServerPieToPart(caller: Player, throwPieMainPart: Part?, hit
 	if not (throwPieModel and throwPieMainPart and throwPieMainPart:FindFirstChild("PieAttachment") and throwPieMainPart:IsA("Part")) then
 		return
 	end
-	if caller ~= pieCreator then
-		return
-	end
 	if not (hitPart and hitPart:IsA("BasePart")) then
 		return
 	end
-	
+
 	-- Validate hit part
 	local targetCFrame = hitPart.CFrame:ToWorldSpace(relativeCFrame)
 	local maxStickDistance = throwPieMainPart.Size.Magnitude + hitPart.Size.Magnitude + 5
 	if (targetCFrame.Position - hitPart.Position).Magnitude > maxStickDistance then
 		return
 	end
-	
-	-- Stick pie part
-	task.synchronize()
-	stickPiePartToPart(caller, throwPieModel, throwPieMainPart, hitPart, hitPart.CFrame, relativeCFrame)
-end
-
-local function stickServerPieToCSCPie(caller: Player, throwPieMainPart: Part?, hitPieId: string, hitCFrame: CFrame, hitSize: Vector3, relativeCFrame: CFrame)
-	-- Validate pie
-	task.desynchronize()
-	local throwPieModel = throwPieMainPart and throwPieMainPart.Parent :: Model
-	local pieCreatorObject = throwPieModel and throwPieModel:FindFirstChild("Creator") :: ObjectValue
-	local pieCreator = pieCreatorObject and pieCreatorObject.Value
-	if not (throwPieModel and throwPieMainPart and throwPieMainPart:FindFirstChild("PieAttachment") and throwPieMainPart:IsA("Part")) then
-		return
-	end
-	if caller ~= pieCreator then
-		return
-	end
-
-	-- Validate hit location
-	local targetCFrame = hitCFrame:ToWorldSpace(relativeCFrame)
-	local maxStickDistance = throwPieMainPart.Size.Magnitude + hitSize.Magnitude + 5
-	if (targetCFrame.Position - hitCFrame.Position).Magnitude > maxStickDistance then
-		return
-	end
 
 	-- Stick pie part
 	task.synchronize()
-	stickPiePartToPart(caller, throwPieModel, throwPieMainPart, nil, hitCFrame, relativeCFrame)
+	stickPiePartToPart(throwPieModel, throwPieMainPart, hitPart, hitPart.CFrame, relativeCFrame)
 end
 
 local function runHitCharacterEffect(throwerCharacter: Model, hitCharacter: Model, pieMainPart: Part)
@@ -164,39 +154,39 @@ local function runHitCharacterEffect(throwerCharacter: Model, hitCharacter: Mode
 	if not hitCharacterEffectModule then
 		return
 	end
-	
+
 	-- Quick validation
 	local throwerHumanoid = throwerCharacter and throwerCharacter:FindFirstChildOfClass("Humanoid")
 	local hitHumanoid = hitCharacter and hitCharacter:FindFirstChildOfClass("Humanoid")
 	if not(throwerHumanoid and hitHumanoid) then
 		return
 	end
-	
+
 	-- Run effect
 	local hitCharacterEffect = require(hitCharacterEffectModule) :: {[string]: any}
 	hitCharacterEffect.onHit(throwerCharacter, hitCharacter, pieMainPart)
 end
 
-local function pieHitCharacterEffect(caller: Player, throwerCharacter: Model, hitCharacter: Model, pieMainPart: Part)
+local function pieHitCharacterEffect(throwerCharacter: Model, hitCharacter: Model, pieMainPart: Part)
 	-- Stick should be called already, so wait a frame for that to happen
 	task.desynchronize()
 	task.wait(0.03)
-	
+
 	-- Get humanoid root part
 	local humanoidRootPart = hitCharacter and hitCharacter:FindFirstChild("HumanoidRootPart") :: Part
-	
+
 	-- Get pie info
 	local pieModel = pieMainPart.Parent :: Model
 	local pieCreatorObject = pieModel and pieModel:FindFirstChild("Creator") :: ObjectValue
 	local pieCreator = pieCreatorObject and pieCreatorObject.Value :: Player
 	local pieWeldConstraint= pieMainPart and pieMainPart:FindFirstChild("WeldConstraint") :: WeldConstraint
 	local pieWeldPart = pieWeldConstraint and pieWeldConstraint.Part1
-	
+
 	-- Validate hit
 	if not (pieMainPart and pieCreator and humanoidRootPart) then
 		return
 	end
-	if not (caller.Character == throwerCharacter and pieCreator.Character == throwerCharacter and pieMainPart:FindFirstChild("PieAttachment")) then
+	if not (pieCreator.Character == throwerCharacter and pieMainPart:FindFirstChild("PieAttachment")) then
 		return
 	end
 	if not (pieWeldPart and humanoidRootPart.AssemblyRootPart == pieWeldPart.AssemblyRootPart) then
@@ -205,7 +195,7 @@ local function pieHitCharacterEffect(caller: Player, throwerCharacter: Model, hi
 	if not checkCanHitCharacter(throwerCharacter, hitCharacter) then
 		return
 	end
-	
+
 	-- Ensure effect only runs once
 	local hasHit = pieModel:FindFirstChild("HasHit") :: BoolValue
 	if hasHit and hasHit.Value then
@@ -225,16 +215,13 @@ local function pieHitCharacterEffect(caller: Player, throwerCharacter: Model, hi
 	runHitCharacterEffect(throwerCharacter, hitCharacter, pieMainPart)
 end
 
-local function unstickServerPie(caller: Player, mainPart: Part?)
+local function unstickServerPie(mainPart: Part?)
 	-- Validate pie
 	task.desynchronize()
-	local pieModel = mainPart and mainPart.Parent
-	local pieCreatorObject = pieModel and pieModel:FindFirstChild("Creator") :: ObjectValue
-	local pieCreator = pieCreatorObject and pieCreatorObject.Value
-	if not (mainPart and mainPart:FindFirstChild("PieAttachment") and caller == pieCreator) then
+	if not (mainPart and mainPart:FindFirstChild("PieAttachment")) then
 		return
 	end
-	
+
 	-- Unstick pie
 	task.synchronize()
 	for _, instance in mainPart:GetChildren() do
@@ -244,34 +231,32 @@ local function unstickServerPie(caller: Player, mainPart: Part?)
 	end
 end
 
-local function removeServerPie(caller: Player, mainPart: Part?)
+local function removeServerPie(mainPart: Part?)
 	-- Validate pie
 	task.desynchronize()
 	local pieModel = mainPart and mainPart.Parent
-	local pieCreatorObject = pieModel and pieModel:FindFirstChild("Creator") :: ObjectValue
-	local pieCreator = pieCreatorObject and pieCreatorObject.Value
-	if not (mainPart and mainPart:FindFirstChild("PieAttachment") and caller == pieCreator) then
+	if not (mainPart and mainPart:FindFirstChild("PieAttachment")) then
 		return
 	end
-	
+
 	-- Remove pie
 	Debris:AddItem(pieModel, 0)
 end
 
--- Event functions
-local function onPieHikeServerEvent(player: Player, mode: string, ...)
+---------- Event functions ----------
+
+local function onPieHikeBindableEvent(mode: string, ...)
 	if mode == "Stick Server Pie To Part" then
-		stickServerPieToPart(player, ...)
-	elseif mode == "Stick Server Pie To CSC Pie" then
-		stickServerPieToCSCPie(player, ...)
+		stickServerPieToPart(...)
 	elseif mode == "Pie Hit Character Effect" then
-		pieHitCharacterEffect(player, ...)
+		pieHitCharacterEffect(...)
 	elseif mode == "Unstick" then
-		unstickServerPie(player, ...)
+		unstickServerPie(...)
 	elseif mode == "Remove" then
-		removeServerPie(player, ...)
+		removeServerPie(...)
 	end
 end
 
--- Calling / connecting functions
-PieHikeRemoteEvent.OnServerEvent:Connect(onPieHikeServerEvent)
+---------- Calling / connecting functions ----------
+
+PieHikeBindable.Event:Connect(onPieHikeBindableEvent)

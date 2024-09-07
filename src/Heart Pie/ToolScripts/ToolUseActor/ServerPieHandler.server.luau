@@ -1,26 +1,30 @@
 --!strict
 -- Server Pie Handler Script
 
--- Tool info
+---------- Services ----------
+
+local Players = game:GetService("Players")
+
+---------- Instances ----------
+
 local Tool = script.Parent.Parent.Parent
 local ToolEvents = Tool:WaitForChild("ToolEvents")
 local PieTypeRemoteEvent = ToolEvents:WaitForChild("PieTypeRemoteEvent")
 
--- Services
-local Players = game:GetService("Players")
+---------- Variables ----------
 
--- Variables
 local character: Model? = nil
 local player: Player? = nil
 
--- Functions
+---------- Local unctions ----------
+
 local function setPieLaunchType(caller: Player, newLaunchType: string)
 	-- Sanity check for switching type
 	local canSwitchType = Tool:GetAttribute("CanSwitchType")
 	if not canSwitchType then
 		return
 	end
-	
+
 	-- Validate player
 	if caller ~= player then
 		return
@@ -43,14 +47,16 @@ local function onToolUnequipped()
 	player = nil
 end
 
--- Event functions
+---------- Event functions ----------
+
 local function onPieTypeServerEvent(caller: Player, mode: string, ...)
 	if mode == "Set Pie Type" then
 		setPieLaunchType(caller, ...)
 	end
 end
 
--- Calling / connecting functions
+---------- Calling / connecting functions ----------
+
 Tool.Equipped:Connect(onToolEquipped)
 Tool.Unequipped:Connect(onToolUnequipped)
 PieTypeRemoteEvent.OnServerEvent:Connect(onPieTypeServerEvent)

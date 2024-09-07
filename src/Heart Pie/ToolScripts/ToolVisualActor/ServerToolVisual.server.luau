@@ -1,8 +1,14 @@
 --!strict
 -- Server Tool Visual Script
 
--- Tool info
+---------- Services ----------
+
+local Players = game:GetService("Players")
+
+---------- Instances ----------
+
 local Tool = script.Parent.Parent.Parent
+
 local ToolEvents = Tool:WaitForChild("ToolEvents")
 local ToolVisualEvent = ToolEvents:WaitForChild("ToolVisualEvent")
 local ToolVisualRemoteEvent = ToolEvents:WaitForChild("ToolVisualRemoteEvent")
@@ -12,17 +18,16 @@ local PieMainPart = PieModel:WaitForChild("MainPart")
 
 local PieSkins = Tool:WaitForChild("PieSkins")
 
--- Services
-local Players = game:GetService("Players")
+---------- Variables ----------
 
--- Variables
 local currentTransparency: number? = nil
 
 local character: Model? = nil
 local humanoid: Humanoid? = nil
 local player: Player? = nil
 
--- Functions
+---------- Local functions ----------
+
 local function checkPlayerAlive() -- Copied from "PieHandler"
 	-- Check whether the variables refer to an alive player
 	if not (character and character.Parent) then
@@ -45,7 +50,7 @@ local function setPieModelTransparency(caller: Player, transparency: number?) --
 	if not checkPlayerAlive() then
 		return
 	end
-	
+
 	-- Change transparency
 	currentTransparency = transparency
 	for _, part in PieModel:GetDescendants() do
@@ -72,7 +77,7 @@ local function renewPieModelTransparency()
 	if not player then
 		return
 	end
-	
+
 	-- Renew transparency
 	setPieModelTransparency(player, currentTransparency)
 end
@@ -115,7 +120,7 @@ local function setupPieSkins()
 		if not (pieSkin:IsA("Model") and pieSkinMainPart) then
 			continue
 		end
-		
+
 		-- Go through all parts in the pie skin
 		for _, part in pieSkin:GetDescendants() do
 			if part:IsA("BasePart") then
@@ -129,10 +134,10 @@ local function setupPieSkins()
 
 				-- Record original properties
 				recordOriginalProperties(part)
-				
+
 				-- Make invisible
 				part.Transparency = 1
-				
+
 				-- Disable CanCollide, CanTouch, and CanQuery
 				part.CanCollide = false
 				part.CanTouch = false
@@ -165,7 +170,8 @@ local function setupPieModel()
 	end
 end
 
--- Tool functions
+---------- Tool functions ----------
+
 local function onEquipped()
 	character = Tool.Parent
 	humanoid = character and character:FindFirstChildOfClass("Humanoid")
@@ -178,7 +184,8 @@ local function onUnequipped()
 	player = nil
 end
 
--- Event functions
+---------- Event functions ----------
+
 local function onToolVisualServerEvent(player: Player, mode: string, ...)
 	if mode == "Set Pie Transparency" then
 		setPieModelTransparency(player, ...)
@@ -191,7 +198,8 @@ local function onToolVisualEvent(mode: string, ...)
 	end
 end
 
--- Calling / connection functions
+---------- Calling / connection functions ----------
+
 ToolVisualEvent.Event:Connect(onToolVisualEvent)
 ToolVisualRemoteEvent.OnServerEvent:Connect(onToolVisualServerEvent)
 Tool.Equipped:Connect(onEquipped)

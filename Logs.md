@@ -3,14 +3,36 @@
 ## Plans
 
 - Improve how skins are unlocked.
+- Improve the design of pie effects.
 - Allow pies to be visible if they are initially in the workspace.
+
+## Server-side Collision & Improvements | 2024/09/07
+
+Changed the "Server" pie type such that:
+
+- The pie is owned by the server (network ownership).
+- It is handled by a server script.
+- The pie will be not-collidable with characters that can't be hit.
+
+`PieAmmoModule` is moved to `ReplicatedStorage` and renamed into `RegularPieAmmoModule`.
+
+Tool inputs:
+
+- Tool inputs are moved to the [ContextActions](./src/Heart%20Pie/ToolScripts/ActionsActor/ContextActions.client.luau) script.
+- Press `T` to switch the pie type.
+
+`PieToolScreen` can be customized by putting one in StarterGui.<br>
+The default `PieToolScreen` will be used if none is found.
+
+New number value `TimeUntilUnstick` under the pie model.<br>
+...
 
 ## Overlap Part | 2024/08/20
 
 Thanks to drumpiece for motivating me to do this update.
 
-Added a feature "CanOverlapPart" which prevents the pie from being "pushed out" when sticking.<br>
-Enabling this could raise the difficulty of pie hiking.
+Added a feature `CanOverlapPart` which prevents the pie from being "pushed out" when sticking.<br>
+Enabling this attribute under `PieModel` could raise the difficulty of pie hiking.
 
 ## Stick After 7.5 s | 2024/08/02
 

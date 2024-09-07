@@ -1,7 +1,17 @@
 --!strict
 -- Server Pie Launch Script
 
--- Tool info
+---------- Services ----------
+
+local Debris = game:GetService("Debris")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+---------- Types ----------
+
+type Motion = {["CFrame"]: CFrame?, ["Direction"]: Vector3?}
+
+---------- Instances ----------
 local Tool = script.Parent.Parent.Parent
 local ToolEvents = Tool:WaitForChild("ToolEvents")
 local PieLaunchRemoteEvent = ToolEvents:WaitForChild("PieLaunchRemoteEvent")
@@ -11,19 +21,11 @@ local PieModel = Tool:WaitForChild("PieModel")
 local PieSkins = Tool:WaitForChild("PieSkins")
 local EffectsList = PieSkins:WaitForChild("EffectsList")
 
--- Services
-local Debris = game:GetService("Debris")
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
--- Types
-type Motion = {["CFrame"]: CFrame?, ["Direction"]: Vector3?}
-
--- Instances
 local PieHikingEvents = ReplicatedStorage:WaitForChild("PieHikingEvents") :: Folder
-local PieHikeRemoteEvent = PieHikingEvents:WaitForChild("PieHikeRemoteEvent") :: RemoteEvent
+local PieHikeBindable = PieHikingEvents:WaitForChild("PieHikeBindable") :: BindableEvent
 
--- Variables
+---------- Variables ----------
+
 local PieAmmoModel: Model
 local EquippedPieSkin: Model
 
@@ -36,7 +38,8 @@ local printDebug = Tool:GetAttribute("PrintDebug")
 local character: Model? = nil
 local player: Player? = nil
 
--- Functions
+---------- Local functions ----------
+
 local function checkLaunchMotion(player: Player, launchMotion: Motion)
 	-- Validate launch motion
 	local launchCFrame = launchMotion.CFrame
@@ -125,11 +128,11 @@ local function onLaunchPie(caller: Player, launchMotion: Motion)
 	newPieAmmoMainPart:PivotTo(launchCFrame)
 	newPieAmmoMainPart.Anchored = false
 	newPieAmmoMainPart.CanCollide = true
-	newPieAmmoMainPart:SetNetworkOwner(player)
+	newPieAmmoMainPart:SetNetworkOwner(nil)
 
 	-- Launch pie
 	lastLaunchTime = os.clock()
-	PieHikeRemoteEvent:FireClient(caller, "Start Launch", newPieAmmoModel)
+	PieHikeBindable:Fire("Start Launch", newPieAmmoModel, player)
 
 	-- Remove pie after a while
 	Debris:AddItem(newPieAmmoModel, 12)
@@ -204,14 +207,16 @@ local function onPieSkinChange()
 	createPieAmmoModel()
 end
 
--- Event functions
+---------- Event functions ----------
+
 local function onPieLaunchServerEvent(player: Player, mode: string, ...)
 	if mode == "Launch Pie" then
 		onLaunchPie(player, ...)
 	end
 end
 
--- Calling / connecting functions
+---------- Calling / connecting functions ----------
+
 PieLaunchRemoteEvent.OnServerEvent:Connect(onPieLaunchServerEvent)
 Tool.Equipped:Connect(onEquipped)
 Tool.Unequipped:Connect(onUnequipped)
