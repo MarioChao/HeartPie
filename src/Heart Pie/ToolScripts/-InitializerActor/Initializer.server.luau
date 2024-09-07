@@ -7,9 +7,11 @@ Tasks:
 ]]
 
 ---------- Services ----------
+
 local Selection = game:GetService("Selection")
 
 ---------- Instances ----------
+
 local Tool = (script and script.Parent.Parent.Parent) or Selection:Get()[1]
 if not Tool then
     return
@@ -25,7 +27,8 @@ local PieRightGripAttachment = PieMainPart:WaitForChild("PieRightGripAttachment"
 local Handle = Tool:WaitForChild("Handle")
 local RightGripAttachment = Handle:WaitForChild("RightGripAttachment")
 
----------- Functions ----------
+---------- Local functions ----------
+
 local function setUpSkinReferences(skin: Instance)
     -- Validate model
     if not skin:IsA("Model") then
@@ -77,10 +80,10 @@ local function setUpPieModelReferences()
 end
 
 local function setUpRefernceProperties()
-
     task.defer(setUpPieSkinsReferences)
     task.defer(setUpPieModelReferences)
 end
 
 ---------- Calling / connecting functions----------
+
 task.defer(setUpRefernceProperties)

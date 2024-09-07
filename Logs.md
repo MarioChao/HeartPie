@@ -5,14 +5,14 @@
 - Improve how skins are unlocked.
 - Allow pies to be visible if they are initially in the workspace.
 
-## Future log | 2024/08/20
+## Overlap Part | 2024/08/20
 
 Thanks to drumpiece for motivating me to do this update.
 
 Added a feature "CanOverlapPart" which prevents the pie from being "pushed out" when sticking.<br>
 Enabling this could raise the difficulty of pie hiking.
 
-## Future log | 2024/08/02
+## Stick After 7.5 s | 2024/08/02
 
 Small modifications to some container scripts.
 
