@@ -31,6 +31,10 @@ local function handleAction(actionName: string, inputState: Enum.UserInputState,
 		if isBeginState then
 			ActionsBindable:Fire("Previous Skin")
 		end
+	elseif actionName == "Pie Switch Type" then
+		if isBeginState then
+			ActionsBindable:Fire("Switch Pie Type")
+		end
 	end
 end
 
@@ -43,13 +47,13 @@ end
 local function onEquipped()
 	ContextActionService:BindAction("Pie Next Skin", handleAction, true, Enum.KeyCode.E)
 	ContextActionService:BindAction("Pie Previous Skin", handleAction, true, Enum.KeyCode.Q)
-	ContextActionService:BindAction("Switch Pie Type", handleAction, false, Enum.KeyCode.T)
+	ContextActionService:BindAction("Pie Switch Type", handleAction, false, Enum.KeyCode.T)
 end
 
 local function onUnequipped()
 	ContextActionService:UnbindAction("Pie Next Skin")
 	ContextActionService:UnbindAction("Pie Previous Skin")
-	ContextActionService:UnbindAction("Switch Pie Type")
+	ContextActionService:UnbindAction("Pie Switch Type")
 end
 
 ---------- Calling / connecting functions ----------

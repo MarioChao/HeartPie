@@ -8,6 +8,8 @@
 
 ## Server-side Collision & Improvements | 2024/09/07
 
+Many thanks to LunarK (Ori) for helping me with fixing the server pie.
+
 Changed the "Server" pie type such that:
 
 - The pie is owned by the server (network ownership).

@@ -98,9 +98,11 @@ local function setupPieToolScreen()
 		return
 	end
 
+	-- Get tool screen
+	pieToolScreen = getPieToolScreen()
+
 	-- Get gui instances
 	task.desynchronize()
-	pieToolScreen = getPieToolScreen()
 	pieTypeButton = pieToolScreen and pieToolScreen:FindFirstChild("PieTypeButton") :: TextButton
 	if not (pieToolScreen and pieTypeButton and pieTypeButton:IsA("TextButton")) then
 		return
