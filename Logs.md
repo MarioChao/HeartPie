@@ -14,7 +14,7 @@ Revamped the pie skins system:
 - [x] Conditional skins:
     - Stored in server storage.
     - Given to players after some server-sided checks.
-- [ ] Hit effects are now stored in a single module script.
+- [x] Hit effects are now stored in a single module script inside ReplicatedStorage.
 - [ ] Skin id saves within the same session.
 
 **emitLegacyScripts** set to true to avoid warnings in Roblox Studio.

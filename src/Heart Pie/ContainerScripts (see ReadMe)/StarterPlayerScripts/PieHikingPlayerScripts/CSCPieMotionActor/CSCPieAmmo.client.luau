@@ -15,12 +15,15 @@ end
 local CollectionService = game:GetService("CollectionService")
 local Debris = game:GetService("Debris")
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ReplicatedStorage = game:GetService("ReplicatedStorage") or script.Parent.Parent.Parent.Parent.ReplicatedStorage
 
 ---------- Imports ----------
 
 local CSCPieMotionActor = script.Parent
 local CSCPieAmmo = require(CSCPieMotionActor:WaitForChild("CSCPieAmmoModule"))
+
+local PieHikingModules = ReplicatedStorage:WaitForChild("PieHikingModules")
+local PieHitEffects = require(PieHikingModules:WaitForChild("PieHitEffects"))
 
 ---------- Variables ----------
 
@@ -138,14 +141,6 @@ local function onLaunchCSCPie(creatorPlayer: Player, launchMotion: FinalizedMoti
 	local onlyCollideLocal = not canCollide
 	pieAmmoModel:SetAttribute("OnlyCollideLocal", onlyCollideLocal)
 
-	-- Setup pie effects
-	local pieTool = pieModel.Parent :: Tool
-	local pieSkins = pieTool:FindFirstChild("PieSkins") :: Folder
-	local effectsList = pieSkins:FindFirstChild("EffectsList") :: ModuleScript
-	local newEffectsList = effectsList:Clone()
-	local pieSkinFolder = pieAmmoModel:FindFirstChild("PieSkin") :: Folder
-	newEffectsList.Parent = pieSkinFolder
-
 	-- Setup pie align orientation
 	local pieAlignSpin = (pieSpinInfo.AlignSpin == true)
 	local pieAlignOrientation = pieAmmoMainPart:FindFirstChild("AlignOrientation") :: AlignOrientation
@@ -225,30 +220,41 @@ local function makeCSCPieVisible(pieModel: Model)
 end
 
 local function runClientHitEffect(throwPieMainPart: Part, hitPart: BasePart)
-	-- Validate effect module
+	-- Quick validation
 	local throwPieModel = throwPieMainPart.Parent :: Model
 	local creatorObject = throwPieModel:FindFirstChild("Creator") :: ObjectValue
-	local creatorPlayer = creatorObject and creatorObject.Value :: Player
-	local throwPieSkinFolder = throwPieModel and throwPieModel:FindFirstChild("PieSkin")
-	local throwPieSkinModel = throwPieSkinFolder and throwPieSkinFolder:FindFirstChildOfClass("Model")
-	local pieEffectsConfiguration = throwPieSkinModel and throwPieSkinModel:FindFirstChild("EffectsConfiguration")
-	local clientHitEffectModule = pieEffectsConfiguration and pieEffectsConfiguration:FindFirstChild("ClientHitEffect") :: ModuleScript
-	if not clientHitEffectModule then
+	local creator = creatorObject and creatorObject.Value :: Player
+	local throwerCharacter = creator and creator.Character
+	local throwerHumanoid = throwerCharacter and throwerCharacter:FindFirstChildOfClass("Humanoid")
+	if not throwerCharacter then
 		return
 	end
 
-	-- Quick validation (redundant)
-	local throwerCharacter = creatorPlayer.Character
-	local throwerHumanoid = throwerCharacter and throwerCharacter:FindFirstChildOfClass("Humanoid")
-	local creatorObjectValue = throwPieModel and throwPieModel:FindFirstChild("Creator") :: ObjectValue
-	local creator = creatorObjectValue and creatorObjectValue.Value :: Player
-	if throwerCharacter ~= creator.Character then
+	-- Get parameters
+	local param: PieHitEffects.EffectParameter = {
+		throwerCharacter = throwerCharacter,
+		hitCharacter = nil,
+		pieMainPart = throwPieMainPart,
+		hitPart = hitPart,
+	}
+
+	-- Get effect function
+	local throwPieSkinFolder = throwPieModel:FindFirstChild("PieSkin")
+	local throwPieSkinModel = throwPieSkinFolder and throwPieSkinFolder:FindFirstChildOfClass("Model")
+	if not throwPieSkinModel then
+		return
+	end
+	local effectInfo = PieHitEffects[throwPieSkinModel.Name]
+	if not effectInfo then
+		return
+	end
+	local effectFunction = (effectInfo.ClientUseServer and effectInfo.ServerHit) or effectInfo.ClientHit
+	if not effectFunction then
 		return
 	end
 
 	-- Run effect
-	local clientHitEffect = require(clientHitEffectModule) :: {[string]: any}
-	clientHitEffect.onHit(throwerCharacter, throwPieMainPart, hitPart)
+	effectFunction(param)
 end
 
 local function stickPiePartToPart(throwPieModel: Model, throwPieMainPart: Part, hitPart: BasePart, relativeCFrame: CFrame)

@@ -9,14 +9,20 @@ PieAmmo.__index = PieAmmo
 
 local Debris = game:GetService("Debris")
 local PhysicsService = game:GetService("PhysicsService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ReplicatedStorage = game:GetService("ReplicatedStorage") or script.Parent.Parent
 local RunService = game:GetService("RunService")
+
+---------- Imports ----------
+
+local PieHikingModules = ReplicatedStorage:WaitForChild("PieHikingModules")
+local PieHitEffects = require(PieHikingModules:WaitForChild("PieHitEffects"))
 
 ---------- Instances ----------
 
 local PieHikingEvents = ReplicatedStorage:WaitForChild("PieHikingEvents") :: Folder
 local PieHikeBindable = PieHikingEvents:WaitForChild("PieHikeBindable") :: BindableEvent
 local CSCPieRemoteEvent = PieHikingEvents:WaitForChild("CSCPieRemoteEvent") :: RemoteEvent
+
 
 ---------- Variables ----------
 
@@ -195,30 +201,43 @@ function PieAmmo:canStickTo(hitPart: BasePart): boolean
 end
 
 function PieAmmo:runClientHitEffect(hitPart: BasePart)
-	-- Validate effect module
+	-- Quick validation
 	local creatorPlayer = self.AmmoCreator.Value :: Player
+	local throwerCharacter = creatorPlayer.Character
+	local throwerHumanoid = throwerCharacter and throwerCharacter:FindFirstChildOfClass("Humanoid")
 	local throwPieModel = self.AmmoModel
-	local throwPieMainPart = self.AmmoMainPart
-	local throwPieSkinFolder = throwPieModel:FindFirstChild("PieSkin")
-	local throwPieSkinModel = throwPieSkinFolder and throwPieSkinFolder:FindFirstChildOfClass("Model")
-	local pieEffectsConfiguration = throwPieSkinModel and throwPieSkinModel:FindFirstChild("EffectsConfiguration")
-	local clientHitEffectModule = pieEffectsConfiguration and pieEffectsConfiguration:FindFirstChild("ClientHitEffect") :: ModuleScript
-	if not clientHitEffectModule then
+	local creatorObjectValue = throwPieModel and throwPieModel:FindFirstChild("Creator") :: ObjectValue
+	local creator = creatorObjectValue and creatorObjectValue.Value :: Player
+	if not (creator and throwerCharacter == creator.Character) then
 		return
 	end
 
-	-- Quick validation
-	local throwerCharacter = creatorPlayer.Character
-	local throwerHumanoid = throwerCharacter and throwerCharacter:FindFirstChildOfClass("Humanoid")
-	local creatorObjectValue = throwPieModel and throwPieModel:FindFirstChild("Creator") :: ObjectValue
-	local creator = creatorObjectValue and creatorObjectValue.Value :: Player
-	if throwerCharacter ~= creator.Character then
+	-- Get parameters
+	local throwPieMainPart = self.AmmoMainPart
+	local param: PieHitEffects.EffectParameter = {
+		throwerCharacter = throwerCharacter,
+		hitCharacter = nil,
+		pieMainPart = throwPieMainPart,
+		hitPart = hitPart,
+	}
+
+	-- Get effect function
+	local throwPieSkinFolder = throwPieModel:FindFirstChild("PieSkin")
+	local throwPieSkinModel = throwPieSkinFolder and throwPieSkinFolder:FindFirstChildOfClass("Model")
+	if not throwPieSkinModel then
+		return
+	end
+	local effectInfo = PieHitEffects[throwPieSkinModel.Name]
+	if not effectInfo then
+		return
+	end
+	local effectFunction = (effectInfo.ClientUseServer and effectInfo.ServerHit) or effectInfo.ClientHit
+	if not effectFunction then
 		return
 	end
 
 	-- Run effect
-	local clientHitEffect = require(clientHitEffectModule) :: {[string]: any}
-	clientHitEffect.onHit(throwerCharacter, throwPieMainPart, hitPart)
+	effectFunction(param)
 end
 
 function PieAmmo:stickPieReplicate(hitPart: BasePart, relativeCFrame: CFrame)

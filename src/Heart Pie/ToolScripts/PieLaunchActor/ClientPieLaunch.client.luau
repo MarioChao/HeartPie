@@ -22,9 +22,6 @@ local CSCPieLaunchRemoteEvent = ToolEvents:WaitForChild("CSCPieLaunchRemoteEvent
 
 local PieModel = Tool:WaitForChild("PieModel")
 
-local PieSkins = Tool:WaitForChild("PieSkins")
-local EffectsList = PieSkins:WaitForChild("EffectsList")
-
 local PieHikingEvents = ReplicatedStorage:WaitForChild("PieHikingEvents") :: Folder
 local PieHikeBindable = PieHikingEvents:WaitForChild("PieHikeBindable") :: BindableEvent
 
@@ -127,11 +124,6 @@ local function onLaunchPie(caller: Player, launchMotion: Motion)
 	newPieCreator.Parent = newPieAmmoModel
 	local pieSpinByVelocity = Tool:GetAttribute("PieSpinByVelocity")
 	newPieAmmoModel:SetAttribute("InternalSpinByVelocity", pieSpinByVelocity)
-
-	-- Setup pie effects
-	local newPieSkinFolder = newPieAmmoModel:FindFirstChild("PieSkin")
-	local newEffectsList = EffectsList:Clone()
-	newEffectsList.Parent = newPieSkinFolder
 
 	-- Setup pie align orientation
 	local pieAlignSpin = Tool:GetAttribute("PieAlignSpin")

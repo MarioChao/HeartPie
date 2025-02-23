@@ -12,7 +12,12 @@ end
 ---------- Services ----------
 
 local Debris = game:GetService("Debris")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ReplicatedStorage = game:GetService("ReplicatedStorage") or script.Parent.Parent.Parent.Parent.ReplicatedStorage
+
+---------- Imports ----------
+
+local PieHikingModules = ReplicatedStorage:WaitForChild("PieHikingModules")
+local PieHitEffects = require(PieHikingModules:WaitForChild("PieHitEffects"))
 
 ---------- Variables ----------
 
@@ -65,24 +70,40 @@ local function checkCanHitCharacter(characterThrow: Model?, characterHit: Model?
 end
 
 local function runServerHitEffect(throwPieMainPart: Part, hitPart: BasePart)
-	-- Validate effect module
+	-- Validate creator
 	local throwPieModel = throwPieMainPart.Parent :: Model
-	local throwPieSkinFolder = throwPieModel and throwPieModel:FindFirstChild("PieSkin")
-	local throwPieSkinModel = throwPieSkinFolder and throwPieSkinFolder:FindFirstChildOfClass("Model")
-	local pieEffectsConfiguration = throwPieSkinModel and throwPieSkinModel:FindFirstChild("EffectsConfiguration")
-	local serverHitEffectModule = pieEffectsConfiguration and pieEffectsConfiguration:FindFirstChild("ServerHitEffect") :: ModuleScript
-	if not serverHitEffectModule then
+	local creatorObjectValue = throwPieModel and throwPieModel:FindFirstChild("Creator") :: ObjectValue
+	local creator = creatorObjectValue and creatorObjectValue.Value :: Player
+	local throwerCharacter = creator and creator.Character
+	if not throwerCharacter then
 		return
 	end
 
-	-- Validate thrower character
-	local creatorObjectValue = throwPieModel and throwPieModel:FindFirstChild("Creator") :: ObjectValue
-	local creator = creatorObjectValue and creatorObjectValue.Value :: Player
-	local throwerCharacter = creator.Character
+	-- Get parameters
+	local param: PieHitEffects.EffectParameter = {
+		throwerCharacter = throwerCharacter,
+		hitCharacter = nil,
+		pieMainPart = throwPieMainPart,
+		hitPart = hitPart,
+	}
+
+	-- Get effect function
+	local throwPieSkinFolder = throwPieModel and throwPieModel:FindFirstChild("PieSkin")
+	local throwPieSkinModel = throwPieSkinFolder and throwPieSkinFolder:FindFirstChildOfClass("Model")
+	if not throwPieSkinModel then
+		return
+	end
+	local effectInfo = PieHitEffects[throwPieSkinModel.Name]
+	if not effectInfo then
+		return
+	end
+	local effectFunction = effectInfo.ServerHit
+	if not effectFunction then
+		return
+	end
 
 	-- Run effect
-	local serverHitEffect = require(serverHitEffectModule) :: {[string]: any}
-	serverHitEffect.onHit(throwerCharacter, throwPieMainPart, hitPart)
+	effectFunction(param)
 end
 
 local function stickPiePartToPart(throwPieModel: Model, throwPieMainPart: Part, hitPart: BasePart?, hitCFrame: CFrame, relativeCFrame: CFrame)
@@ -145,26 +166,39 @@ local function stickServerPieToPart(throwPieMainPart: Part?, hitPart: BasePart?,
 end
 
 local function runHitCharacterEffect(throwerCharacter: Model, hitCharacter: Model, pieMainPart: Part)
-	-- Validate effect module
-	local pieModel = pieMainPart.Parent :: Model
-	local pieSkinFolder = pieModel:FindFirstChild("PieSkin")
-	local pieSkinModel = pieSkinFolder and pieSkinFolder:FindFirstChildOfClass("Model")
-	local pieEffectsConfiguration = pieSkinModel and pieSkinModel:FindFirstChild("EffectsConfiguration")
-	local hitCharacterEffectModule = pieEffectsConfiguration and pieEffectsConfiguration:FindFirstChild("HitCharacterEffect") :: ModuleScript
-	if not hitCharacterEffectModule then
-		return
-	end
-
 	-- Quick validation
 	local throwerHumanoid = throwerCharacter and throwerCharacter:FindFirstChildOfClass("Humanoid")
 	local hitHumanoid = hitCharacter and hitCharacter:FindFirstChildOfClass("Humanoid")
-	if not(throwerHumanoid and hitHumanoid) then
+	if not (throwerHumanoid and hitHumanoid) then
+		return
+	end
+
+	-- Get parameters
+	local param: PieHitEffects.EffectParameter = {
+		throwerCharacter = throwerCharacter,
+		hitCharacter = hitCharacter,
+		pieMainPart = pieMainPart,
+		hitPart = nil,
+	}
+
+	-- Get effect function
+	local pieModel = pieMainPart.Parent :: Model
+	local pieSkinFolder = pieModel:FindFirstChild("PieSkin")
+	local pieSkinModel = pieSkinFolder and pieSkinFolder:FindFirstChildOfClass("Model")
+	if not pieSkinModel then
+		return
+	end
+	local effectInfo = PieHitEffects[pieSkinModel.Name]
+	if not effectInfo then
+		return
+	end
+	local effectFunction = effectInfo.HitCharacter
+	if not effectFunction then
 		return
 	end
 
 	-- Run effect
-	local hitCharacterEffect = require(hitCharacterEffectModule) :: {[string]: any}
-	hitCharacterEffect.onHit(throwerCharacter, hitCharacter, pieMainPart)
+	effectFunction(param)
 end
 
 local function pieHitCharacterEffect(throwerCharacter: Model, hitCharacter: Model, pieMainPart: Part)

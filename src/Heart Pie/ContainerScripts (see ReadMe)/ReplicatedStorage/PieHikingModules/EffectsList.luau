@@ -1,7 +1,8 @@
 --!strict
--- Effects Module Script
+-- Effects List Module Script
 
--- Services
+---------- Services ----------
+
 local CollectionService = game:GetService("CollectionService")
 local Debris = game:GetService("Debris")
 local Players = game:GetService("Players")
@@ -9,6 +10,8 @@ local TweenService = game:GetService("TweenService")
 
 ---------- Module ----------
 local effectsList = {}
+
+---------- Module functions ----------
 
 -- Effect functions
 function effectsList.damageCharacter(character: Model, amount: number)
@@ -80,7 +83,7 @@ function effectsList.orbEffectAtPart(part: BasePart, orbColor: Color3, initialOr
 			-- Get sizes
 			local initialSize = Vector3.one * initialOrbSizes[i]
 			local targetSize = Vector3.one * targetOrbSizes[i]
-			
+
 			-- Create part in workspace
 			local orbPart = defaultOrbPart:Clone()
 			orbPart.Size = initialSize
@@ -119,4 +122,5 @@ function effectsList.customEffectAtPart(part: BasePart)
 
 end
 
+---------- Return module ----------
 return effectsList
