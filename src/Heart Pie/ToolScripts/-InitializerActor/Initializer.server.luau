@@ -17,8 +17,6 @@ if not Tool then
     return
 end
 
-local PieSkins = Tool:WaitForChild("PieSkins")
-
 local PieModel = Tool:WaitForChild("PieModel")
 local PieMainPart = PieModel:WaitForChild("MainPart")
 local PieAttachment = PieMainPart:WaitForChild("PieAttachment")
@@ -28,38 +26,6 @@ local Handle = Tool:WaitForChild("Handle")
 local RightGripAttachment = Handle:WaitForChild("RightGripAttachment")
 
 ---------- Local functions ----------
-
-local function setUpSkinReferences(skin: Instance)
-    -- Validate model
-    if not skin:IsA("Model") then
-        return
-    end
-
-    -- Validate skin main part
-    local skinMainPart = skin:WaitForChild("SkinMainPart")
-    if not (skinMainPart and skinMainPart:IsA("Part")) then
-        return
-    end
-
-    -- Get attachment
-    local skinAttachment = skinMainPart:WaitForChild("PieSkinAttachment")
-
-    -- Rigid constraint
-    local rigidConstraint = skinMainPart:WaitForChild("RigidConstraint")
-    rigidConstraint.Attachment0 = skinAttachment
-    rigidConstraint.Attachment1 = PieAttachment
-end
-
-local function setUpPieSkinsReferences()
-    task.defer(function()
-        for _, skin in PieSkins:GetChildren() do
-            setUpSkinReferences(skin)
-        end
-    end)
-    local connection = PieSkins.ChildAdded:Connect(setUpSkinReferences)
-    task.wait(5)
-    connection:Disconnect()
-end
 
 local function setUpPieModelReferences()
     -- Model primary part
@@ -80,7 +46,6 @@ local function setUpPieModelReferences()
 end
 
 local function setUpRefernceProperties()
-    task.defer(setUpPieSkinsReferences)
     task.defer(setUpPieModelReferences)
 end
 

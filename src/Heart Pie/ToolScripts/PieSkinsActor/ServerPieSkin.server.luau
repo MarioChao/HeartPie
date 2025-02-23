@@ -4,7 +4,13 @@
 ---------- Services ----------
 
 local Debris = game:GetService("Debris")
+local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
+local ServerStorage = game:GetService("ServerStorage")
+
+---------- Types ----------
+
+type SkinInfo = {Id: number, Model: Model}
 
 ---------- Instances ----------
 
@@ -13,20 +19,29 @@ local ToolEvents = Tool:WaitForChild("ToolEvents")
 local PieSkinRemoteEvent = ToolEvents:WaitForChild("PieSkinRemoteEvent")
 local ToolVisualEvent = ToolEvents:WaitForChild("ToolVisualEvent")
 
+local PieHikingServerEvents = ServerStorage:WaitForChild("PieHikingServerEvents")
+local ConditionalSkinsBindableEvent: BindableEvent = PieHikingServerEvents:WaitForChild("ConditionalSkinsBindableEvent")
+
 local PieModel = Tool:WaitForChild("PieModel")
+local PieMainPart = PieModel:WaitForChild("MainPart")
+local PieMainPartAttachment = PieMainPart:WaitForChild("PieAttachment")
 
 local PieSkins = Tool:WaitForChild("PieSkins")
 
 ---------- Variables ----------
 
-local pieSkinsTable: {[number]: Model}
+local pieSkinsTable: {SkinInfo}
 
 local character: Model? = nil
 local player: Player? = nil
 
 local changeSkinIdThrottle = false
 
+local skinAddedDebounceId = -1
+
 ---------- Local functions ----------
+
+---------- Skin id functions ----------
 
 local function setSkinIdTo(newSkinId: number)
 	-- Validate skin
@@ -39,14 +54,14 @@ local function setSkinIdTo(newSkinId: number)
 	task.synchronize()
 	local oldPieSkinFolder = PieModel:FindFirstChild("PieSkin")
 	if oldPieSkinFolder then
-		Debris:AddItem(oldPieSkinFolder,0)
+		Debris:AddItem(oldPieSkinFolder, 0)
 	end
 
 	-- Update new skin
 	PieModel:SetAttribute("EquippedSkinId", newSkinId)
 	local newPieSkinFolder = Instance.new("Folder")
 	newPieSkinFolder.Name = "PieSkin"
-	local newPieSkin = pieSkinsTable[newSkinId]:Clone()
+	local newPieSkin = pieSkinsTable[newSkinId].Model:Clone()
 	newPieSkin.Parent = newPieSkinFolder
 
 	newPieSkinFolder.Parent = PieModel -- Might cause exception
@@ -91,12 +106,36 @@ local function changeSkinIdBy(caller: Player, amount: number)
 	end
 end
 
-local function setupPieSkinsTable()
+---------- Skin setup functions ----------
+
+local function setUpSkinReferences(skin: Model)
+    -- Validate skin main part
+    local skinMainPart = skin:FindFirstChild("SkinMainPart")
+    if not (skinMainPart and skinMainPart:IsA("Part")) then
+        return
+    end
+
+    -- Get attachment
+    local skinAttachment = skinMainPart:WaitForChild("PieSkinAttachment")
+
+    -- Set up rigid constraint
+    local rigidConstraint = skinMainPart:WaitForChild("RigidConstraint")
+    rigidConstraint.Attachment0 = skinAttachment
+    rigidConstraint.Attachment1 = PieMainPartAttachment
+end
+
+local function setUpPieSkinsTable()
 	changeSkinIdThrottle = true
 
-	-- Record valid pie skins
+	-- Set reference properties
+	task.synchronize()
+	for _, pieSkin: Instance in PieSkins:GetChildren() do
+		setUpSkinReferences(pieSkin)
+	end
+
+	-- Record valid pie skins from folder
 	task.desynchronize()
-	local validPieSkinsInfo = {} :: {{["Id"]: number, ["Model"]: Model}}
+	local validPieSkinsInfo = {} :: {SkinInfo}
 	for _, pieSkin in PieSkins:GetChildren() do
 		-- Validate pie skin
 		local skinId = pieSkin:GetAttribute("SkinId")
@@ -115,22 +154,67 @@ local function setupPieSkinsTable()
 	end)
 
 	-- Store pie skins in table
-	pieSkinsTable = {}
+	pieSkinsTable = {} :: {SkinInfo}
 	for _, pieSkinInfo in validPieSkinsInfo do
-		table.insert(pieSkinsTable, pieSkinInfo.Model)
+		table.insert(pieSkinsTable, pieSkinInfo)
 	end
 
 	changeSkinIdThrottle = false
 end
 
+local function onNewSkinsAdded(skin: Instance)
+	-- Debounce
+	-- If many skins are added in a short period,
+	-- wait until the last one is added, then proceed with the following code
+	local debounceId = HttpService:GenerateGUID()
+	skinAddedDebounceId = debounceId
+	task.wait(0.3)
+
+	-- Check if debounce changed
+	if skinAddedDebounceId ~= debounceId then
+		return
+	end
+	-- print("Running skin added, " .. skin.Name)
+
+	-- Store equipped skin id
+	local oldSkinId = PieModel:GetAttribute("EquippedSkinId")
+	local realSkinId = pieSkinsTable[oldSkinId].Id
+
+	-- Refresh pie skins table
+	setUpPieSkinsTable()
+
+	-- Equip the original pie skin
+	local newSkinId = 1
+	for id, pieSkinInfo in pieSkinsTable do
+		if pieSkinInfo.Id == realSkinId then
+			newSkinId = id
+			break
+		end
+	end
+	-- print(`Old: {oldSkinId}, real: {realSkinId}, new: {newSkinId}`)
+	setSkinIdTo(newSkinId)
+end
+
 local function onToolEquipped()
 	character = Tool.Parent
 	player = character and Players:GetPlayerFromCharacter(character)
+	if player then
+		ConditionalSkinsBindableEvent:Fire("Populate Tool Skins", Tool)
+	end
 end
 
 local function onToolUnequipped()
 	character = nil
 	player = nil
+end
+
+local function initSetUp()
+	setUpPieSkinsTable()
+	setSkinIdTo(PieModel:GetAttribute("EquippedSkinId"))
+
+	-- Events for changing skins
+	PieSkins.ChildAdded:Connect(onNewSkinsAdded)
+	PieSkins.ChildRemoved:Connect(onNewSkinsAdded)
 end
 
 ---------- Event functions ----------
@@ -146,5 +230,4 @@ end
 Tool.Equipped:Connect(onToolEquipped)
 Tool.Unequipped:Connect(onToolUnequipped)
 PieSkinRemoteEvent.OnServerEvent:Connect(onPieSkinServerEvent)
-setupPieSkinsTable()
-setSkinIdTo(PieModel:GetAttribute("EquippedSkinId"))
+initSetUp()

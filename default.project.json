@@ -3,5 +3,5 @@
     "tree": {
         "$path": "src/Heart Pie"
     },
-    "emitLegacyScripts": false
+    "emitLegacyScripts": true
 }

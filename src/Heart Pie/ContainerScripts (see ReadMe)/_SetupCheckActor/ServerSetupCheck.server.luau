@@ -37,11 +37,13 @@ end
 local function checkServerScriptService()
 	local PieHikingScripts = checkForChild(ServerScriptService, "PieHikingScripts")
 	local PieHikingActor = checkForChild(PieHikingScripts, "PieHikingActor")
-	local PieHikingServer = checkForChild(PieHikingActor, "PieHikingServer") :: Script
+	local PieHikingServer: Script = checkForChild(PieHikingActor, "PieHikingServer")
 	local ServerPieMotionActor = checkForChild(PieHikingScripts, "ServerPieMotionActor")
-	local ServerPieAmmo = checkForChild(ServerPieMotionActor, "ServerPieAmmo") :: Script
+	local ServerPieAmmo: Script = checkForChild(ServerPieMotionActor, "ServerPieAmmo")
+	local PieSkinsChecker: Script = checkForChild(PieHikingScripts, "PieSkinsChecker")
 	checkScriptEnabled(PieHikingServer)
 	checkScriptEnabled(ServerPieAmmo)
+	checkScriptEnabled(PieSkinsChecker)
 end
 
 local function setupCheck()
@@ -59,3 +61,9 @@ end
 ---------- Calling functions ----------
 
 task.defer(setupCheck)
+
+---------- Delete container scripts in tool ----------
+
+task.delay(1, function()
+	script.Parent.Parent:Destroy()
+end)

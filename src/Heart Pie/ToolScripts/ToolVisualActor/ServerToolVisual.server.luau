@@ -47,9 +47,6 @@ local function setPieModelTransparency(caller: Player, transparency: number?) --
 	if not (transparency == nil or tonumber(transparency)) then
 		return
 	end
-	if not checkPlayerAlive() then
-		return
-	end
 
 	-- Change transparency
 	currentTransparency = transparency
@@ -65,6 +62,11 @@ local function setPieModelTransparency(caller: Player, transparency: number?) --
 			end
 		end
 	end
+
+	-- Client side
+	if not checkPlayerAlive() then
+		return
+	end
 	ToolVisualRemoteEvent:FireClient(caller, "Done Setting Pie Transparency", transparency)
 	-- Send event twice to ensure client updates correctly
 	task.delay(0.03, function()
@@ -73,11 +75,6 @@ local function setPieModelTransparency(caller: Player, transparency: number?) --
 end
 
 local function renewPieModelTransparency()
-	-- Validate
-	if not player then
-		return
-	end
-
 	-- Renew transparency
 	setPieModelTransparency(player, currentTransparency)
 end
@@ -112,38 +109,47 @@ local function recordOriginalProperties(part: Part)
 	end
 end
 
+local function setUpPieSkin(pieSkin: Instance)
+	-- Validate pie skin
+	local pieSkinMainPart: Part = pieSkin:FindFirstChild("SkinMainPart")
+	if not (pieSkin:IsA("Model") and pieSkinMainPart) then
+		return
+	end
+	-- print("visual setting up " .. pieSkin.Name)
+
+	-- Go through all parts in the pie skin
+	for _, part in pieSkin:GetDescendants() do
+		if part:IsA("BasePart") then
+			-- Connect parts together
+			if part.AssemblyRootPart ~= pieSkinMainPart.AssemblyRootPart then
+				local weldConstraint = Instance.new("WeldConstraint")
+				weldConstraint.Part0 = part
+				weldConstraint.Part1 = pieSkinMainPart
+				weldConstraint.Parent = part
+			end
+
+			-- Record original properties
+			recordOriginalProperties(part)
+
+			-- Make invisible
+			part.Transparency = 1
+
+			-- Disable CanCollide, CanTouch, and CanQuery
+			part.CanCollide = false
+			part.CanTouch = false
+			part.CanQuery = false
+		end
+	end
+end
+
 local function setupPieSkins()
 	-- Go through all pie skins
 	for _, pieSkin in PieSkins:GetChildren() do
-		-- Validate pie skin
-		local pieSkinMainPart = pieSkin:FindFirstChild("SkinMainPart") :: Part
+		local pieSkinMainPart: Part = pieSkin:FindFirstChild("SkinMainPart")
 		if not (pieSkin:IsA("Model") and pieSkinMainPart) then
 			continue
 		end
-
-		-- Go through all parts in the pie skin
-		for _, part in pieSkin:GetDescendants() do
-			if part:IsA("BasePart") then
-				-- Connect parts together
-				if part.AssemblyRootPart ~= pieSkinMainPart.AssemblyRootPart then
-					local weldConstraint = Instance.new("WeldConstraint")
-					weldConstraint.Part0 = part
-					weldConstraint.Part1 = pieSkinMainPart
-					weldConstraint.Parent = part
-				end
-
-				-- Record original properties
-				recordOriginalProperties(part)
-
-				-- Make invisible
-				part.Transparency = 1
-
-				-- Disable CanCollide, CanTouch, and CanQuery
-				part.CanCollide = false
-				part.CanTouch = false
-				part.CanQuery = false
-			end
-		end
+		setUpPieSkin(pieSkin)
 	end
 end
 
@@ -158,10 +164,10 @@ local function setupPieModel()
 				weldConstraint.Part1 = PieMainPart
 				weldConstraint.Parent = part
 			end
-			
+
 			-- Record original properties
 			recordOriginalProperties(part)
-			
+
 			-- Disable CanCollide, CanTouch, and CanQuery
 			part.CanCollide = false
 			part.CanTouch = false
@@ -205,4 +211,7 @@ ToolVisualRemoteEvent.OnServerEvent:Connect(onToolVisualServerEvent)
 Tool.Equipped:Connect(onEquipped)
 Tool.Unequipped:Connect(onUnequipped)
 task.defer(setupPieModel)
-task.defer(setupPieSkins)
+task.defer(function()
+	setupPieSkins()
+	PieSkins.ChildAdded:Connect(setUpPieSkin)
+end)
