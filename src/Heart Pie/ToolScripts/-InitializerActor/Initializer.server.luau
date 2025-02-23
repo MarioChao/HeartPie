@@ -8,6 +8,7 @@ Tasks:
 
 ---------- Services ----------
 
+local ChangeHistoryService = game:GetService("ChangeHistoryService")
 local Selection = game:GetService("Selection")
 
 ---------- Instances ----------
@@ -70,13 +71,17 @@ local function setUpPieModelReferences()
     upwardsForce.Attachment0 = PieAttachment
 end
 
-local function setUpRefernceProperties()
-    task.defer(setUpPieModelReferences)
+local function setUpReferenceProperties()
     if isCommandBar then
-        task.defer(setUpPieSkinsReferences)
+        ChangeHistoryService:SetWaypoint("Setting up pie reference properties")
+        setUpPieModelReferences()
+        setUpPieSkinsReferences()
+        ChangeHistoryService:SetWaypoint("Set up pie reference properties")
+    else
+        task.defer(setUpPieModelReferences)
     end
 end
 
 ---------- Calling / connecting functions----------
 
-task.defer(setUpRefernceProperties)
+task.defer(setUpReferenceProperties)
