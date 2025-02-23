@@ -113,7 +113,7 @@ end
 local function cleanUpFetches()
 	for userId, fetchInfos in userBadgeFetchInfos do
 		for badgeId, fetchInfo in fetchInfos do
-			if isCacheExpired(fetchInfo.fetchStatus) then
+			if isCacheExpired(fetchInfo.cacheStatus) then
 				fetchInfos[badgeId] = nil
 			end
 		end
@@ -133,6 +133,13 @@ end
 ---------- Module functions ----------
 
 function BadgeCheck.checkUserHasBadge(userId: number, badgeId: number): boolean
+	-- Sanitize input
+	userId = tonumber(userId)
+	badgeId = tonumber(badgeId)
+	if not (userId and badgeId) then
+		return
+	end
+
 	-- Check cached result
 	local badgeFetchInfos = userBadgeFetchInfos[userId]
 	local fetchInfo = badgeFetchInfos and badgeFetchInfos[badgeId]

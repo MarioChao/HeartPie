@@ -2,11 +2,14 @@
 
 ## Plans
 
-- Improve how skins are unlocked.
-- Improve the design of pie effects.
-- Allow pies to be visible if they are initially in the workspace.
+- [+] Allow pies to be visible if they are initially in the workspace.
 
 ## Improved Pie Skins System | 2025/02/23
+
+Checklist done:
+
+- Improve how skins are unlocked.
+- Improve the design of pie effects.
 
 Revamped the pie skins system:
 
@@ -15,9 +18,10 @@ Revamped the pie skins system:
     - Stored in server storage.
     - Given to players after some server-sided checks.
 - [x] Hit effects are now stored in a single module script inside ReplicatedStorage.
-- [ ] Skin id saves within the same session.
+- [x] Selected pie skin saves within the same session / server.
+    - Id saves each time the player swaps the skin.
 
-**emitLegacyScripts** set to true to avoid warnings in Roblox Studio.
+**emitLegacyScripts** is set to true to avoid warnings in Roblox Studio.
 
 A container setup script can be found in [ReadMe](./src/Heart%20Pie/ContainerScripts%20(see%20ReadMe)/ReadMe.server.luau).<br>
 This script is similar to the one found in Pie Hiking plugin.

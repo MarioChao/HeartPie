@@ -4,6 +4,14 @@
         {
             "Name": "ConditionalSkinsBindableEvent",
             "ClassName": "BindableEvent"
+        },
+        {
+            "Name": "SavedSkinBindableFunction",
+            "ClassName": "BindableFunction"
+        },
+        {
+            "Name": "SavedSkinBindableEvent",
+            "ClassName": "BindableEvent"
         }
     ]
 }

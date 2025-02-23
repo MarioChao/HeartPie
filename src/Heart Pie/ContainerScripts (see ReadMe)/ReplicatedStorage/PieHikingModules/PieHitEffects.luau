@@ -78,7 +78,9 @@ PieEffects["PumpkinPi"] = {
 }
 
 PieEffects["Rhubarb"] = {
-	ServerHit = dummy,
+	ServerHit = function(param: EffectParameter)
+		EffectsList.orbEffectAtPart(param.pieMainPart, Color3.new(0.992156, 0.568627, 1), {3}, {0}, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+	end,
 	ClientUseServer = true,
 	HitCharacter = damage5,
 }

@@ -21,6 +21,8 @@ local ToolVisualEvent = ToolEvents:WaitForChild("ToolVisualEvent")
 
 local PieHikingServerEvents = ServerStorage:WaitForChild("PieHikingServerEvents")
 local ConditionalSkinsBindableEvent: BindableEvent = PieHikingServerEvents:WaitForChild("ConditionalSkinsBindableEvent")
+local SavedSkinBindableFunction: BindableFunction = PieHikingServerEvents:WaitForChild("SavedSkinBindableFunction")
+local SavedSkinBindableEvent: BindableEvent = PieHikingServerEvents:WaitForChild("SavedSkinBindableEvent")
 
 local PieModel = Tool:WaitForChild("PieModel")
 local PieMainPart = PieModel:WaitForChild("MainPart")
@@ -39,11 +41,13 @@ local changeSkinIdThrottle = false
 
 local skinAddedDebounceId = -1
 
+local skinIdNotSet = true
+
 ---------- Local functions ----------
 
 ---------- Skin id functions ----------
 
-local function setSkinIdTo(newSkinId: number)
+local function setSkinIdTo(newSkinId: number, dontSave: boolean?)
 	-- Validate skin
 	newSkinId = (newSkinId - 1) % (#pieSkinsTable) + 1
 	if not pieSkinsTable[newSkinId] then
@@ -61,7 +65,8 @@ local function setSkinIdTo(newSkinId: number)
 	PieModel:SetAttribute("EquippedSkinId", newSkinId)
 	local newPieSkinFolder = Instance.new("Folder")
 	newPieSkinFolder.Name = "PieSkin"
-	local newPieSkin = pieSkinsTable[newSkinId].Model:Clone()
+	local newPieSkinInfo = pieSkinsTable[newSkinId]
+	local newPieSkin = newPieSkinInfo.Model:Clone()
 	newPieSkin.Parent = newPieSkinFolder
 
 	newPieSkinFolder.Parent = PieModel -- Might cause exception
@@ -78,6 +83,25 @@ local function setSkinIdTo(newSkinId: number)
 
 	-- Renew transparency
 	ToolVisualEvent:Fire("Renew Pie Transparency")
+
+	-- Save skin
+	if not dontSave then
+		local userId = player and player.UserId
+		if userId then
+			SavedSkinBindableEvent:Fire("Save Skin Id", userId, newPieSkinInfo.Id)
+		end
+	end
+end
+
+local function setRealSkinIdTo(realSkinId: number, dontSave: boolean?)
+	local newSkinId = 1
+	for id, pieSkinInfo in pieSkinsTable do
+		if pieSkinInfo.Id == realSkinId then
+			newSkinId = id
+			break
+		end
+	end
+	setSkinIdTo(newSkinId, dontSave)
 end
 
 local function changeSkinIdBy(caller: Player, amount: number)
@@ -180,19 +204,21 @@ local function onNewSkinsAdded(skin: Instance)
 	local oldSkinId = PieModel:GetAttribute("EquippedSkinId")
 	local realSkinId = pieSkinsTable[oldSkinId].Id
 
+	-- Used saved skin id if possible
+	task.synchronize()
+	local userId = player and player.UserId
+	if userId then
+		local savedRealSkinId = SavedSkinBindableFunction:Invoke("Get Skin Id", userId)
+		if savedRealSkinId then
+			realSkinId = savedRealSkinId
+		end
+	end
+
 	-- Refresh pie skins table
 	setUpPieSkinsTable()
 
 	-- Equip the original pie skin
-	local newSkinId = 1
-	for id, pieSkinInfo in pieSkinsTable do
-		if pieSkinInfo.Id == realSkinId then
-			newSkinId = id
-			break
-		end
-	end
-	-- print(`Old: {oldSkinId}, real: {realSkinId}, new: {newSkinId}`)
-	setSkinIdTo(newSkinId)
+	setRealSkinIdTo(realSkinId, true)
 end
 
 local function onToolEquipped()
@@ -200,6 +226,14 @@ local function onToolEquipped()
 	player = character and Players:GetPlayerFromCharacter(character)
 	if player then
 		ConditionalSkinsBindableEvent:Fire("Populate Tool Skins", Tool)
+	end
+
+	local userId = player and player.UserId
+	if userId then
+		local savedRealSkinId = SavedSkinBindableFunction:Invoke("Get Skin Id", userId)
+		if savedRealSkinId then
+			setRealSkinIdTo(savedRealSkinId, true)
+		end
 	end
 end
 
@@ -210,7 +244,7 @@ end
 
 local function initSetUp()
 	setUpPieSkinsTable()
-	setSkinIdTo(PieModel:GetAttribute("EquippedSkinId"))
+	setSkinIdTo(PieModel:GetAttribute("EquippedSkinId"), true)
 
 	-- Events for changing skins
 	PieSkins.ChildAdded:Connect(onNewSkinsAdded)

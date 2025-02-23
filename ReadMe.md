@@ -16,11 +16,11 @@ When playtesting, there will be warnings in the output if the container scripts 
 ## Reference Properites
 
 The project contains several [reference](https://rojo.space/docs/v7/properties/#ref) properties.<br>
-These are dynamically set through the [initializer](/src/Heart%20Pie/ToolScripts/-InitializerActor/Initializer.server.luau) script.
+These are dynamically set through the [initializer](/src/Heart%20Pie/ToolScripts/-InitializerActor/Initializer.server.luau) and [PieSkins](./src/Heart%20Pie/ToolScripts/PieSkinsActor/ServerPieSkin.server.luau) script.
 
-- [ ] SkinMainPart:
+- SkinMainPart:
     - RigidConstrant (PieSkinAttachment, PieAttachment)
-- [ ] MainPart:
+- MainPart:
     - AlignOrientation (PieAttachment)
     - RigidConstrant (PieRightGripAttachment, RightGripAttachment)
     - UpwardsForce (PieAttachment)

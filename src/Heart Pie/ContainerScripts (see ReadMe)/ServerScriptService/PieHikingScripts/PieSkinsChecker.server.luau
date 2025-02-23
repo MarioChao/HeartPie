@@ -1,6 +1,14 @@
 --!strict
 -- Pie Skins Checker Script
 
+---------- Validate container ----------
+-- Validate the script's container before running any code
+
+-- For some server scripts
+if not script:FindFirstAncestorWhichIsA("ServerScriptService") then
+	return
+end
+
 ---------- Services ----------
 
 local ServerStorage = game:GetService("ServerStorage") or script.Parent.Parent.Parent.ServerStorage
