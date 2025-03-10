@@ -61,6 +61,21 @@ local function setUpPieToolContainers(): {Instance}
 	local addedInstances = {}
 
 	for _, object in HeartPie_ContainerScripts.ReplicatedStorage:GetChildren() do
+		-- Special case
+		if object.Name == "PieHikingModules" then
+			for _, object_2 in object:GetChildren() do
+				-- Special case
+				if object_2.Name == "PieHitEffects" or object_2.Name == "EffectsList" then
+					local newReplaced = replaceIfNotFound(ReplicatedStorage[object.Name], object_2)
+					table.move(newReplaced, 1, #newReplaced, #addedInstances + 1, addedInstances)
+					continue
+				end
+
+				local newObject = replaceWithNew(ReplicatedStorage[object.Name], object_2)
+				table.insert(addedInstances, newObject)
+			end
+			continue
+		end
 		local newObject = replaceWithNew(ReplicatedStorage, object)
 		table.insert(addedInstances, newObject)
 	end
