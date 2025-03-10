@@ -3,6 +3,13 @@
 ## Plans
 
 - [+] Allow pies to be visible if they are initially in the workspace.
+- [ ] Allow unstick & remove time to be modified.
+
+## Small Refactor & Fix | 2025/03/10
+
+Moved `PieHikingServerEvents` into `PieHikingServerStorage`.
+
+Modified `ContainerSetUp` script to not replaced `PieSkins` and `PieSkinConditions`.
 
 ## Improved Pie Skins System | 2025/02/23
 

@@ -38,31 +38,58 @@ local function removeDupes(parent: Instance, childName: string)
 	end
 end
 
+local function replaceIfNotFound(parent: Instance, child: Instance)
+	local addedInstances = {}
+	if not parent:FindFirstChild(child.Name) then
+		local newObject = child:Clone()
+		newObject.Parent = parent
+		table.insert(addedInstances, newObject)
+	end
+	return addedInstances
+end
+
+local function replaceWithNew(parent: Instance, child: Instance)
+	removeDupes(parent, child.Name)
+	local newObject = child:Clone()
+	newObject.Parent = parent
+	return newObject
+end
+
+---------- Set up functions ----------
+
 local function setUpPieToolContainers(): {Instance}
 	local addedInstances = {}
 
 	for _, object in HeartPie_ContainerScripts.ReplicatedStorage:GetChildren() do
-		removeDupes(ReplicatedStorage, object.Name)
-		local newObject = object:Clone()
-		newObject.Parent = ReplicatedStorage
+		local newObject = replaceWithNew(ReplicatedStorage, object)
 		table.insert(addedInstances, newObject)
 	end
 	for _, object in HeartPie_ContainerScripts.ServerScriptService:GetChildren() do
-		removeDupes(ServerScriptService, object.Name)
-		local newObject = object:Clone()
-		newObject.Parent = ServerScriptService
+		local newObject = replaceWithNew(ServerScriptService, object)
 		table.insert(addedInstances, newObject)
 	end
 	for _, object in HeartPie_ContainerScripts.ServerStorage:GetChildren() do
-		removeDupes(ServerStorage, object.Name)
-		local newObject = object:Clone()
-		newObject.Parent = ServerStorage
+		-- Special case
+		if object.Name == "PieHikingServerStorage" then
+			for _, object_2 in object:GetChildren() do
+				-- Special case
+				if object_2.Name == "PieSkins" or object_2.Name == "PieSkinConditions" then
+					local newReplaced = replaceIfNotFound(ServerStorage[object.Name], object_2)
+					table.move(newReplaced, 1, #newReplaced, #addedInstances + 1, addedInstances)
+					continue
+				end
+
+				local newObject = replaceWithNew(ServerStorage[object.Name], object_2)
+				table.insert(addedInstances, newObject)
+			end
+			continue
+		end
+
+		local newObject = replaceWithNew(ServerStorage, object)
 		table.insert(addedInstances, newObject)
 	end
 	for _, object in HeartPie_ContainerScripts.StarterPlayerScripts:GetChildren() do
-		removeDupes(StarterPlayer.StarterPlayerScripts, object.Name)
-		local newObject = object:Clone()
-		newObject.Parent = StarterPlayer.StarterPlayerScripts
+		local newObject = replaceWithNew(StarterPlayer.StarterPlayerScripts, object)
 		table.insert(addedInstances, newObject)
 	end
 
@@ -72,5 +99,5 @@ end
 ----------- Calling functions ----------
 
 ChangeHistoryService:SetWaypoint("Setting up pie container scripts")
-setUpPieToolContainers()
+Selection:Set(setUpPieToolContainers())
 ChangeHistoryService:SetWaypoint("Set up pie container scripts")

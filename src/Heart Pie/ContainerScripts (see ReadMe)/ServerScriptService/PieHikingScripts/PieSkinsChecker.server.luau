@@ -28,7 +28,7 @@ local PieSkinConditions = require(PieHikingServerStorage:WaitForChild("PieSkinCo
 
 local StoragePieSkins = PieHikingServerStorage:WaitForChild("PieSkins")
 
-local PieHikingServerEvents = ServerStorage:WaitForChild("PieHikingServerEvents")
+local PieHikingServerEvents = PieHikingServerStorage:WaitForChild("PieHikingServerEvents")
 local ConditionalSkinsBindableEvent = PieHikingServerEvents:WaitForChild("ConditionalSkinsBindableEvent")
 
 ---------- Local functions ----------
@@ -67,9 +67,17 @@ local function populatePieSkins(pieTool: Tool)
 		return
 	end
 
-	-- Get player
+	---------- Get player ----------
+	-- Check character
 	local character = pieTool.Parent
 	local player = character and Players:GetPlayerFromCharacter(character)
+
+	-- Check player in ancestor
+	if not player then
+		player = pieTool:FindFirstAncestorWhichIsA("Player")
+	end
+
+	-- No player
 	if not player then
 		return
 	end

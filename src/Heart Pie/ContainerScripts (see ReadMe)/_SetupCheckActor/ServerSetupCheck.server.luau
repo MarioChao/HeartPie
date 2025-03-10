@@ -5,6 +5,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
+local ServerStorage = game:GetService("ServerStorage")
 
 ---------- Local functions ----------
 
@@ -23,6 +24,8 @@ local function checkScriptEnabled(checkScript: Script)
 	end
 	assert(checkScript.Enabled)
 end
+
+---------- Check functions ----------
 
 local function checkReplicatedStorage()
 	local PieHikingEvents = checkForChild(ReplicatedStorage, "PieHikingEvents")
@@ -44,6 +47,11 @@ local function checkServerScriptService()
 	checkScriptEnabled(PieHikingServer)
 	checkScriptEnabled(ServerPieAmmo)
 	checkScriptEnabled(PieSkinsChecker)
+end
+
+local function checkServerStorage()
+	local PieHikingServerStorage = checkForChild(ServerStorage, "PieHikingServerStorage")
+	local PieHikingServerEvents = checkForChild(PieHikingServerStorage, "PieHikingServerEvents")
 end
 
 local function setupCheck()

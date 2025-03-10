@@ -19,7 +19,8 @@ local ToolEvents = Tool:WaitForChild("ToolEvents")
 local PieSkinRemoteEvent = ToolEvents:WaitForChild("PieSkinRemoteEvent")
 local ToolVisualEvent = ToolEvents:WaitForChild("ToolVisualEvent")
 
-local PieHikingServerEvents = ServerStorage:WaitForChild("PieHikingServerEvents")
+local PieHikingServerStorage = ServerStorage:WaitForChild("PieHikingServerStorage")
+local PieHikingServerEvents = PieHikingServerStorage:WaitForChild("PieHikingServerEvents")
 local ConditionalSkinsBindableEvent: BindableEvent = PieHikingServerEvents:WaitForChild("ConditionalSkinsBindableEvent")
 local SavedSkinBindableFunction: BindableFunction = PieHikingServerEvents:WaitForChild("SavedSkinBindableFunction")
 local SavedSkinBindableEvent: BindableEvent = PieHikingServerEvents:WaitForChild("SavedSkinBindableEvent")
@@ -221,20 +222,40 @@ local function onNewSkinsAdded(skin: Instance)
 	setRealSkinIdTo(realSkinId, true)
 end
 
-local function onToolEquipped()
-	character = Tool.Parent
-	player = character and Players:GetPlayerFromCharacter(character)
-	if player then
+local function loadSavedSkin()
+	-- Check variable
+	local tempPlayer = player
+
+	-- Check character
+	if not tempPlayer then
+		local tempCharacter = Tool.Parent
+		tempPlayer = tempCharacter and Players:GetPlayerFromCharacter(tempCharacter)
+	end
+
+	-- Check player is ancestor
+	if not tempPlayer then
+		tempPlayer = Tool:FindFirstAncestorWhichIsA("Player")
+	end
+
+	-- Populate skins
+	if tempPlayer then
 		ConditionalSkinsBindableEvent:Fire("Populate Tool Skins", Tool)
 	end
 
-	local userId = player and player.UserId
+	-- Switch skin
+	local userId = tempPlayer and tempPlayer.UserId
 	if userId then
 		local savedRealSkinId = SavedSkinBindableFunction:Invoke("Get Skin Id", userId)
 		if savedRealSkinId then
 			setRealSkinIdTo(savedRealSkinId, true)
 		end
 	end
+end
+
+local function onToolEquipped()
+	character = Tool.Parent
+	player = character and Players:GetPlayerFromCharacter(character)
+	loadSavedSkin()
 end
 
 local function onToolUnequipped()

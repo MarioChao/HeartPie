@@ -20,7 +20,7 @@ local SavedSession = require(PieHikingServerStorage:WaitForChild("SavedSession")
 
 ---------- Instances ----------
 
-local PieHikingServerEvents = ServerStorage:WaitForChild("PieHikingServerEvents")
+local PieHikingServerEvents = PieHikingServerStorage:WaitForChild("PieHikingServerEvents")
 local SavedSkinBindableFunction = PieHikingServerEvents:WaitForChild("SavedSkinBindableFunction")
 local SavedSkinBindableEvent = PieHikingServerEvents:WaitForChild("SavedSkinBindableEvent")
 
