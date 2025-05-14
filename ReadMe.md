@@ -4,23 +4,34 @@ Use [Rojo](https://rojo.space/) to build the model from scratch.
 
 An easy way is to [install Rojo on VS Code](https://rojo.space/docs/v7/getting-started/installation/).
 
+
 # About the Tool
+
 
 ## Setting up the Tool
 
 The tool requires certain instances to be moved into the containers of the [DataModel](https://create.roblox.com/docs/reference/engine/classes/DataModel).
 
-Open the container scripts (`Heart Pie` > `ContainerScripts (see ReadMe)`) and follow the instructions in `ReadMe`.<br>
-When playtesting, there will be warnings in the output if the container scripts aren't correctly set up.
+Open the container scripts (`Heart Pie` > `ContainerScripts (see ReadMe)`) and follow the instructions in `ReadMe`.
+
+> [!NOTE]
+>
+> When playtesting, there will be warnings in the output if the container scripts aren't correctly set up.
+
+> [!TIP]
+>
+> You can also set up the tool using the [Pie Hiking Creation Kit](https://create.roblox.com/store/asset/18723187294/Pie-Hiking-Creation-Kit) plugin,
+> which also contains a kit for creating pie hiking maps!
+
 
 ## Reference Properites
 
 The project contains several [reference](https://rojo.space/docs/v7/properties/#ref) properties.<br>
 These are dynamically set through the [initializer](/src/Heart%20Pie/ToolScripts/-InitializerActor/Initializer.server.luau) and [PieSkins](./src/Heart%20Pie/ToolScripts/PieSkinsActor/ServerPieSkin.server.luau) script.
 
-- SkinMainPart:
+- `SkinMainPart`:
     - RigidConstrant (PieSkinAttachment, PieAttachment)
-- MainPart:
+- `MainPart`:
     - AlignOrientation (PieAttachment)
     - RigidConstrant (PieRightGripAttachment, RightGripAttachment)
     - UpwardsForce (PieAttachment)
@@ -35,6 +46,7 @@ To set these properties in Roblox Studio:
 3. Disable the tool's initializer script, located at (`Heart Pie` > `ToolScripts` > `-InitializerActor` > `Initializer`).
 
 The reason for the additional script is that [Rojo hasn't released full support for Ref properties](https://github.com/rojo-rbx/rojo/blob/7e2bab921aa71f76d07d0424e4bb4064e8b7c995/CHANGELOG.md) at this time.
+
 
 ## Credits
 
