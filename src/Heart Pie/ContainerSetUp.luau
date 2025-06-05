@@ -6,17 +6,27 @@ Paste in the command bar
 Modified from the Pie Hiking plugin
 ]]
 
+
 ---------- Services ----------
 
 local ChangeHistoryService = game:GetService("ChangeHistoryService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local Selection = game:GetService("Selection")
 local ServerScriptService = game:GetService("ServerScriptService")
 local ServerStorage = game:GetService("ServerStorage")
 local StarterPlayer = game:GetService("StarterPlayer")
 
-local HeartPie = Selection:Get()[1]
-local HeartPie_ContainerScripts = HeartPie:FindFirstChild("ContainerScripts (see ReadMe)") or HeartPie:FindFirstChild("ContainerScripts")
+
+---------- Instances ----------
+
+local HeartPie
+if script then
+	HeartPie = script.Parent
+elseif RunService:IsEdit() then
+	HeartPie = Selection:Get()[1]
+end
+local HeartPie_ContainerScripts = HeartPie and (HeartPie:FindFirstChild("ContainerScripts (see ReadMe)") or HeartPie:FindFirstChild("ContainerScripts"))
 local canSetUp = (
 	(HeartPie_ContainerScripts and HeartPie_ContainerScripts:IsA("Folder"))
 	and HeartPie_ContainerScripts:FindFirstChild("ReplicatedStorage")
@@ -25,6 +35,7 @@ if not canSetUp then
 	warn("Select the pie Tool first!")
 	return
 end
+
 
 ---------- Local functions ----------
 
@@ -54,6 +65,7 @@ local function replaceWithNew(parent: Instance, child: Instance)
 	newObject.Parent = parent
 	return newObject
 end
+
 
 ---------- Set up functions ----------
 
@@ -111,8 +123,16 @@ local function setUpPieToolContainers(): {Instance}
 	return addedInstances
 end
 
+
 ----------- Calling functions ----------
 
-ChangeHistoryService:SetWaypoint("Setting up pie container scripts")
-Selection:Set(setUpPieToolContainers())
-ChangeHistoryService:SetWaypoint("Set up pie container scripts")
+if script then
+	setUpPieToolContainers()
+else
+	ChangeHistoryService:SetWaypoint("Setting up pie container scripts")
+	Selection:Set(setUpPieToolContainers())
+	ChangeHistoryService:SetWaypoint("Set up pie container scripts")
+end
+
+return {}
+

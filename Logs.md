@@ -1,10 +1,29 @@
 # Changelog and Plans
 
+
 ## Plans
 
 - [+] Allow pies to be visible if they are initially in the workspace.
 - [ ] Allow unstick & remove time to be modified.
 - [ ] Move `PieHikingEvents` and `PieHikingModules` into `PieHikingSharedStorage`
+
+
+## Run Time Tool Setup & Badge Check Adjustment | 2025/06/05
+
+Modified `ContainerSetUp` into a module script under the pie tool.<br>
+This allows for run time tool setup:
+
+- In a server script under `ServerScriptService`, require the `ContainerSetUp` module script under a pie tool to directly set up the necessary container scripts.
+- Make sure that pie effects & conditional pie skins are placed into the `ContainerScripts` folder:.
+    - Replace ReplicatedStorage > "PieHikingModules" with a customized one (for pie effects).
+    - Replace ServerStorage > "PieHikingServerStorage" with a customized one (for conditional pie skins).
+
+Slightly modified the `BadgeCheck` module scripts:
+
+- New `BadgeCheckHelper` module script, which separates badge check from result caching.
+    - This script is identical to one used in Pie Hiking Difficulty Test.
+- The `BadgeCheck` now caches results from `BadgeCheckHelper` for 64 seconds (previously 352 seconds).
+
 
 ## Small Refactor & Fix | 2025/03/10
 
@@ -14,6 +33,7 @@ Moved a file:
 Modified `ContainerSetUp` script to not replaced certain config files:
 - `PieHitEffects` and `EffectsList`
 - `PieSkins` and `PieSkinConditions`
+
 
 ## Improved Pie Skins System | 2025/02/23
 
@@ -36,6 +56,7 @@ Revamped the pie skins system:
 
 A container setup script can be found in [ReadMe](./src/Heart%20Pie/ContainerScripts%20(see%20ReadMe)/ReadMe.server.luau).<br>
 This script is similar to the one found in Pie Hiking plugin.
+
 
 ## Server-side Collision & Improvements | 2024/09/07
 
@@ -60,6 +81,7 @@ The default `PieToolScreen` will be used if none is found.
 New number value `TimeUntilUnstick` under the pie model.<br>
 ...
 
+
 ## Overlap Part | 2024/08/20
 
 Thanks to drumpiece for motivating me to do this update.
@@ -67,11 +89,13 @@ Thanks to drumpiece for motivating me to do this update.
 Added a feature `CanOverlapPart` which prevents the pie from being "pushed out" when sticking.<br>
 Enabling this attribute under `PieModel` could raise the difficulty of pie hiking.
 
+
 ## Stick After 7.5 s | 2024/08/02
 
 Small modifications to some container scripts.
 
 Pies no longer stick if they first touched a part 7.5 seconds after launch.
+
 
 ## Porting Progress | 2024/6/22 - 6/23
 
@@ -86,6 +110,7 @@ Ported the Heart Pie model to [Rojo](https://github.com/rojo-rbx/rojo):
 - [x] Handle
 
 Also, changed the name from `Heart Pie 2024` to `Heart Pie`.
+
 
 ## Attribute Configurations | 2024/5/29 - 5/30
 

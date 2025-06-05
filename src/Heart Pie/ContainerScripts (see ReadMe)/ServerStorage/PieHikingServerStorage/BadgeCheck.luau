@@ -1,12 +1,16 @@
 --!strict
--- Badge Check Module Script
+-- Cached Badge Check Module Script
+
 
 ---------- Module ----------
-local BadgeCheck = {}
+local CachedBadgeCheck = {}
 
----------- Services ----------
 
-local BadgeService = game:GetService("BadgeService")
+---------- Imports ----------
+
+local PieHikingServerStorage = script.Parent
+local BadgeCheckHelper = require(PieHikingServerStorage.BadgeCheckHelper)
+
 
 ---------- Types ----------
 
@@ -21,10 +25,12 @@ type BadgeFetchInfo = {
 	cacheStatus: CacheStatus,
 }
 
+
 ---------- Variables ----------
 
 local userBadgeFetchInfos: {[number]: {[number]: BadgeFetchInfo}} = {}
-local _expire_seconds = 352 -- around 6 minutes
+local _expire_seconds = 64 -- around 1 minute
+
 
 ---------- Helper functions ----------
 
@@ -54,59 +60,6 @@ local function createFetchInfo(fetchStatus: boolean, expire_seconds: number)
 	return newFetchInfo
 end
 
-local function userHasBadges(userId: number, badgeIds: {number}): {[number]: boolean}
-	-- No badge ids provided
-	if not badgeIds or #badgeIds == 0 then
-		return {}
-	end
-
-	-- Only one badge id
-	if #badgeIds == 1 then
-		local badgeId = badgeIds[1]
-		local tries = 0
-		local success, result
-		repeat
-			success, result = pcall(function()
-				return BadgeService:UserHasBadgeAsync(userId, badgeId)
-			end)
-			tries += 1
-		until success or tries >= 5
-
-		-- Sanitize result
-		result = if success and result then true else false
-		return {[badgeId] = result}
-	end
-
-	-- Multiple badge ids
-	do
-		local tries = 0
-		local success, result
-		repeat
-			success, result = pcall(function()
-				return BadgeService:CheckUserBadgesAsync(userId, badgeIds)
-			end)
-			tries += 1
-		until success or tries >= 5
-
-		-- Sanitize result
-		result = if success then result else {}
-
-		-- Build check result
-		local checkResult: {[number]: boolean} = {}
-		for _, badgeId in result do
-			checkResult[badgeId] = true
-		end
-		for _, badgeId in badgeIds do
-			if not checkResult[badgeId] then
-				checkResult[badgeId] = false
-			end
-		end
-
-		-- Return check result
-		return checkResult
-	end
-
-end
 
 ---------- Clean up functions ----------
 
@@ -132,7 +85,7 @@ end
 
 ---------- Module functions ----------
 
-function BadgeCheck.checkUserHasBadge(userId: number, badgeId: number): boolean
+function CachedBadgeCheck.checkUserHasBadge(userId: number, badgeId: number): boolean
 	-- Sanitize input
 	userId = tonumber(userId)
 	badgeId = tonumber(badgeId)
@@ -151,7 +104,7 @@ function BadgeCheck.checkUserHasBadge(userId: number, badgeId: number): boolean
 	end
 
 	-- Do a new fetch
-	local fetchStatus = userHasBadges(userId, {badgeId})[badgeId]
+	local fetchStatus = BadgeCheckHelper.userHasBadges(userId, {badgeId})[badgeId]
 
 	-- Cache fetch
 	if not badgeFetchInfos then
@@ -164,11 +117,11 @@ function BadgeCheck.checkUserHasBadge(userId: number, badgeId: number): boolean
 	return fetchStatus
 end
 
-BadgeCheck.userHasBadges = userHasBadges
 
 ---------- Call background functions ----------
 
 task.defer(startCleanUp)
 
+
 ---------- Return module ----------
-return BadgeCheck
+return CachedBadgeCheck
