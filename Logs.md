@@ -14,14 +14,14 @@ Modified `ContainerSetUp` into a module script under the pie tool.<br>
 This allows for run time tool setup:
 
 - In a server script under `ServerScriptService`, require the `ContainerSetUp` module script under a pie tool to directly set up the necessary container scripts.
-- Make sure that pie effects & conditional pie skins are placed into the `ContainerScripts` folder:.
-    - Replace ReplicatedStorage > "PieHikingModules" with a customized one (for pie effects).
-    - Replace ServerStorage > "PieHikingServerStorage" with a customized one (for conditional pie skins).
+- Make sure that pie effects & conditional pie skins are placed into the `ContainerScripts` folder:
+    - Replace `ReplicatedStorage` > `PieHikingModules` with a customized one (for pie effects).
+    - Replace `ServerStorage` > `PieHikingServerStorage` with a customized one (for conditional pie skins).
 
 Slightly modified the `BadgeCheck` module scripts:
 
 - New `BadgeCheckHelper` module script, which separates badge check from result caching.
-    - This script is identical to one used in Pie Hiking Difficulty Test.
+    - This script is identical to one used in [Pie Hiking Difficulty Test](https://www.roblox.com/games/16124983043/Pie-Hiking-Difficulty-Test).
 - The `BadgeCheck` now caches results from `BadgeCheckHelper` for 64 seconds (previously 352 seconds).
 
 
