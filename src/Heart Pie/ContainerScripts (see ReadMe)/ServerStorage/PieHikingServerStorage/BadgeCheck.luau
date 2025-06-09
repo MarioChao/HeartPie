@@ -3,13 +3,13 @@
 
 
 ---------- Module ----------
+
 local CachedBadgeCheck = {}
 
 
 ---------- Imports ----------
 
-local PieHikingServerStorage = script.Parent
-local BadgeCheckHelper = require(PieHikingServerStorage.BadgeCheckHelper)
+local BadgeCheckHelper = require(script.Parent.BadgeCheckHelper)
 
 
 ---------- Types ----------
@@ -32,7 +32,7 @@ local userBadgeFetchInfos: {[number]: {[number]: BadgeFetchInfo}} = {}
 local _expire_seconds = 64 -- around 1 minute
 
 
----------- Helper functions ----------
+---------- Cache functions ----------
 
 local function isCacheExpired(cache: CacheStatus)
 	local expireTime = cache.cachedTime_seconds + cache.expire_seconds
@@ -65,12 +65,15 @@ end
 
 local function cleanUpFetches()
 	for userId, fetchInfos in userBadgeFetchInfos do
+		-- Clear expired badge results
 		for badgeId, fetchInfo in fetchInfos do
 			if isCacheExpired(fetchInfo.cacheStatus) then
 				fetchInfos[badgeId] = nil
 			end
 		end
-		if #fetchInfos == 0 then
+
+		-- Clear user table if empty
+		if not next(fetchInfos) then
 			userBadgeFetchInfos[userId] = nil
 		end
 	end
@@ -83,38 +86,85 @@ local function startCleanUp()
 	end
 end
 
----------- Module functions ----------
 
-function CachedBadgeCheck.checkUserHasBadge(userId: number, badgeId: number): boolean
-	-- Sanitize input
-	userId = tonumber(userId)
-	badgeId = tonumber(badgeId)
-	if not (userId and badgeId) then
-		return
-	end
+---------- Local functions ----------
 
-	-- Check cached result
+local function getCached(userId: number, badgeId: number)
+	-- Check cache table
 	local badgeFetchInfos = userBadgeFetchInfos[userId]
 	local fetchInfo = badgeFetchInfos and badgeFetchInfos[badgeId]
 	local isFetchValid = (
 		fetchInfo and not isCacheExpired(fetchInfo.cacheStatus)
 	)
+
+	-- Return result
 	if isFetchValid then
-		return fetchInfo.fetchStatus
+		return true, fetchInfo.fetchStatus
 	end
+	return false
+end
 
+local function fetchAndCache(userId: number, badgeIds: {number})
 	-- Do a new fetch
-	local fetchStatus = BadgeCheckHelper.userHasBadges(userId, {badgeId})[badgeId]
+	local fetchStatuses = BadgeCheckHelper.userHasBadges(userId, badgeIds)
 
-	-- Cache fetch
+	-- Initialize player's cache
+	local badgeFetchInfos = userBadgeFetchInfos[userId]
 	if not badgeFetchInfos then
 		badgeFetchInfos = {} :: {[number]: BadgeFetchInfo}
 		userBadgeFetchInfos[userId] = badgeFetchInfos
 	end
-	badgeFetchInfos[badgeId] = createFetchInfo(fetchStatus, _expire_seconds)
+
+	-- Cache successful results
+	for badgeId, result in fetchStatuses do
+		badgeFetchInfos[badgeId] = createFetchInfo(result, _expire_seconds)
+	end
 
 	-- Return result
-	return fetchStatus
+	return fetchStatuses
+end
+
+
+---------- Module functions ----------
+
+function CachedBadgeCheck.userHasBadges(userId: number, badgeIds: {number}): BadgeCheckHelper.BadgeCheckResult
+	-- Sanitize input
+	userId = tonumber(userId)
+	if not userId then
+		return {}
+	end
+
+	-- Initialize result
+	local checkResult: BadgeCheckHelper.BadgeCheckResult = {}
+
+	-- Get uncached badge ids
+	local uncachedBadgeIds: {number} = {}
+	for _, badgeId in badgeIds do
+		-- Store & skip cached result
+		local cacheIsValid, cacheResult = getCached(userId, badgeId)
+		if cacheIsValid then
+			checkResult[badgeId] = cacheResult
+			continue
+		end
+
+		-- Store uncached badge ids
+		table.insert(uncachedBadgeIds, badgeId)
+	end
+
+	-- Fetch and cache
+	local fetchStatuses = fetchAndCache(userId, uncachedBadgeIds)
+
+	-- Store results
+	for badgeId, isAwarded in fetchStatuses do
+		checkResult[badgeId] = isAwarded
+	end
+
+	-- Return result
+	return checkResult
+end
+
+function CachedBadgeCheck.checkUserHasBadge(userId: number, badgeId: number)
+	return CachedBadgeCheck.userHasBadges(userId, {badgeId})[badgeId]
 end
 
 
@@ -124,4 +174,5 @@ task.defer(startCleanUp)
 
 
 ---------- Return module ----------
+
 return CachedBadgeCheck

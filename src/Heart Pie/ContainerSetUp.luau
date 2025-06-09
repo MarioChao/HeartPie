@@ -50,13 +50,13 @@ local function removeDupes(parent: Instance, childName: string)
 end
 
 local function replaceIfNotFound(parent: Instance, child: Instance)
-	local addedInstances = {}
+	local addedInstance = nil
 	if not parent:FindFirstChild(child.Name) then
 		local newObject = child:Clone()
 		newObject.Parent = parent
-		table.insert(addedInstances, newObject)
+		addedInstance = newObject
 	end
-	return addedInstances
+	return addedInstance
 end
 
 local function replaceWithNew(parent: Instance, child: Instance)
@@ -75,11 +75,12 @@ local function setUpPieToolContainers(): {Instance}
 	for _, object in HeartPie_ContainerScripts.ReplicatedStorage:GetChildren() do
 		-- Special case
 		if object.Name == "PieHikingModules" then
+			table.insert(addedInstances, replaceIfNotFound(ReplicatedStorage, object))
 			for _, object_2 in object:GetChildren() do
 				-- Special case
 				if object_2.Name == "PieHitEffects" or object_2.Name == "EffectsList" then
 					local newReplaced = replaceIfNotFound(ReplicatedStorage[object.Name], object_2)
-					table.move(newReplaced, 1, #newReplaced, #addedInstances + 1, addedInstances)
+					table.insert(addedInstances, newReplaced)
 					continue
 				end
 
@@ -98,11 +99,12 @@ local function setUpPieToolContainers(): {Instance}
 	for _, object in HeartPie_ContainerScripts.ServerStorage:GetChildren() do
 		-- Special case
 		if object.Name == "PieHikingServerStorage" then
+			table.insert(addedInstances, replaceIfNotFound(ServerStorage, object))
 			for _, object_2 in object:GetChildren() do
 				-- Special case
 				if object_2.Name == "PieSkins" or object_2.Name == "PieSkinConditions" then
 					local newReplaced = replaceIfNotFound(ServerStorage[object.Name], object_2)
-					table.move(newReplaced, 1, #newReplaced, #addedInstances + 1, addedInstances)
+					table.insert(addedInstances, newReplaced)
 					continue
 				end
 

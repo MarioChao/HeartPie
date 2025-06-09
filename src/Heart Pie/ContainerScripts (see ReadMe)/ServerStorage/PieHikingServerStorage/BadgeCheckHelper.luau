@@ -1,8 +1,9 @@
 --!strict
--- Badge Check Module Script
+-- Badge Check Helper Module Script
 
 
 ---------- Module ----------
+
 local BadgeCheck = {}
 
 
@@ -13,7 +14,7 @@ local BadgeService = game:GetService("BadgeService")
 
 ---------- Types ----------
 
-type BadgeCheckResult = {[number]: boolean}
+export type BadgeCheckResult = {[number]: boolean}
 
 
 ---------- Variables ----------
@@ -23,42 +24,68 @@ local _badgeBatchSize = 10
 
 ---------- Local functions ----------
 
-local function userHasBadges(userId: number, badgeIds: {number}): BadgeCheckResult
+-- Check badges using http endpoint (not implemented)
+local function userHasBadges_http(userId: number, badgeIds: {number}): BadgeCheckResult
+	-- ServerInvoke + http request to a proxy to "https://badges.roblox.com/v1/users/{userId}/badges/awarded-dates"
+	return {}
+end
+
+local function userHasBadges_badgeService_singleChecks(userId: number, badgeIds: {number}): BadgeCheckResult
+	-- Initialize result
+	local checkResult: BadgeCheckResult = {}
+
+	-- Go through each badge
+	local checkCount = 0
+	for _, badgeId in badgeIds do
+		task.defer(function()
+			-- Check badge
+			local success, result = pcall(function()
+				return BadgeService:UserHasBadgeAsync(userId, badgeId)
+			end)
+
+			-- Combine result
+			if success then
+				checkResult[badgeId] = result
+			end
+
+			-- Increment count
+			checkCount += 1
+		end)
+	end
+
+	-- Wait
+	local waitTime = time()
+	while checkCount < #badgeIds and time() < waitTime + 5 do
+		task.wait(0.05)
+	end
+
+	-- Return result
+	return checkResult
+end
+
+-- Check badges using badge service
+local function userHasBadges_badgeService(userId: number, badgeIds: {number}): BadgeCheckResult
 	-- No badge ids provided
 	if not badgeIds or #badgeIds == 0 then
 		return {}
 	end
 
-	-- Only one badge id
-	if #badgeIds == 1 then
-		local badgeId = badgeIds[1]
-		local tries = 0
-		local success, result
-		repeat
-			success, result = pcall(function()
-				return BadgeService:UserHasBadgeAsync(userId, badgeId)
-			end)
-			tries += 1
-		until success or tries >= 5
-
-		-- Sanitize result
-		result = if success and result then true else false
-		return {[badgeId] = result}
+	-- A few badge ids
+	if #badgeIds <= _badgeBatchSize // 2 then
+		return userHasBadges_badgeService_singleChecks(userId, badgeIds)
 	end
 
 	-- At most batch-size badge ids
 	if #badgeIds <= _badgeBatchSize then
-		local tries = 0
-		local success, result
-		repeat
-			success, result = pcall(function()
-				return BadgeService:CheckUserBadgesAsync(userId, badgeIds)
-			end)
-			tries += 1
-		until success or tries >= 5
+		-- Check badges
+		local success, result = pcall(function()
+			return BadgeService:CheckUserBadgesAsync(userId, badgeIds)
+		end)
 
-		-- Sanitize result
-		result = if success then result else {}
+		-- Validate result
+		if not success then
+			return userHasBadges_badgeService_singleChecks(userId, badgeIds)
+		end
 
 
 		---------- Build check result ----------
@@ -103,7 +130,7 @@ local function userHasBadges(userId: number, badgeIds: {number}): BadgeCheckResu
 		-- Check by batches
 		local batchCheckResults: {BadgeCheckResult} = {}
 		for _, idBatch in badgeIdBatches do
-			local batchCheckResult = userHasBadges(userId, idBatch)
+			local batchCheckResult = userHasBadges_badgeService(userId, idBatch)
 			table.insert(batchCheckResults, batchCheckResult)
 		end
 
@@ -120,6 +147,22 @@ local function userHasBadges(userId: number, badgeIds: {number}): BadgeCheckResu
 	end
 end
 
+-- Check badges
+local function userHasBadges(userId: number, badgeIds: {number}): BadgeCheckResult
+	-- No badge ids provided
+	if not badgeIds or #badgeIds == 0 then
+		return {}
+	end
+
+	-- Use Http service
+	if false then
+		return userHasBadges_http(userId, badgeIds)
+	end
+
+	-- Use badge service
+	return userHasBadges_badgeService(userId, badgeIds)
+end
+
 
 ---------- Module functions ----------
 
@@ -127,4 +170,5 @@ BadgeCheck.userHasBadges = userHasBadges
 
 
 ---------- Return module ----------
+
 return BadgeCheck

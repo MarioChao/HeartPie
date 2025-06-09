@@ -11,7 +11,7 @@ end
 
 ---------- Services ----------
 
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ReplicatedStorage = game:GetService("ReplicatedStorage") or script.Parent.Parent.Parent.Parent.ReplicatedStorage
 
 ---------- Imports ----------
 

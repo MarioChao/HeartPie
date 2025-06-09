@@ -8,6 +8,14 @@
 - [ ] Move `PieHikingEvents` and `PieHikingModules` into `PieHikingSharedStorage`
 
 
+## Badge Check Optimization + Container Set Up Fix | 2025/06/09
+
+`BadgeCheck` module scripts are now renewed with more optimizations.<br>
+They are copied from the ones used in [Pie Hiker License](https://github.com/MarioChao/Pie-Hiker-License).
+
+Fixed container not setting up correctly when `PieHikingModules` or `PieHikingServerStorage` are missing from the container services.
+
+
 ## Run Time Tool Setup & Badge Check Adjustment | 2025/06/05
 
 Modified `ContainerSetUp` into a module script under the pie tool.<br>
