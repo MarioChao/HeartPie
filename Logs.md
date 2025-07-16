@@ -11,6 +11,7 @@
 ## Fixed Respawn Speed Glitch + Improved Touch Button + Removed Skin Change Cooldown | 2025/07/16
 
 Fixed a speed glitch upon respawning due to conditional skins stored in the `ContainerScripts` folder.
+(thanks Nexusity)
 
 Modified the touch buttons for switching skins:
 - Added titles "Prev" and "Next" to the buttons
