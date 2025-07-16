@@ -142,18 +142,38 @@ local function setUpPieSkin(pieSkin: Instance)
 	end
 end
 
-local function setupPieSkins()
+local function setUpPieSkins()
 	-- Go through all pie skins
-	for _, pieSkin in PieSkins:GetChildren() do
-		local pieSkinMainPart: Part = pieSkin:FindFirstChild("SkinMainPart")
-		if not (pieSkin:IsA("Model") and pieSkinMainPart) then
-			continue
+	task.defer(function()
+		for _, pieSkin in PieSkins:GetChildren() do
+			local pieSkinMainPart: Part = pieSkin:FindFirstChild("SkinMainPart")
+			if not (pieSkin:IsA("Model") and pieSkinMainPart) then
+				continue
+			end
+			setUpPieSkin(pieSkin)
 		end
-		setUpPieSkin(pieSkin)
-	end
+	end)
+
+	-- Go through container scripts pie skins
+	task.defer(function()
+		local containerScripts = Tool:FindFirstChild("ContainerScripts (see ReadMe)")
+		local containerServerStorage = containerScripts and containerScripts:FindFirstChild("ServerStorage")
+		local containerPieHikingServerStorage = containerServerStorage and containerServerStorage:FindFirstChild("PieHikingServerStorage")
+		local containerPieSkins = containerPieHikingServerStorage and containerPieHikingServerStorage:FindFirstChild("PieSkins")
+		if not containerPieSkins then
+			return
+		end
+		for _, pieSkin in containerPieSkins:GetChildren() do
+			local pieSkinMainPart: Part = pieSkin:FindFirstChild("SkinMainPart")
+			if not (pieSkin:IsA("Model") and pieSkinMainPart) then
+				continue
+			end
+			setUpPieSkin(pieSkin)
+		end
+	end)
 end
 
-local function setupPieModel()
+local function setUpPieModel()
 	-- Go through all parts in the PieModel
 	for _, part in PieModel:GetDescendants() do
 		if part:IsA("BasePart") then
@@ -210,8 +230,8 @@ ToolVisualEvent.Event:Connect(onToolVisualEvent)
 ToolVisualRemoteEvent.OnServerEvent:Connect(onToolVisualServerEvent)
 Tool.Equipped:Connect(onEquipped)
 Tool.Unequipped:Connect(onUnequipped)
-task.defer(setupPieModel)
+task.defer(setUpPieModel)
 task.defer(function()
-	setupPieSkins()
+	setUpPieSkins()
 	PieSkins.ChildAdded:Connect(setUpPieSkin)
 end)

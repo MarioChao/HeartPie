@@ -8,6 +8,23 @@
 - [ ] Move `PieHikingEvents` and `PieHikingModules` into `PieHikingSharedStorage`
 
 
+## Fixed Respawn Speed Glitch + Improved Touch Button + Removed Skin Change Cooldown | 2025/07/16
+
+Fixed a speed glitch upon respawning due to conditional skins stored in the `ContainerScripts` folder.
+
+Modified the touch buttons for switching skins:
+- Added titles "Prev" and "Next" to the buttons
+- Positioned the buttons next to each other
+
+Removed the 0.1s cooldown for changing pie skins.
+
+> [!TIP]
+> Replace the scripts [ContextActions](src/Heart%20Pie/ToolScripts/ActionsActor/ContextActions.client.luau),
+> [ClientPieSkin](src/Heart%20Pie/ToolScripts/PieSkinsActor/ClientPieSkin.client.luau),
+> [ServerPieSkin](src/Heart%20Pie/ToolScripts/PieSkinsActor/ServerPieSkin.server.luau),
+> and [ServerToolVisual](src/Heart%20Pie/ToolScripts/ToolVisualActor/ServerToolVisual.server.luau).
+
+
 ## Badge Check Optimization + Container Set Up Fix | 2025/06/09
 
 `BadgeCheck` module scripts are now renewed with more optimizations.<br>

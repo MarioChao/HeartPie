@@ -1,6 +1,7 @@
 --!strict
 -- Server Pie Skins Script
 
+
 ---------- Services ----------
 
 local Debris = game:GetService("Debris")
@@ -8,9 +9,11 @@ local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local ServerStorage = game:GetService("ServerStorage")
 
+
 ---------- Types ----------
 
 type SkinInfo = {Id: number, Model: Model}
+
 
 ---------- Instances ----------
 
@@ -31,6 +34,7 @@ local PieMainPartAttachment = PieMainPart:WaitForChild("PieAttachment")
 
 local PieSkins = Tool:WaitForChild("PieSkins")
 
+
 ---------- Variables ----------
 
 local pieSkinsTable: {SkinInfo}
@@ -42,9 +46,6 @@ local changeSkinIdThrottle = false
 
 local skinAddedDebounceId = -1
 
-local skinIdNotSet = true
-
----------- Local functions ----------
 
 ---------- Skin id functions ----------
 
@@ -108,9 +109,6 @@ end
 local function changeSkinIdBy(caller: Player, amount: number)
 	if not changeSkinIdThrottle then
 		changeSkinIdThrottle = true
-		task.delay(0.2, function()
-			changeSkinIdThrottle = false
-		end)
 
 		-- Validate
 		task.desynchronize()
@@ -128,6 +126,8 @@ local function changeSkinIdBy(caller: Player, amount: number)
 
 		-- Remove old skin
 		setSkinIdTo(newSkinId)
+
+		changeSkinIdThrottle = false
 	end
 end
 
@@ -272,6 +272,7 @@ local function initSetUp()
 	PieSkins.ChildRemoved:Connect(onNewSkinsAdded)
 end
 
+
 ---------- Event functions ----------
 
 local function onPieSkinServerEvent(caller: Player, mode: string, ...)
@@ -279,6 +280,7 @@ local function onPieSkinServerEvent(caller: Player, mode: string, ...)
 		changeSkinIdBy(caller, ...)
 	end
 end
+
 
 ---------- Calling / connecting functions ----------
 

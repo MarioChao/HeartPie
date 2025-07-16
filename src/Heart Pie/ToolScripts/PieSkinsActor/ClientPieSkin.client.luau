@@ -1,6 +1,7 @@
 --!strict
 -- Client Pie Skins Script
 
+
 ---------- Instances ----------
 
 local Tool = script.Parent.Parent.Parent
@@ -10,22 +11,13 @@ local ActionsBindable = ToolEvents:WaitForChild("ActionsBindable")
 
 local PieSkinRemoteEvent = ToolEvents:WaitForChild("PieSkinRemoteEvent")
 
----------- Variables ----------
-
-local changeSkinIdThrottle = false
 
 ---------- Local functions ----------
 
 local function changeSkinIdBy(amount: number)
-	if not changeSkinIdThrottle then
-		changeSkinIdThrottle = true
-		task.delay(0.1, function()
-			changeSkinIdThrottle = false
-		end)
-
-		PieSkinRemoteEvent:FireServer("Change Skin Id By", amount)
-	end
+	PieSkinRemoteEvent:FireServer("Change Skin Id By", amount)
 end
+
 
 ---------- Event functions ----------
 
@@ -42,6 +34,7 @@ local function onActionsEvent(mode: string, ...)
 		changeSkinIdBy(-1)
 	end
 end
+
 
 ---------- Calling / connecting functions ----------
 

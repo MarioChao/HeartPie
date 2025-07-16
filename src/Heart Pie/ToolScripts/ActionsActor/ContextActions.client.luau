@@ -48,6 +48,11 @@ local function onEquipped()
 	ContextActionService:BindAction("Pie Next Skin", handleAction, true, Enum.KeyCode.E)
 	ContextActionService:BindAction("Pie Previous Skin", handleAction, true, Enum.KeyCode.Q)
 	ContextActionService:BindAction("Pie Switch Type", handleAction, false, Enum.KeyCode.T)
+
+	ContextActionService:SetTitle("Pie Previous Skin", "Prev")
+	ContextActionService:SetTitle("Pie Next Skin", "Next")
+	ContextActionService:SetPosition("Pie Previous Skin", UDim2.new(0, 0, 0, 0))
+	ContextActionService:SetPosition("Pie Next Skin", UDim2.new(0, 50, 0, 0))
 end
 
 local function onUnequipped()
