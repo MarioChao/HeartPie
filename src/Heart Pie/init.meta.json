@@ -3,6 +3,7 @@
     "ignoreUnknownInstances": true,
     "properties": {
         "Attributes": {
+            "AutoReload": {"Bool": true},
             "CanSwitchType": {"Bool": true},
             "IsClientPieType": {"Bool": false},
             "LaunchOffsetStuds": {"Float64": 10},
@@ -11,6 +12,7 @@
             "PieAlignSpin": {"Bool": true},
             "PieSpinByVelocity": {"Bool": false},
             "PrintDebug": {"Bool": true},
+            "ReloadShowPie": {"Bool": true},
             "ShowGui": {"Bool": true}
         },
         "CanBeDropped": false,

@@ -1,9 +1,12 @@
 --!strict
 -- Pie Handler Script
 
+
 ---------- Services ----------
 
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
 
 ---------- Instances ----------
 
@@ -28,6 +31,7 @@ local PieModel = Tool:WaitForChild("PieModel")
 
 local Handle = Tool:WaitForChild("Handle")
 
+
 ---------- Variables ----------
 
 local throwSeconds = 0.6
@@ -43,11 +47,15 @@ local pieStateIconValues = {
 	["Launching"] = 2,
 }
 
+local willAutoReload = Tool:GetAttribute("AutoReload")
+local reloadShowPie = Tool:GetAttribute("ReloadShowPie")
+
 local isLaunching = false
 
 local character: Model? = nil
 local humanoid: Humanoid? = nil
 local player: Player? = nil
+
 
 ---------- Local functions ----------
 
@@ -118,12 +126,39 @@ local function setPieState(state: string)
 		Icon.Value = pieStateIconValues[state]
 
 		-- Model visibility
-		if oldState == "Unloaded" and pieState == "Reloading" then
-			ToolVisualEvent:Fire("Set Pie Transparency", nil)
-		elseif oldState == "Loaded" and pieState == "Launching" then
+		if oldState == "Loaded" and pieState == "Launching" then
 			ToolVisualEvent:Fire("Set Pie Transparency", 1)
+		else
+			local willShowPie = (
+				(reloadShowPie and oldState == "Unloaded" and pieState == "Reloading")
+				or (not reloadShowPie and oldState == "Reloading" and pieState == "Loaded")
+			)
+			if willShowPie then
+				ToolVisualEvent:Fire("Set Pie Transparency", nil)
+			end
 		end
 	end
+end
+
+local function doPieLaunch()
+	-- Launch
+	setPieState("Launching")
+	task.defer(firePie)
+
+	-- Unload
+	task.delay(throwSeconds, function()
+		setPieState("Unloaded")
+		isLaunching = false
+	end)
+end
+
+local function doPieReload()
+	-- Reload
+	setPieState("Reloading")
+	task.delay(reloadSeconds, function()
+		setPieState("Loaded")
+		isLaunching = false
+	end)
 end
 
 local function onPieLaunch()
@@ -132,24 +167,29 @@ local function onPieLaunch()
 		isLaunching = true
 		if pieState == "Loaded" then
 			-- Launch
-			setPieState("Launching")
-			task.defer(firePie)
+			doPieLaunch()
 
-			-- Unload
-			task.delay(throwSeconds, function()
-				setPieState("Unloaded")
-				isLaunching = false
-			end)
+			-- Auto reload
+			if willAutoReload then
+				task.defer(function()
+					while true do
+						if pieState == "Unloaded" or pieState == "Reloading" then
+							break
+						end
+						RunService.Heartbeat:Wait()
+					end
+					if pieState == "Unloaded" then
+						doPieReload()
+					end
+				end)
+			end
 		elseif pieState == "Unloaded" then
 			-- Reload
-			setPieState("Reloading")
-			task.delay(reloadSeconds, function()
-				setPieState("Loaded")
-				isLaunching = false
-			end)
+			doPieReload()
 		end
 	end
 end
+
 
 ---------- Tool functions ----------
 
@@ -184,6 +224,7 @@ local function onPieTypeEvent(mode: string, ...)
 		setPieLaunchType(...)
 	end
 end
+
 
 ---------- Calling / connecting functions ----------
 

@@ -8,6 +8,13 @@
 - [ ] Move `PieHikingEvents` and `PieHikingModules` into `PieHikingSharedStorage`
 
 
+## [1.0.10] Auto Reload + Reload Show Pie | 2025/07/25
+
+Added auto reloading the pie through the `AutoReload` attribute (enabled by default).
+
+Toggle whether pie is visible during reloading through the `ReloadShowPie` attribute (enabled by default).
+
+
 ## Fixed Respawn Speed Glitch + Improved Touch Button + Removed Skin Change Cooldown | 2025/07/16
 
 Fixed a speed glitch upon respawning due to conditional skins stored in the `ContainerScripts` folder.
