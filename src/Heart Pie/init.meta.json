@@ -12,7 +12,7 @@
             "PieAlignSpin": {"Bool": true},
             "PieSpinByVelocity": {"Bool": false},
             "PrintDebug": {"Bool": true},
-            "ReloadShowPie": {"Bool": true},
+            "ReloadShowPie": {"Bool": false},
             "ShowGui": {"Bool": true}
         },
         "CanBeDropped": false,
