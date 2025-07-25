@@ -14,6 +14,13 @@ Added auto reloading the pie through the `AutoReload` attribute (enabled by defa
 
 Toggle whether pie is visible during reloading through the `ReloadShowPie` attribute (disabled by default).
 
+> [!TIP]
+>
+> Replace the scripts [PieHandler](src/Heart%20Pie/ToolScripts/ToolUseActor/PieHandler.client.luau)
+> and [ClientToolVisual](src/Heart%20Pie/ToolScripts/ToolVisualActor/ClientToolVisual.client.luau).
+>
+> Add boolean attributes `AutoReload` and `ReloadShowPie` to the pie tool.
+
 
 ## Fixed Respawn Speed Glitch + Improved Touch Button + Removed Skin Change Cooldown | 2025/07/16
 
@@ -27,6 +34,7 @@ Modified the touch buttons for switching skins:
 Removed the 0.1s cooldown for changing pie skins.
 
 > [!TIP]
+>
 > Replace the scripts [ContextActions](src/Heart%20Pie/ToolScripts/ActionsActor/ContextActions.client.luau),
 > [ClientPieSkin](src/Heart%20Pie/ToolScripts/PieSkinsActor/ClientPieSkin.client.luau),
 > [ServerPieSkin](src/Heart%20Pie/ToolScripts/PieSkinsActor/ServerPieSkin.server.luau),
