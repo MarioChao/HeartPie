@@ -5,7 +5,7 @@
         "Attributes": {
             "SkinId": {"Float64": 12},
             "ToolTextureId": {"String": "rbxassetid://18532404239"},
-            "ToolTip": {"String": "Stella's pie, she traveled across Baroniza to find an opponent who could defeat her, and although she expected it to be Robin, you suddenly appeared."}
+            "ToolTip": {"String": "Rhubarb Pie: Stella's pie, she traveled across Baroniza to find an opponent who could defeat her, and although she expected it to be Robin, you suddenly appeared."}
         }
     }
 }

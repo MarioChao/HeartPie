@@ -2,7 +2,7 @@
 How to setup Heart Pie's Container Scripts:
 
 
-Manually:
+----- Manually -----
 
 1. Put things inside "ReplicatedStorage" folder into the "ReplicatedStorage" container service.
 
@@ -18,7 +18,7 @@ Manually:
 5. No need to delete the ContainerScripts folder.
 
 
-Automatically (in studio):
+----- Automatically (in studio) -----
 
 1. Select the "HeartPie" tool.
 
@@ -27,7 +27,7 @@ Automatically (in studio):
 3. Paste it in the command bar & run.
 
 
-Automatically (in run time):
+----- Automatically (in run time) -----
 
 1. Replace "PieHikingModules" under "ReplicatedStorage" folder with the actual "PieHikingModules" in the "ReplicatedStorage" container service.
 
@@ -35,5 +35,12 @@ Automatically (in run time):
 
 3. In a server script, require the "ContainerSetUp" module script under the pie tool.
 --- The script should preferably be under the "ServerScriptService" container service so that set up is done only once.
+
+Example script:
+```
+local StarterPack = game:GetService("StarterPack")
+
+require(StarterPack.HeartPie.ContainerSetUp)
+```
 
 ]]

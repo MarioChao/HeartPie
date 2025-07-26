@@ -476,14 +476,6 @@ function PieAmmo:_onTouched(otherPart: BasePart)
 end
 
 function PieAmmo:disablePieCollideCharacter(character: Model)
-	-- Validate server-owned pie
-	if RunService:IsClient() then
-		return
-	end
-	if self.AmmoMainPart:GetNetworkOwner() ~= nil then
-		return
-	end
-
 	-- Validate new character
 	if not character then
 		return

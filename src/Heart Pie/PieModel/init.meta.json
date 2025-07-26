@@ -3,6 +3,7 @@
     "ignoreUnknownInstances": true,
     "properties": {
         "Attributes": {
+            "_CanCollideThrower": {"Bool": false},
             "_CanOverlapPart": {"Bool": false},
             "_LaunchVelocity": {"Vector3": [0, 0, 0]},
             "_SpinByVelocity": {"Bool": false},

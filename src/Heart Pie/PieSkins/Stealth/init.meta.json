@@ -3,7 +3,7 @@
     "ignoreUnknownInstances": true,
     "properties": {
         "Attributes": {
-            "SkinId": {"Float64": 5},
+            "SkinId": {"Float64": 4},
             "ToolTextureId": {"String": "rbxassetid://11625852977"},
             "ToolTip": {"String": "Stealth Pie: These last 500 years just seemed to race by."}
         }

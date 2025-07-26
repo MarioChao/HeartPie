@@ -25,12 +25,15 @@ local PieHikeBindable = PieHikingEvents:WaitForChild("PieHikeBindable") :: Binda
 
 ---------- Local functions ----------
 
-local function newAmmo(ammoModel: Model)
+local function newAmmo(ammoModel: Model, player: Player)
 	if not ammoModel:IsA("Model") then
 		return
 	end
 	local ammo = PieAmmo.new(ammoModel, false)
 	ammo:setupAmmo()
+	if not ammoModel:GetAttribute("_CanCollideThrower") then
+		ammo:disablePieCollideCharacter(player.Character)
+	end
 	ammo:launchPie()
 end
 

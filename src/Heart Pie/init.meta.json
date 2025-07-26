@@ -5,9 +5,10 @@
         "Attributes": {
             "_PrintDebug": {"Bool": true},
             "AutoReload": {"Bool": true},
+            "CanCollideThrower": {"Bool": true},
             "CanOverlapPart": {"Bool": false},
             "CanSwitchType": {"Bool": true},
-            "IsClientPieType": {"Bool": false},
+            "IsClientPieType": {"Bool": true},
             "LaunchOffsetStuds": {"Float64": 10},
             "LaunchVelocity": {"Float64": 50},
             "NoCollideTransparency": {"Float64": 0.6},

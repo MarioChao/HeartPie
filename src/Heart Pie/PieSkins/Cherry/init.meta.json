@@ -1,0 +1,11 @@
+{
+    "className": "Model",
+    "ignoreUnknownInstances": true,
+    "properties": {
+        "Attributes": {
+            "SkinId": {"Float64": 5},
+            "ToolTextureId": {"String": "rbxassetid://18533366603"},
+            "ToolTip": {"String": "Cherry Pie: Baked by Richardson, Nash jokingly said 'hand over the pie and no one gets hurt!' and out of kindness he did that anyways."}
+        }
+    }
+}

@@ -68,7 +68,7 @@ end
 local function onLaunchPie(caller: Player, launchMotion: Motion)
 	-- Sanity check for launch motion
 	task.desynchronize()
-	if  not (caller == player and checkLaunchMotion(caller, launchMotion)) then
+	if not (caller == player and checkLaunchMotion(caller, launchMotion)) then
 		if printDebug then
 			print("Fail check")
 		end
@@ -114,18 +114,26 @@ local function onLaunchPie(caller: Player, launchMotion: Motion)
 	uniquePieId.Value = clientPieId
 	uniquePieId.Parent = newPieAmmoModel
 
+
 	-- Setup pie values
 	local launchVelocity = Tool:GetAttribute("LaunchVelocity")
 	local launchVelocity_Vector3 = launchDirection.Unit * launchVelocity
 	newPieAmmoModel:SetAttribute("_LaunchVelocity", launchVelocity_Vector3)
+
 	local newPieCreator = Instance.new("ObjectValue")
 	newPieCreator.Name = "Creator"
-	newPieCreator.Value = player
+	newPieCreator.Value = caller
 	newPieCreator.Parent = newPieAmmoModel
+
 	local pieSpinByVelocity = Tool:GetAttribute("PieSpinByVelocity")
 	newPieAmmoModel:SetAttribute("_SpinByVelocity", pieSpinByVelocity)
+
 	local canOverlapPart = Tool:GetAttribute("CanOverlapPart")
 	newPieAmmoModel:SetAttribute("_CanOverlapPart", canOverlapPart)
+
+	local canCollideThrower = Tool:GetAttribute("CanCollideThrower")
+	newPieAmmoModel:SetAttribute("_CanCollideThrower", canCollideThrower)
+
 
 	-- Setup pie align orientation
 	local pieAlignSpin = Tool:GetAttribute("PieAlignSpin")
@@ -141,7 +149,7 @@ local function onLaunchPie(caller: Player, launchMotion: Motion)
 
 	-- Launch pie
 	lastLaunchTime = os.clock()
-	PieHikeBindable:Fire("Start Launch", newPieAmmoModel)
+	PieHikeBindable:Fire("Start Launch", newPieAmmoModel, caller)
 
 	-- Remove pie after a while
 	Debris:AddItem(newPieAmmoModel, 12)

@@ -8,6 +8,34 @@
 - [ ] Move `PieHikingEvents` and `PieHikingModules` into `PieHikingSharedStorage`
 
 
+## [1.0.12] Thrower Pie Collision + Cherry Pie Skin + About Me | 2025/07/26
+
+Toggle whether pie can collide the thrower through the attribute `CanCollideThrower` (enabled by default).
+
+Added the Cherry pie skin, which uses a different mesh from the other pie skins.
+
+Created an [**AboutMe**](src/Heart%20Pie/AboutMe.server.luau) explaining pie skins and customizations.
+
+> [!TIP]
+>
+> Replace the tool script [ClientPieLaunch](src/Heart%20Pie/ToolScripts/PieLaunchActor/ClientPieLaunch.client.luau)
+> and [ServerToolVisual](src/Heart%20Pie/ToolScripts/ToolVisualActor/ServerToolVisual.server.luau).
+>
+> Replace the container scripts **RegularPieAmmoModule** and **ClientPieAmmo**.
+>
+> Add boolean attribute `CanCollideThrower` to the pie tool (and `_CanCollideThrower` to the pie model).
+>
+> Set the `IsClientPieType` to default as true.
+>
+> Add the `Cherry` pie skin and replace the `Rhubarb` and `Stealth` pie skins.
+>
+> Add the Cherry pie hit effect to **PieHitEffects**.
+>
+> Replace the disabled scripts **ReadMe** (container scripts) and **ReadMe** (pie skins).
+>
+> Add the disabled script **AboutMe** (pie tool).
+
+
 ## [1.0.11] Attribute Changes | 2025/07/26
 
 Moved attribute `CanOverlapPart` from the `PieModel` to the `HeartPie` tool.
@@ -21,7 +49,7 @@ Renamed attribute `PrintDebug` to `_PrintDebug`.
 > Replace the tool scripts [ClientPieLaunch](src/Heart%20Pie/ToolScripts/PieLaunchActor/ClientPieLaunch.client.luau)
 > and [ServerPieLaunch](src/Heart%20Pie/ToolScripts/PieLaunchActor/ServerPieLaunch.server.luau).
 >
-> Replace the container scripts `RegularPieAmmoModule`, `CSCPieAmmo`, and `CSCPieAmmoModule`.
+> Replace the container scripts **RegularPieAmmoModule**, **CSCPieAmmo**, and **CSCPieAmmoModule**.
 >
 > Rename the pie model attributes to `_CanOverlapPart`, `_LaunchVelocity`, and `_SpinByVelocity`.
 >
