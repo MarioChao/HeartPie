@@ -31,11 +31,11 @@ For beginner pie, set these attributes on the pie tool:
 These values are similar to drumpiece's beginner pie found in Postmortem.
 
 
------ Regular pie -----
+----- Classic pie -----
 
-A regular pie has a 10 studs launching offset, but you can do mid-air pie jumps (client pie type only).
+A classic pie has a 10 studs launching offset, but you can do mid-air pie jumps (client pie type only).
 
-For regular pie, set these attributes on the pie tool:
+For classic pie, set these attributes on the pie tool:
 
 - CanCollideThrower: true
 - LaunchOffsetStuds: 10
