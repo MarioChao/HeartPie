@@ -130,14 +130,14 @@ local function onLaunchCSCPie(creatorPlayer: Player, launchMotion: FinalizedMoti
 	uniquePieId.Parent = pieAmmoModel
 
 	-- Setup pie values
-	local internalLaunchVelocity = launchDirection.Unit * launchVelocity
-	pieAmmoModel:SetAttribute("InternalLaunchVelocity", internalLaunchVelocity)
+	local launchVelocity_Vector3 = launchDirection.Unit * launchVelocity
+	pieAmmoModel:SetAttribute("_LaunchVelocity", launchVelocity_Vector3)
 	local pieCreator = Instance.new("ObjectValue")
 	pieCreator.Name = "Creator"
 	pieCreator.Value = creatorPlayer
 	pieCreator.Parent = pieAmmoModel
-	local internalSpinByVelocity = pieSpinInfo.ByVelocity
-	pieAmmoModel:SetAttribute("InternalSpinByVelocity", internalSpinByVelocity)
+	local willSpinByVelocity = pieSpinInfo.ByVelocity
+	pieAmmoModel:SetAttribute("_SpinByVelocity", willSpinByVelocity)
 	local onlyCollideLocal = not canCollide
 	pieAmmoModel:SetAttribute("OnlyCollideLocal", onlyCollideLocal)
 

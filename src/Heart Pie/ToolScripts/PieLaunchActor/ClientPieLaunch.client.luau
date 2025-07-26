@@ -34,7 +34,7 @@ local launchMinIntervalSeconds = 0.7
 local lastLaunchTime = os.clock() - launchMinIntervalSeconds
 local pieAmmoMaxSeconds = 12
 
-local printDebug = Tool:GetAttribute("PrintDebug")
+local printDebug = Tool:GetAttribute("_PrintDebug")
 
 local character: Model? = nil
 local player: Player? = nil
@@ -116,14 +116,16 @@ local function onLaunchPie(caller: Player, launchMotion: Motion)
 
 	-- Setup pie values
 	local launchVelocity = Tool:GetAttribute("LaunchVelocity")
-	local internalLaunchVelocity = launchDirection.Unit * launchVelocity
-	newPieAmmoModel:SetAttribute("InternalLaunchVelocity", internalLaunchVelocity)
+	local launchVelocity_Vector3 = launchDirection.Unit * launchVelocity
+	newPieAmmoModel:SetAttribute("_LaunchVelocity", launchVelocity_Vector3)
 	local newPieCreator = Instance.new("ObjectValue")
 	newPieCreator.Name = "Creator"
 	newPieCreator.Value = player
 	newPieCreator.Parent = newPieAmmoModel
 	local pieSpinByVelocity = Tool:GetAttribute("PieSpinByVelocity")
-	newPieAmmoModel:SetAttribute("InternalSpinByVelocity", pieSpinByVelocity)
+	newPieAmmoModel:SetAttribute("_SpinByVelocity", pieSpinByVelocity)
+	local canOverlapPart = Tool:GetAttribute("CanOverlapPart")
+	newPieAmmoModel:SetAttribute("_CanOverlapPart", canOverlapPart)
 
 	-- Setup pie align orientation
 	local pieAlignSpin = Tool:GetAttribute("PieAlignSpin")

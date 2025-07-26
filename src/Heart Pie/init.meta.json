@@ -3,7 +3,9 @@
     "ignoreUnknownInstances": true,
     "properties": {
         "Attributes": {
+            "_PrintDebug": {"Bool": true},
             "AutoReload": {"Bool": true},
+            "CanOverlapPart": {"Bool": false},
             "CanSwitchType": {"Bool": true},
             "IsClientPieType": {"Bool": false},
             "LaunchOffsetStuds": {"Float64": 10},
@@ -11,7 +13,6 @@
             "NoCollideTransparency": {"Float64": 0.6},
             "PieAlignSpin": {"Bool": true},
             "PieSpinByVelocity": {"Bool": false},
-            "PrintDebug": {"Bool": true},
             "ReloadShowPie": {"Bool": false},
             "ShowGui": {"Bool": true}
         },

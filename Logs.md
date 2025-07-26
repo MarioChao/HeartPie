@@ -8,6 +8,28 @@
 - [ ] Move `PieHikingEvents` and `PieHikingModules` into `PieHikingSharedStorage`
 
 
+## [1.0.11] Attribute Changes | 2025/07/26
+
+Moved attribute `CanOverlapPart` from the `PieModel` to the `HeartPie` tool.
+
+Renamed internal attributes to be prefixed with an underscore.
+
+Renamed attribute `PrintDebug` to `_PrintDebug`.
+
+> [!TIP]
+>
+> Replace the tool scripts [ClientPieLaunch](src/Heart%20Pie/ToolScripts/PieLaunchActor/ClientPieLaunch.client.luau)
+> and [ServerPieLaunch](src/Heart%20Pie/ToolScripts/PieLaunchActor/ServerPieLaunch.server.luau).
+>
+> Replace the container scripts `RegularPieAmmoModule`, `CSCPieAmmo`, and `CSCPieAmmoModule`.
+>
+> Rename the pie model attributes to `_CanOverlapPart`, `_LaunchVelocity`, and `_SpinByVelocity`.
+>
+> Add boolean attribute `CanOverlapPart` to the pie tool.
+>
+> Rename the pie tool attribute to `_PrintDebug`.
+
+
 ## [1.0.10] Auto Reload + Reload Show Pie | 2025/07/25
 
 Added auto reloading the pie through the `AutoReload` attribute (enabled by default).

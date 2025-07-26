@@ -143,10 +143,10 @@ function PieAmmo.new(ammoModel: Model, hasHitCharacterEffect: boolean)
 		["Fire"] = self.AmmoMainPart:WaitForChild("FireSound") :: Sound,
 		["Hit"] = self.AmmoMainPart:WaitForChild("HitSound") :: Sound
 	}
-	self.AmmoInternalLaunchVelocity = self.AmmoModel:GetAttribute("InternalLaunchVelocity") :: Vector3
+	self.AmmoInternalLaunchVelocity = self.AmmoModel:GetAttribute("_LaunchVelocity") :: Vector3
 	self.AmmoCreator = self.AmmoModel:WaitForChild("Creator") :: ObjectValue
-	self.AmmoPieSpins = self.AmmoModel:GetAttribute("InternalSpinByVelocity") :: boolean
-	self.AmmoCanOverlapPart = self.AmmoModel:GetAttribute("CanOverlapPart") :: boolean
+	self.AmmoPieSpins = self.AmmoModel:GetAttribute("_SpinByVelocity") :: boolean
+	self.AmmoCanOverlapPart = self.AmmoModel:GetAttribute("_CanOverlapPart") :: boolean
 
 	-- Variables
 	self.pieStuck = false

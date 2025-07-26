@@ -28,9 +28,9 @@ function PieAmmo.new(ammoModel: Model, hasHitCharacterEffect: boolean)
 		["Fire"] = self.AmmoMainPart:WaitForChild("FireSound") :: Sound,
 		["Hit"] = self.AmmoMainPart:WaitForChild("HitSound") :: Sound
 	}
-	self.AmmoInternalLaunchVelocity = self.AmmoModel:GetAttribute("InternalLaunchVelocity") :: Vector3
+	self.AmmoInternalLaunchVelocity = self.AmmoModel:GetAttribute("_LaunchVelocity") :: Vector3
 	self.AmmoCreator = self.AmmoModel:WaitForChild("Creator") :: ObjectValue
-	self.AmmoPieSpins = self.AmmoModel:GetAttribute("InternalSpinByVelocity") :: boolean
+	self.AmmoPieSpins = self.AmmoModel:GetAttribute("_SpinByVelocity") :: boolean
 
 	-- Variables
 	self.pieStuck = false

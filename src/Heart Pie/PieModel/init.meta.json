@@ -3,10 +3,10 @@
     "ignoreUnknownInstances": true,
     "properties": {
         "Attributes": {
-            "CanOverlapPart": {"Bool": false},
-            "EquippedSkinId": {"Float64": 1},
-            "InternalLaunchVelocity": {"Vector3": [0, 0, 0]},
-            "InternalSpinByVelocity": {"Bool": false}
+            "_CanOverlapPart": {"Bool": false},
+            "_LaunchVelocity": {"Vector3": [0, 0, 0]},
+            "_SpinByVelocity": {"Bool": false},
+            "EquippedSkinId": {"Float64": 1}
         }
     }
 }
