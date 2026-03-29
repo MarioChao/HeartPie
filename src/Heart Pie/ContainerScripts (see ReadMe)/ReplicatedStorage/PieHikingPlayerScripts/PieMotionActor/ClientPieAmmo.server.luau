@@ -4,14 +4,19 @@
 ---------- Validate container ----------
 -- Validate the script's container before running any code
 
--- For certain client scripts
-if not script:FindFirstAncestorWhichIsA("PlayerScripts") then
+-- Not under a tool
+if script:FindFirstAncestorWhichIsA("Tool") then
+	return
+end
+
+-- Shared container
+if not script:FindFirstAncestorWhichIsA("ReplicatedStorage") then
 	return
 end
 
 ---------- Services ----------
 
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ReplicatedStorage = game:GetService("ReplicatedStorage") or script.Parent.Parent.Parent
 
 ---------- Imports ----------
 

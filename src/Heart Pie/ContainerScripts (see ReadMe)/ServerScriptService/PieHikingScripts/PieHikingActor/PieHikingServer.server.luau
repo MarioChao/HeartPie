@@ -4,7 +4,12 @@
 ---------- Validate container ----------
 -- Validate the script's container before running any code
 
--- For some server scripts
+-- Not under a tool
+if script:FindFirstAncestorWhichIsA("Tool") then
+	return
+end
+
+-- Server scripts
 if not script:FindFirstAncestorWhichIsA("ServerScriptService") then
 	return
 end

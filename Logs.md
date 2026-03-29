@@ -8,6 +8,12 @@
 - [ ] Move `PieHikingEvents` and `PieHikingModules` into `PieHikingSharedStorage`
 
 
+## [1.0.13] Moved player scripts + Renamed directory + Small changes | 2025/07/26
+
+Moved player scripts to ReplicatedStorage.
+
+Added more validation checks to container scripts.
+
 ## [1.0.12] Thrower Pie Collision + Cherry Pie Skin + About Me | 2025/07/26
 
 Toggle whether pie can collide the thrower through the attribute `CanCollideThrower` (enabled by default).
