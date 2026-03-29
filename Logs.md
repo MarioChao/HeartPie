@@ -14,6 +14,10 @@ Added environment validation checks to all tool scripts.
 - Checks if the script is under a DataModel.
 - Prevents scripts from running under a plugin environment.
 
+> [!TIP]
+>
+> To update a pie `Tool` to this version: remove the child **ContainerScripts** `Folder`, replace the child **ToolScripts** `Folder` with the one from the new pie tool, add the child **_SetupCheckActor** `Actor` from the new pie tool.
+
 ## [1.0.13] Package reorganization + Moved player scripts + Renamed directory | 2026/03/28 (1)
 
 Reorganized the pie tool:
