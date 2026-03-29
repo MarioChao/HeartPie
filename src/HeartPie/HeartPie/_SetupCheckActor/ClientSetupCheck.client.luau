@@ -1,11 +1,9 @@
 --!strict
--- Server Setup Check Script
+-- Client Setup Check Script
 
 ---------- Services ----------
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local ServerScriptService = game:GetService("ServerScriptService")
-local ServerStorage = game:GetService("ServerStorage")
 
 ---------- Local functions ----------
 
@@ -25,8 +23,6 @@ local function checkScriptEnabled(checkScript: Script)
 	assert(checkScript.Enabled)
 end
 
----------- Check functions ----------
-
 local function checkReplicatedStorage()
 	local PieHikingEvents = checkForChild(ReplicatedStorage, "PieHikingEvents")
 	local CSCPieRemoteEvent = checkForChild(PieHikingEvents, "CSCPieRemoteEvent")
@@ -37,31 +33,25 @@ local function checkReplicatedStorage()
 	local RegularPieAmmoModule = checkForChild(PieHikingModules, "RegularPieAmmoModule")
 end
 
-local function checkServerScriptService()
-	local PieHikingScripts = checkForChild(ServerScriptService, "PieHikingScripts")
-	local PieHikingActor = checkForChild(PieHikingScripts, "PieHikingActor")
-	local PieHikingServer: Script = checkForChild(PieHikingActor, "PieHikingServer")
-	local ServerPieMotionActor = checkForChild(PieHikingScripts, "ServerPieMotionActor")
-	local ServerPieAmmo: Script = checkForChild(ServerPieMotionActor, "ServerPieAmmo")
-	local PieSkinsChecker: Script = checkForChild(PieHikingScripts, "PieSkinsChecker")
-	checkScriptEnabled(PieHikingServer)
-	checkScriptEnabled(ServerPieAmmo)
-	checkScriptEnabled(PieSkinsChecker)
-end
-
-local function checkServerStorage()
-	local PieHikingServerStorage = checkForChild(ServerStorage, "PieHikingServerStorage")
-	local PieHikingServerEvents = checkForChild(PieHikingServerStorage, "PieHikingServerEvents")
+local function checkReplicatedStoragePlayerScripts()
+	local PieHikingPlayerScripts = checkForChild(ReplicatedStorage, "PieHikingPlayerScripts")
+	local CSCPieMotionActor = checkForChild(PieHikingPlayerScripts, "CSCPieMotionActor")
+	local CSCPieAmmo = checkForChild(CSCPieMotionActor, "CSCPieAmmo") :: Script
+	local CSCPieAmmoModule = checkForChild(CSCPieMotionActor, "CSCPieAmmoModule")
+	local PieMotionActor = checkForChild(PieHikingPlayerScripts, "PieMotionActor")
+	local ClientPieAmmo = checkForChild(PieMotionActor, "ClientPieAmmo") :: Script
+	checkScriptEnabled(CSCPieAmmo)
+	checkScriptEnabled(ClientPieAmmo)
 end
 
 local function setupCheck()
 	local success, result = pcall(function()
 		checkReplicatedStorage()
-		checkServerScriptService()
+		checkReplicatedStoragePlayerScripts()
 	end)
 
 	if not success then
-		warn("<Pie Hiking Tool (Server)>: please set up ContainerScripts correctly")
+		warn("<Pie Hiking Tool (Client)>: please set up ContainerScripts correctly")
 		error(result)
 	end
 end
@@ -69,9 +59,3 @@ end
 ---------- Calling functions ----------
 
 task.defer(setupCheck)
-
----------- Delete container scripts in tool ----------
-
-task.delay(1, function()
-	script.Parent.Parent:Destroy()
-end)

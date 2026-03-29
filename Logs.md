@@ -8,13 +8,19 @@
 - [ ] Move `PieHikingEvents` and `PieHikingModules` into `PieHikingSharedStorage`
 
 
-## [1.0.13] Moved player scripts + Renamed directory + Small changes | 2025/07/26
+## [1.0.13] Package reorganization + Moved player scripts + Renamed directory | 2026/03/28
 
-Moved player scripts to ReplicatedStorage.
+Reorganized the pie tool:
+- Container scripts are no longer under the pie Tool.
+- The package Folder contains the container scripts, the pie Tool, and the container set-up script.
+
+Moved player scripts to `ReplicatedStorage` > "PieHiking_PlayerScripts".
 
 Renamed directory "src/Heart Pie" to "src/HeartPie".
 
 Added more validation checks to container scripts.
+
+Modified the Rojo project file to sync as a Roblox place file.
 
 ## [1.0.12] Thrower Pie Collision + Cherry Pie Skin + About Me | 2025/07/26
 

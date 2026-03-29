@@ -15,24 +15,26 @@ local RunService = game:GetService("RunService")
 local Selection = game:GetService("Selection")
 local ServerScriptService = game:GetService("ServerScriptService")
 local ServerStorage = game:GetService("ServerStorage")
-local StarterPlayer = game:GetService("StarterPlayer")
 
 
 ---------- Instances ----------
 
-local HeartPie
+local HeartPie_Package
 if script then
-	HeartPie = script.Parent
+	HeartPie_Package = script.Parent
 elseif RunService:IsEdit() then
-	HeartPie = Selection:Get()[1]
+	HeartPie_Package = Selection:Get()[1]
 end
-local HeartPie_ContainerScripts = HeartPie and (HeartPie:FindFirstChild("ContainerScripts (see ReadMe)") or HeartPie:FindFirstChild("ContainerScripts"))
+local HeartPie_ContainerScripts = HeartPie_Package and (
+	HeartPie_Package:FindFirstChild("ContainerScripts (see ReadMe)")
+	or HeartPie_Package:FindFirstChild("ContainerScripts")
+)
 local canSetUp = (
 	(HeartPie_ContainerScripts and HeartPie_ContainerScripts:IsA("Folder"))
 	and HeartPie_ContainerScripts:FindFirstChild("ReplicatedStorage")
 )
 if not canSetUp then
-	warn("Select the pie Tool first!")
+	warn("Select the pie package Folder first!")
 	return
 end
 
@@ -115,10 +117,6 @@ local function setUpPieToolContainers(): {Instance}
 		end
 
 		local newObject = replaceWithNew(ServerStorage, object)
-		table.insert(addedInstances, newObject)
-	end
-	for _, object in HeartPie_ContainerScripts.StarterPlayerScripts:GetChildren() do
-		local newObject = replaceWithNew(StarterPlayer.StarterPlayerScripts, object)
 		table.insert(addedInstances, newObject)
 	end
 

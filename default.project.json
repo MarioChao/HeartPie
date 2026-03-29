@@ -1,7 +1,13 @@
 {
-    "name": "HeartPie",
+    "name": "heart-pie",
     "tree": {
-        "$path": "src/HeartPie"
+        "$className": "DataModel",
+
+        "ServerStorage": {
+            "HeartPie_Package": {
+                "$path": "src/HeartPie"
+            }
+        }
     },
     "emitLegacyScripts": true
 }
