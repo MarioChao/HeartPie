@@ -16,7 +16,12 @@ Added environment validation checks to all tool scripts.
 
 > [!TIP]
 >
-> To update a pie `Tool` to this version: remove the child **ContainerScripts** `Folder`, replace the child **ToolScripts** `Folder` with the one from the new pie tool, add the child **_SetupCheckActor** `Actor` from the new pie tool.
+> To update a pie `Tool` to this version:
+> - Remove the child **ContainerScripts** `Folder`.
+> - Replace the child **ToolScripts** `Folder` with the one from the new > pie tool.
+> - Add the child **_SetupCheckActor** `Actor` from the new pie tool.
+> - Remove the container scripts from `StarterPlayerScripts`.
+>   - Add the new **PieHiking_PlayerScripts** in `ReplicatedStorage`.
 
 ## [1.0.13] Package reorganization + Moved player scripts + Renamed directory | 2026/03/28 (1)
 
