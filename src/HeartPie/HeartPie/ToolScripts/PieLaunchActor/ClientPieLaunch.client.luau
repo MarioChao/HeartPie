@@ -1,6 +1,15 @@
 --!strict
 -- Client Pie Launch Script
 
+
+---------- Validate container ----------
+
+-- Under data model
+if not script:FindFirstAncestorWhichIsA("DataModel") then
+	return
+end
+
+
 ---------- Services ----------
 
 local CollectionService = game:GetService("CollectionService")

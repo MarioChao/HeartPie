@@ -2,6 +2,14 @@
 -- Client Pie Skins Script
 
 
+---------- Validate container ----------
+
+-- Under data model
+if not script:FindFirstAncestorWhichIsA("DataModel") then
+	return
+end
+
+
 ---------- Instances ----------
 
 local Tool = script.Parent.Parent.Parent

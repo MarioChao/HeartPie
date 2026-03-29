@@ -1,6 +1,15 @@
 --!strict
 -- Server Setup Check Script
 
+
+---------- Validate container ----------
+
+-- Under data model
+if not script:FindFirstAncestorWhichIsA("DataModel") then
+	return
+end
+
+
 ---------- Services ----------
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")

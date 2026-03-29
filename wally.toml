@@ -2,11 +2,11 @@
 name = "mariochao/heart-pie"
 description = "A complete revamp of the classic pie hiking gear."
 
-version = "1.0.13"
+version = "1.0.14"
 license = "MIT"
 authors = ["Mario Chao"]
 realm = "shared"
 registry = "https://github.com/UpliftGames/wally-index"
-exclude = ["HeartPie.rbxm", "heart-pie.rbxm", "**/TestPackages"]
+repository = "https://github.com/MarioChao/HeartPie"
 
 [dependencies]

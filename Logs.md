@@ -8,7 +8,13 @@
 - [ ] Move `PieHikingEvents` and `PieHikingModules` into `PieHikingSharedStorage`
 
 
-## [1.0.13] Package reorganization + Moved player scripts + Renamed directory | 2026/03/28
+## [1.0.14] More environment validation checks | 2026/03/28 (2)
+
+Added environment validation checks to all tool scripts.
+- Checks if the script is under a DataModel.
+- Prevents scripts from running under a plugin environment.
+
+## [1.0.13] Package reorganization + Moved player scripts + Renamed directory | 2026/03/28 (1)
 
 Reorganized the pie tool:
 - Container scripts are no longer under the pie Tool.

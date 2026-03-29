@@ -2,6 +2,14 @@
 -- Server Pie Skins Script
 
 
+---------- Validate container ----------
+
+-- Under data model
+if not script:FindFirstAncestorWhichIsA("DataModel") then
+	return
+end
+
+
 ---------- Services ----------
 
 local Debris = game:GetService("Debris")

@@ -1,6 +1,15 @@
 --!strict
 -- Tool Use Script
 
+
+---------- Validate container ----------
+
+-- Under data model
+if not script:FindFirstAncestorWhichIsA("DataModel") then
+	return
+end
+
+
 ---------- Services ----------
 
 local Players = game:GetService("Players")

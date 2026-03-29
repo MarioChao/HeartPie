@@ -6,6 +6,15 @@ Tasks:
 - Set the reference properties of the tool's instances
 ]]
 
+
+---------- Validate container ----------
+
+-- Under data model
+if not script:FindFirstAncestorWhichIsA("DataModel") then
+	return
+end
+
+
 ---------- Services ----------
 
 local ChangeHistoryService = game:GetService("ChangeHistoryService")

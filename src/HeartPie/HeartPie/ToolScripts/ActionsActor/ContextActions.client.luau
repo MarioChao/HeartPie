@@ -1,11 +1,14 @@
 --!strict
 -- Context Actions Script
 
+
 ---------- Validate container ----------
 
-if not (script:FindFirstAncestorWhichIsA("Workspace") or script:FindFirstAncestorWhichIsA("Backpack")) then
+-- Under data model
+if not script:FindFirstAncestorWhichIsA("DataModel") then
 	return
 end
+
 
 ---------- Services ----------
 
