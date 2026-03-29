@@ -12,6 +12,8 @@
 
 Moved player scripts to ReplicatedStorage.
 
+Renamed directory "src/Heart Pie" to "src/HeartPie".
+
 Added more validation checks to container scripts.
 
 ## [1.0.12] Thrower Pie Collision + Cherry Pie Skin + About Me | 2025/07/26
