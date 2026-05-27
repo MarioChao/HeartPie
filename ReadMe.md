@@ -12,7 +12,7 @@ An easy way is to [install Rojo on VS Code](https://rojo.space/docs/v7/getting-s
 
 The tool requires certain instances to be moved into the containers of the [DataModel](https://create.roblox.com/docs/reference/engine/classes/DataModel).
 
-Open the container scripts (`Heart Pie` > `ContainerScripts (see ReadMe)`) and follow the instructions in `ReadMe`.
+Open the container scripts (`Heart Pie` > `ContainerScripts`) and follow the instructions in `ReadMe`.
 
 > [!NOTE]
 >

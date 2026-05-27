@@ -1,0 +1,13 @@
+{
+    "name": "heart-pie",
+    "tree": {
+        "$className": "DataModel",
+
+        "ServerStorage": {
+            "HeartPie_Package": {
+                "$path": "src/HeartPie"
+            }
+        }
+    },
+    "globIgnorePaths": ["**/wally.toml"]
+}

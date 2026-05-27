@@ -3,11 +3,22 @@
     "tree": {
         "$className": "DataModel",
 
+        "ReplicatedStorage": {
+            "$path": "src/HeartPie/ContainerScripts/ReplicatedStorage",
+            "$ignoreUnknownInstances": true
+        },
+        "ServerScriptService": {
+            "$path": "src/HeartPie/ContainerScripts/ServerScriptService",
+            "$ignoreUnknownInstances": true
+        },
         "ServerStorage": {
+            "$path": "src/HeartPie/ContainerScripts/ServerStorage",
+            "$ignoreUnknownInstances": true,
+
             "HeartPie_Package": {
                 "$path": "src/HeartPie"
             }
         }
     },
-    "emitLegacyScripts": true
+    "globIgnorePaths": ["**/wally.toml"]
 }

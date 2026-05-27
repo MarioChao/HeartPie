@@ -7,6 +7,9 @@
 - [ ] Allow unstick & remove time to be modified.
 - [ ] Move `PieHikingEvents` and `PieHikingModules` into `PieHikingSharedStorage`
 
+## [2.0.0] Reorganization + Refactorization | 2026/5/27
+
+Renamed `ContainerScripts (see ReadMe)` folder to just `ContainerScripts`.
 
 ## [1.0.14] More environment validation checks | 2026/03/28 (2)
 

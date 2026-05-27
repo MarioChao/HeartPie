@@ -165,7 +165,7 @@ local function setUpPieSkins()
 
 	-- Go through container scripts pie skins
 	task.defer(function()
-		local containerScripts = Tool:FindFirstChild("ContainerScripts (see ReadMe)") or Tool:FindFirstChild("ContainerScripts")
+		local containerScripts = Tool:FindFirstChild("ContainerScripts")
 		local containerServerStorage = containerScripts and containerScripts:FindFirstChild("ServerStorage")
 		local containerPieHikingServerStorage = containerServerStorage and containerServerStorage:FindFirstChild("PieHikingServerStorage")
 		local containerPieSkins = containerPieHikingServerStorage and containerPieHikingServerStorage:FindFirstChild("PieSkins")

@@ -25,10 +25,7 @@ if script then
 elseif RunService:IsEdit() then
 	HeartPie_Package = Selection:Get()[1]
 end
-local HeartPie_ContainerScripts = HeartPie_Package and (
-	HeartPie_Package:FindFirstChild("ContainerScripts (see ReadMe)")
-	or HeartPie_Package:FindFirstChild("ContainerScripts")
-)
+local HeartPie_ContainerScripts = HeartPie_Package and HeartPie_Package:FindFirstChild("ContainerScripts")
 local canSetUp = (
 	(HeartPie_ContainerScripts and HeartPie_ContainerScripts:IsA("Folder"))
 	and HeartPie_ContainerScripts:FindFirstChild("ReplicatedStorage")

@@ -9,4 +9,6 @@ realm = "shared"
 registry = "https://github.com/UpliftGames/wally-index"
 repository = "https://github.com/MarioChao/HeartPie"
 
+private = true
+
 [dependencies]

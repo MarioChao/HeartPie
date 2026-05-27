@@ -32,9 +32,9 @@ local ToolVisualEvent = ToolEvents:WaitForChild("ToolVisualEvent")
 
 local PieHikingServerStorage = ServerStorage:WaitForChild("PieHikingServerStorage")
 local PieHikingServerEvents = PieHikingServerStorage:WaitForChild("PieHikingServerEvents")
-local ConditionalSkinsBindableEvent: BindableEvent = PieHikingServerEvents:WaitForChild("ConditionalSkinsBindableEvent")
-local SavedSkinBindableFunction: BindableFunction = PieHikingServerEvents:WaitForChild("SavedSkinBindableFunction")
-local SavedSkinBindableEvent: BindableEvent = PieHikingServerEvents:WaitForChild("SavedSkinBindableEvent")
+local ConditionalSkinsBindableEvent = PieHikingServerEvents:WaitForChild("ConditionalSkinsBindableEvent")
+local SavedSkinBindableFunction = PieHikingServerEvents:WaitForChild("SavedSkinBindableFunction")
+local SavedSkinBindableEvent = PieHikingServerEvents:WaitForChild("SavedSkinBindableEvent")
 
 local PieModel = Tool:WaitForChild("PieModel")
 local PieMainPart = PieModel:WaitForChild("MainPart")
@@ -211,7 +211,7 @@ local function onNewSkinsAdded(skin: Instance)
 
 	-- Store equipped skin id
 	local oldSkinId = PieModel:GetAttribute("EquippedSkinId")
-	local realSkinId = pieSkinsTable[oldSkinId].Id
+	local realSkinId = pieSkinsTable[oldSkinId] and pieSkinsTable[oldSkinId].Id or 0
 
 	-- Used saved skin id if possible
 	task.synchronize()
