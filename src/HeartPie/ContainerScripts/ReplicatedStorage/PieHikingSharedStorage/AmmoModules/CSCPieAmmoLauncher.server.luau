@@ -1,46 +1,51 @@
 --!strict
--- Client-Server-Client Pie Ammo Script
+
+-- Client-Server-Client Pie Ammo Launcher
 -- Creates & launches client pies fired by other players
 
----------- Validate container ----------
--- Validate the script's container before running any code
-
--- Not under a tool
-if script:FindFirstAncestorWhichIsA("Tool") then
-	return
-end
-
--- Shared container
-if not script:FindFirstAncestorWhichIsA("ReplicatedStorage") then
-	return
-end
 
 ---------- Services ----------
 
 local CollectionService = game:GetService("CollectionService")
-local Debris = game:GetService("Debris")
-local ReplicatedStorage = game:GetService("ReplicatedStorage") or script.Parent.Parent.Parent
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+
 
 ---------- Imports ----------
 
-local CSCPieMotionActor = script.Parent
-local CSCPieAmmo = require(CSCPieMotionActor:WaitForChild("CSCPieAmmoModule"))
+local CSCPieAmmo = require(script.Parent:WaitForChild("CSCPieAmmo"))
 
-local PieHikingModules = ReplicatedStorage:WaitForChild("PieHikingModules")
-local PieHitEffects = require(PieHikingModules:WaitForChild("PieHitEffects"))
+local _PieHikingSharedStorage = ReplicatedStorage:WaitForChild("PieHikingSharedStorage")
+local _EffectModules = _PieHikingSharedStorage:WaitForChild("EffectModules")
+local PieHitEffects = require(_EffectModules:WaitForChild("PieHitEffects"))
 
----------- Variables ----------
+local _Modules = _PieHikingSharedStorage:WaitForChild("Modules")
+local BelovedRemote = require(_Modules:WaitForChild("BelovedRemote"))
 
-local PieHikingEvents = ReplicatedStorage:WaitForChild("PieHikingEvents") :: Folder
-local CSCPieRemoteEvent = PieHikingEvents:WaitForChild("CSCPieRemoteEvent") :: RemoteEvent
+
+---------- Types ----------
 
 type FinalizedMotion = {["CFrame"]: CFrame?, ["Direction"]: Vector3?, ["Velocity"]: number?}
 type SpinInfo = {["AlignSpin"]: boolean?, ["ByVelocity"]: boolean?}
 
+
 ---------- Local functions ----------
 
--- Launch functions
-local function newAmmo(ammoModel: Model)
+local newAmmo
+local getPieAmmoModel
+local onLaunchCSCPie
+
+local getPieFromPieId
+local makeCSCPieVisible
+local runClientHitEffect
+local stickPiePartToPart
+local onStickCSCPieToCSCPie
+local onStickCSCPieToPart
+
+
+----- Launch functions -----
+
+newAmmo = function(ammoModel: Model)
 	if not ammoModel:IsA("Model") then
 		return
 	end
@@ -48,7 +53,7 @@ local function newAmmo(ammoModel: Model)
 	ammo:launchPie()
 end
 
-local function getPieAmmoModel(pieModel: Model, canCollide: boolean, noCollideTransparency: number): Model
+getPieAmmoModel = function(pieModel: Model, canCollide: boolean, noCollideTransparency: number): Model
 	-- Clone the pie model
 	local pieAmmoModel = pieModel:Clone()
 	local pieAmmoMainPart = pieAmmoModel:FindFirstChild("MainPart") :: Part
@@ -111,7 +116,7 @@ local function getPieAmmoModel(pieModel: Model, canCollide: boolean, noCollideTr
 	return pieAmmoModel
 end
 
-local function onLaunchCSCPie(creatorPlayer: Player, launchMotion: FinalizedMotion, canCollide: boolean, noCollideTransparency: number, clientPieId: string, pieModel: Model, pieSpinInfo: SpinInfo)
+onLaunchCSCPie = function(creatorPlayer: Player, launchMotion: FinalizedMotion, canCollide: boolean, noCollideTransparency: number, clientPieId: string, pieModel: Model, pieSpinInfo: SpinInfo)
 	-- Validate pie info
 	if not (pieModel and pieModel.Parent and typeof(clientPieId) == "string") then
 		return
@@ -160,13 +165,12 @@ local function onLaunchCSCPie(creatorPlayer: Player, launchMotion: FinalizedMoti
 	task.defer(function()
 		newAmmo(pieAmmoModel)
 	end)
-
-	-- Remove pie after a while
-	Debris:AddItem(pieAmmoModel, 12)
 end
 
----------- Stick functions ----------
-local function getPieFromPieId(pieId: string): Model?
+
+----- Stick functions -----
+
+getPieFromPieId = function(pieId: string): Model?
 	-- There should only be one pie tagged with the pie id
 	local taggedObjects = CollectionService:GetTagged(pieId)
 	if #taggedObjects ~= 1 then
@@ -190,7 +194,7 @@ local function getPieFromPieId(pieId: string): Model?
 	return taggedPieModel
 end
 
-local function makeCSCPieVisible(pieModel: Model)
+makeCSCPieVisible = function(pieModel: Model)
 	-- Check for OnlyCollideLocal (is always true)
 	local pieOnlyCollideLocal = pieModel:GetAttribute("OnlyCollideLocal") :: boolean
 	if pieOnlyCollideLocal then
@@ -223,7 +227,7 @@ local function makeCSCPieVisible(pieModel: Model)
 	end
 end
 
-local function runClientHitEffect(throwPieMainPart: Part, hitPart: BasePart)
+runClientHitEffect = function(throwPieMainPart: Part, hitPart: BasePart)
 	-- Quick validation
 	local throwPieModel = throwPieMainPart.Parent :: Model
 	local creatorObject = throwPieModel:FindFirstChild("Creator") :: ObjectValue
@@ -261,7 +265,7 @@ local function runClientHitEffect(throwPieMainPart: Part, hitPart: BasePart)
 	effectFunction(param)
 end
 
-local function stickPiePartToPart(throwPieModel: Model, throwPieMainPart: Part, hitPart: BasePart, relativeCFrame: CFrame)
+stickPiePartToPart = function(throwPieModel: Model, throwPieMainPart: Part, hitPart: BasePart, relativeCFrame: CFrame)
 	-- Make pie visible
 	task.defer(function()
 		makeCSCPieVisible(throwPieModel)
@@ -291,9 +295,8 @@ local function stickPiePartToPart(throwPieModel: Model, throwPieMainPart: Part, 
 	--runClientHitEffect(throwPieMainPart, hitPart)
 end
 
-local function onStickCSCPieToPart(throwPieId: string, hitPart: BasePart?, hitCFrame: CFrame, relativeCFrame: CFrame)
+onStickCSCPieToPart = function(throwPieId: string, hitPart: BasePart?, hitCFrame: CFrame, relativeCFrame: CFrame)
 	-- Validate existence of parts
-	task.desynchronize()
 	local throwPieModel = getPieFromPieId(throwPieId)
 	local throwPieMainPart = throwPieModel and throwPieModel:FindFirstChild("MainPart") :: Part
 	if not (throwPieModel and throwPieMainPart and throwPieMainPart:IsA("Part") and throwPieMainPart:FindFirstChild("PieAttachment")) then
@@ -304,11 +307,10 @@ local function onStickCSCPieToPart(throwPieId: string, hitPart: BasePart?, hitCF
 	end
 
 	-- Stick pie part
-	task.synchronize()
 	stickPiePartToPart(throwPieModel, throwPieMainPart, hitPart, relativeCFrame)
 end
 
-local function onStickCSCPieToCSCPie(throwPieId: string, hitPieId: string, hitCFrame: CFrame, relativeCFrame: CFrame)
+onStickCSCPieToCSCPie = function(throwPieId: string, hitPieId: string, hitCFrame: CFrame, relativeCFrame: CFrame)
 	-- Validate existence of partrs
 	local throwPieModel = getPieFromPieId(throwPieId)
 	local throwPieMainPart = throwPieModel and throwPieModel:FindFirstChild("MainPart") :: Part
@@ -322,22 +324,27 @@ local function onStickCSCPieToCSCPie(throwPieId: string, hitPieId: string, hitCF
 	end
 
 	-- Stick pie part
-	task.synchronize()
 	stickPiePartToPart(throwPieModel, throwPieMainPart, hitPieMainPart, relativeCFrame)
 end
 
----------- Event functions ----------
 
-local function onCSCPieClientEvent(mode: string, ...)
-	if mode == "Launch CSC Pie" then
-		onLaunchCSCPie(...)
-	elseif mode == "Stick CSC Pie To Part" then
-		onStickCSCPieToPart(...)
-	elseif mode == "Stick CSC Pie To CSC Pie" then
-		onStickCSCPieToCSCPie(...)
+----- Main -----
+
+local function main()
+	if RunService:IsClient() then
+		-- Connect events
+		BelovedRemote.connect_toClient("Launch CSC Pie", onLaunchCSCPie)
+		BelovedRemote.connect_toClient("Stick CSC Pie To Part", onStickCSCPieToPart)
+		BelovedRemote.connect_toClient("Stick CSC Pie To CSC Pie", onStickCSCPieToCSCPie)
+
+		-- Belove
+		BelovedRemote.belovePlayer_RE_toServer("Launch CSC Pie")
+		BelovedRemote.belovePlayer_RE_toServer("Stick CSC Pie To Part")
+		BelovedRemote.belovePlayer_RE_toServer("Stick CSC Pie To CSC Pie")
 	end
 end
 
----------- Calling / connecting functions ----------
 
-CSCPieRemoteEvent.OnClientEvent:Connect(onCSCPieClientEvent)
+---------- Calling function ----------
+
+main()

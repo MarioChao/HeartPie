@@ -17,18 +17,18 @@ end
 ---------- Services ----------
 
 local Debris = game:GetService("Debris")
-local ReplicatedStorage = game:GetService("ReplicatedStorage") or script.Parent.Parent.Parent.Parent.ReplicatedStorage
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 ---------- Imports ----------
 
-local PieHikingModules = ReplicatedStorage:WaitForChild("PieHikingModules")
-local PieHitEffects = require(PieHikingModules:WaitForChild("PieHitEffects"))
+local _PieHikingSharedStorage = ReplicatedStorage:WaitForChild("PieHikingSharedStorage")
+local _EffectModules = _PieHikingSharedStorage:WaitForChild("EffectModules")
+local PieHitEffects = require(_EffectModules:WaitForChild("PieHitEffects"))
 
 ---------- Variables ----------
 
-local PieHikingEvents = ReplicatedStorage:WaitForChild("PieHikingEvents") :: Folder
-local PieHikeBindable = PieHikingEvents:WaitForChild("PieHikeBindable") :: BindableEvent
-local PieHikeRemoteEvent = PieHikingEvents:WaitForChild("PieHikeRemoteEvent") :: RemoteEvent
+local _PieHikingEvents = _PieHikingSharedStorage:WaitForChild("PieHikingEvents")
+local PieHikeBindable = _PieHikingEvents:WaitForChild("PieHikeBindable")
 
 ---------- Local functions ----------
 

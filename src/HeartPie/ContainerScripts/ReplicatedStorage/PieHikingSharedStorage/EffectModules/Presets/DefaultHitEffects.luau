@@ -1,20 +1,23 @@
 --!strict
--- Pie Hit Effects Module Script
+
+-- Default Hit Effects
+
 
 ---------- Imports  ----------
 
-local EffectsList = require(script.Parent:WaitForChild("EffectsList"))
+local EffectsList = require(script.Parent.Parent:WaitForChild("EffectsList"))
+
 
 ---------- Types ----------
 
-export type EffectParameter = {
+type EffectParameter = {
 	throwerCharacter: Model,
 	hitCharacter: Model?,
 	pieMainPart: Part,
-	hitPart: BasePart,
+	hitPart: BasePart?,
 }
 
-type EffectFunction = (param: EffectParameter) -> nil
+type EffectFunction = (param: EffectParameter) -> ()
 
 type EffectInfo = {
 	ServerHit: EffectFunction?,
@@ -23,19 +26,25 @@ type EffectInfo = {
 	HitCharacter: EffectFunction?,
 }
 
----------- Effects module ----------
+
+---------- Module ----------
+
 local PieEffects: {[string]: EffectInfo} = {}
 
----------- General effects definition ----------
+
+----- General effects definition -----
 
 local function dummy(param: EffectParameter)
 end
 
 local function damage5(param: EffectParameter)
-	EffectsList.damageCharacter(param.hitCharacter, 5)
+	if param.hitCharacter then
+		EffectsList.damageCharacter(param.hitCharacter, 5)
+	end
 end
 
----------- Effects definition ----------
+
+----- Effects definition -----
 
 PieEffects["Ten-Mou"] = {
 	ServerHit = function(param: EffectParameter)
@@ -102,4 +111,6 @@ PieEffects["Heart"] = {
 }
 
 ---------- Return module ----------
+
+table.freeze(PieEffects)
 return PieEffects

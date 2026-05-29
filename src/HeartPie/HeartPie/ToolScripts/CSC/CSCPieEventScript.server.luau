@@ -1,4 +1,5 @@
 --!strict
+
 -- Client-Server-Client Pie Event Script
 
 
@@ -15,9 +16,18 @@ end
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+
+---------- Imports ----------
+
+local _PieHikingSharedStorage = ReplicatedStorage:WaitForChild("PieHikingSharedStorage")
+local _Modules = _PieHikingSharedStorage:WaitForChild("Modules")
+local BelovedRemote = require(_Modules:WaitForChild("BelovedRemote"))
+
+
 ---------- Types ----------
 
 type FinalizedMotion = {["CFrame"]: CFrame?, ["Direction"]: Vector3?, ["Velocity"]: number?}
+
 
 ---------- Instances ----------
 
@@ -27,8 +37,6 @@ local CSCPieLaunchRemoteEvent = ToolEvents:WaitForChild("CSCPieLaunchRemoteEvent
 
 local PieModel = Tool:WaitForChild("PieModel")
 
-local PieHikingEvents = ReplicatedStorage:WaitForChild("PieHikingEvents") :: Folder
-local CSCPieRemoteEvent = PieHikingEvents:WaitForChild("CSCPieRemoteEvent") :: RemoteEvent
 
 ---------- Variables ----------
 
@@ -37,6 +45,7 @@ local lastLaunchTime = os.clock() - launchMinIntervalSeconds
 
 local character: Model? = nil
 local player: Player? = nil
+
 
 ---------- Local functions ----------
 
@@ -115,12 +124,12 @@ local function onStickCSCPieToCSCPie(caller: Player, throwPieId: string, hitPieI
 	fireOtherClients(caller, "Stick CSC Pie To CSC Pie", throwPieId, hitPieId, hitCFrame, relativeCFrame)
 end
 
----------- Event functions ----------
+----- Event functions -----
 
-function fireOtherClients(except: Player, ...)
+function fireOtherClients(except: Player, actionName: string, ...)
 	for _, otherPlayer in Players:GetPlayers() do
 		if otherPlayer ~= except then
-			CSCPieRemoteEvent:FireClient(otherPlayer, ...)
+			BelovedRemote.fire_toClient(actionName, otherPlayer, ...)
 		end
 	end
 end
@@ -128,14 +137,6 @@ end
 local function onCSCPieLaunchServerEvent(caller: Player, mode: string, ...)
 	if mode == "Launch CSC Pie" then
 		onLaunchCSCPie(caller, ...)
-	end
-end
-
-local function onCSCPieServerEvent(caller: Player, mode: string, ...)
-	if mode == "Stick CSC Pie To Part" then
-		onStickCSCPieToPart(caller, ...)
-	elseif mode == "Stick CSC Pie To CSC Pie" then
-		onStickCSCPieToCSCPie(caller, ...)
 	end
 end
 
@@ -149,9 +150,21 @@ local function onUnequipped()
 	player = nil
 end
 
----------- Calling / connection functions ----------
 
-CSCPieLaunchRemoteEvent.OnServerEvent:Connect(onCSCPieLaunchServerEvent)
-CSCPieRemoteEvent.OnServerEvent:Connect(onCSCPieServerEvent)
-Tool.Equipped:Connect(onEquipped)
-Tool.Unequipped:Connect(onUnequipped)
+----- Main -----
+
+local function main()
+	CSCPieLaunchRemoteEvent.OnServerEvent:Connect(onCSCPieLaunchServerEvent)
+
+	-- CSC Pie
+	BelovedRemote.connect_toServer("Stick CSC Pie To Part", onStickCSCPieToPart)
+	BelovedRemote.connect_toServer("Stick CSC Pie To CSC Pie", onStickCSCPieToCSCPie)
+
+	Tool.Equipped:Connect(onEquipped)
+	Tool.Unequipped:Connect(onUnequipped)
+end
+
+
+---------- Calling function ----------
+
+main()

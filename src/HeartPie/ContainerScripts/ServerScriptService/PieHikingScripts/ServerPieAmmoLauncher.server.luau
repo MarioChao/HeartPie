@@ -1,5 +1,5 @@
 --!strict
--- Client Pie Ammo Script
+-- Server Pie Ammo Script
 
 ---------- Validate container ----------
 -- Validate the script's container before running any code
@@ -9,24 +9,25 @@ if script:FindFirstAncestorWhichIsA("Tool") then
 	return
 end
 
--- Shared container
-if not script:FindFirstAncestorWhichIsA("ReplicatedStorage") then
+-- Server scripts
+if not script:FindFirstAncestorWhichIsA("ServerScriptService") then
 	return
 end
 
 ---------- Services ----------
 
-local ReplicatedStorage = game:GetService("ReplicatedStorage") or script.Parent.Parent.Parent
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 ---------- Imports ----------
 
-local PieHikingModules = ReplicatedStorage:WaitForChild("PieHikingModules")
-local PieAmmo = require(PieHikingModules:WaitForChild("RegularPieAmmoModule"))
+local _PieHikingSharedStorage = ReplicatedStorage:WaitForChild("PieHikingSharedStorage")
+local _AmmoModules = _PieHikingSharedStorage:WaitForChild("AmmoModules")
+local PieAmmo = require(_AmmoModules:WaitForChild("RegularPieAmmo"))
 
 ---------- Variables ----------
 
-local PieHikingEvents = ReplicatedStorage:WaitForChild("PieHikingEvents") :: Folder
-local PieHikeBindable = PieHikingEvents:WaitForChild("PieHikeBindable") :: BindableEvent
+local _PieHikingEvents = _PieHikingSharedStorage:WaitForChild("PieHikingEvents")
+local PieHikeBindable = _PieHikingEvents:WaitForChild("PieHikeBindable")
 
 ---------- Local functions ----------
 
@@ -34,18 +35,16 @@ local function newAmmo(ammoModel: Model, player: Player)
 	if not ammoModel:IsA("Model") then
 		return
 	end
-	local ammo = PieAmmo.new(ammoModel, false)
+	local ammo = PieAmmo.new(ammoModel, true)
 	ammo:setupAmmo()
-	if not ammoModel:GetAttribute("_CanCollideThrower") then
-		ammo:disablePieCollideCharacter(player.Character)
-	end
+	ammo:disablePieCollideCharacter(player.Character)
 	ammo:launchPie()
 end
 
 ---------- Event functions ----------
 
 local function onPieHikeBindableEvent(mode: string, ...)
-	--[[ Always launched from client ]]
+	--[[ Always launched from server ]]
 	if mode == "Start Launch" then
 		newAmmo(...)
 	end

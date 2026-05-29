@@ -1,5 +1,5 @@
 --!strict
--- Server Pie Launch Script
+-- Client Pie Launch Script
 
 
 ---------- Validate container ----------
@@ -12,23 +12,33 @@ end
 
 ---------- Services ----------
 
+local CollectionService = game:GetService("CollectionService")
 local Debris = game:GetService("Debris")
+local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+---------- Imports ----------
+
+local _PieHikingSharedStorage = ReplicatedStorage:WaitForChild("PieHikingSharedStorage")
+local _AmmoModules = _PieHikingSharedStorage:WaitForChild("AmmoModules")
+local ClientPieAmmoApi = require(_AmmoModules:WaitForChild("ClientPieAmmoApi"))
 
 ---------- Types ----------
 
 type Motion = {["CFrame"]: CFrame?, ["Direction"]: Vector3?}
 
 ---------- Instances ----------
+
 local Tool = script.Parent.Parent.Parent
 local ToolEvents = Tool:WaitForChild("ToolEvents")
-local PieLaunchRemoteEvent = ToolEvents:WaitForChild("PieLaunchRemoteEvent")
+local PieLaunchEvent = ToolEvents:WaitForChild("PieLaunchEvent")
+local CSCPieLaunchRemoteEvent = ToolEvents:WaitForChild("CSCPieLaunchRemoteEvent")
 
 local PieModel = Tool:WaitForChild("PieModel")
 
-local PieHikingEvents = ReplicatedStorage:WaitForChild("PieHikingEvents") :: Folder
-local PieHikeBindable = PieHikingEvents:WaitForChild("PieHikeBindable") :: BindableEvent
+local _PieHikingEvents = _PieHikingSharedStorage:WaitForChild("PieHikingEvents")
+local PieHikeBindable = _PieHikingEvents:WaitForChild("PieHikeBindable")
 
 ---------- Variables ----------
 
@@ -72,17 +82,10 @@ end
 
 local function onLaunchPie(caller: Player, launchMotion: Motion)
 	-- Sanity check for launch motion
-	task.desynchronize()
 	if not (caller == player and checkLaunchMotion(caller, launchMotion)) then
 		if printDebug then
 			print("Fail check")
 		end
-		return
-	end
-
-	-- Sanity check for Client pies
-	local isClientPieType = Tool:GetAttribute("IsClientPieType")
-	if isClientPieType then
 		return
 	end
 
@@ -102,23 +105,48 @@ local function onLaunchPie(caller: Player, launchMotion: Motion)
 	local launchOffsetStuds = Tool:GetAttribute("LaunchOffsetStuds")
 	launchCFrame += launchDirection.Unit * launchOffsetStuds
 
+	-- Create Client pie's unique id
+	local clientPieId = HttpService:GenerateGUID(true)
+
+	-- Launch CSC Pie
+	local finalizedLaunchMotion = {
+		["CFrame"] = launchCFrame,
+		["Direction"] = launchDirection,
+		["Velocity"] = nil
+	}
+	CSCPieLaunchRemoteEvent:FireServer("Launch CSC Pie", finalizedLaunchMotion, clientPieId)
+
 	-- Setup new pie ammo
-	task.synchronize()
 	local newPieAmmoModel = PieAmmoModel:Clone()
 	local newPieAmmoMainPart = newPieAmmoModel:FindFirstChild("MainPart") :: Part
+
+	-- Tag the new pie ammo model
+	CollectionService:AddTag(newPieAmmoModel, clientPieId)
+	local uniquePieId = Instance.new("StringValue")
+	uniquePieId.Name = "UniquePieId"
+	uniquePieId.Value = clientPieId
+	uniquePieId.Parent = newPieAmmoModel
+
 
 	-- Setup pie values
 	local launchVelocity = Tool:GetAttribute("LaunchVelocity")
 	local launchVelocity_Vector3 = launchDirection.Unit * launchVelocity
 	newPieAmmoModel:SetAttribute("_LaunchVelocity", launchVelocity_Vector3)
+
 	local newPieCreator = Instance.new("ObjectValue")
 	newPieCreator.Name = "Creator"
-	newPieCreator.Value = player
+	newPieCreator.Value = caller
 	newPieCreator.Parent = newPieAmmoModel
+
 	local pieSpinByVelocity = Tool:GetAttribute("PieSpinByVelocity")
 	newPieAmmoModel:SetAttribute("_SpinByVelocity", pieSpinByVelocity)
+
 	local canOverlapPart = Tool:GetAttribute("CanOverlapPart")
 	newPieAmmoModel:SetAttribute("_CanOverlapPart", canOverlapPart)
+
+	local canCollideThrower = Tool:GetAttribute("CanCollideThrower")
+	newPieAmmoModel:SetAttribute("_CanCollideThrower", canCollideThrower)
+
 
 	-- Setup pie align orientation
 	local pieAlignSpin = Tool:GetAttribute("PieAlignSpin")
@@ -127,18 +155,14 @@ local function onLaunchPie(caller: Player, launchMotion: Motion)
 	newPieAlignOrientation.Enabled = pieAlignSpin
 
 	-- Setup pie ammo position
-	newPieAmmoModel.Parent = workspace -- Might cause exception
+	newPieAmmoModel.Parent = workspace
 	newPieAmmoMainPart:PivotTo(launchCFrame)
 	newPieAmmoMainPart.Anchored = false
 	newPieAmmoMainPart.CanCollide = true
-	newPieAmmoMainPart:SetNetworkOwner(nil)
 
 	-- Launch pie
 	lastLaunchTime = os.clock()
-	PieHikeBindable:Fire("Start Launch", newPieAmmoModel, player)
-
-	-- Remove pie after a while
-	Debris:AddItem(newPieAmmoModel, 12)
+	ClientPieAmmoApi.createAndLaunch(newPieAmmoModel)
 end
 
 local function createPieAmmoModel()
@@ -212,15 +236,15 @@ end
 
 ---------- Event functions ----------
 
-local function onPieLaunchServerEvent(player: Player, mode: string, ...)
+local function onPieLaunchEvent(mode: string, ...)
 	if mode == "Launch Pie" then
-		onLaunchPie(player, ...)
+		onLaunchPie(Players.LocalPlayer, ...)
 	end
 end
 
 ---------- Calling / connecting functions ----------
 
-PieLaunchRemoteEvent.OnServerEvent:Connect(onPieLaunchServerEvent)
+PieLaunchEvent.Event:Connect(onPieLaunchEvent)
 Tool.Equipped:Connect(onEquipped)
 Tool.Unequipped:Connect(onUnequipped)
 PieModel:GetAttributeChangedSignal("EquippedSkinId"):Connect(onPieSkinChange)

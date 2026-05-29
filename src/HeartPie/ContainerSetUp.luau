@@ -1,10 +1,6 @@
 --!strict
---[[
-Automatic Container Set Up Script
-Paste in the command bar
 
-Modified from the Pie Hiking plugin
-]]
+-- Automatic Container Set Up Script
 
 
 ---------- Services ----------
@@ -17,28 +13,46 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local ServerStorage = game:GetService("ServerStorage")
 
 
----------- Instances ----------
+---------- Types ----------
 
-local HeartPie_Package
+type FilePath = {[string]: FilePath}
+
+
+---------- Constants ----------
+
+local Constants = {}
+
 if script then
-	HeartPie_Package = script.Parent
+	Constants.HeartPie_Package = script.Parent
 elseif RunService:IsEdit() then
-	HeartPie_Package = Selection:Get()[1]
+	Constants.HeartPie_Package = Selection:Get()[1]
 end
-local HeartPie_ContainerScripts = HeartPie_Package and HeartPie_Package:FindFirstChild("ContainerScripts")
-local canSetUp = (
-	(HeartPie_ContainerScripts and HeartPie_ContainerScripts:IsA("Folder"))
-	and HeartPie_ContainerScripts:FindFirstChild("ReplicatedStorage")
+Constants.HeartPie_ContainerScripts = Constants.HeartPie_Package and Constants.HeartPie_Package:FindFirstChild("ContainerScripts")
+Constants.canSetUp = (
+	(Constants.HeartPie_ContainerScripts and Constants.HeartPie_ContainerScripts:IsA("Folder"))
+	and Constants.HeartPie_ContainerScripts:FindFirstChild("ReplicatedStorage")
 )
-if not canSetUp then
+if not Constants.canSetUp then
 	warn("Select the pie package Folder first!")
-	return
+	return {}
 end
+
+table.freeze(Constants)
 
 
 ---------- Local functions ----------
 
-local function removeDupes(parent: Instance, childName: string)
+local removeDupes
+local replaceIfNotFound
+local replaceWithNew
+local cloneReparentRecursive
+
+local setUpPieToolContainers
+
+
+----- Replacement -----
+
+removeDupes = function(parent: Instance, childName: string)
 	while true do
 		local dupe = parent:FindFirstChild(childName)
 		if not dupe then
@@ -48,7 +62,7 @@ local function removeDupes(parent: Instance, childName: string)
 	end
 end
 
-local function replaceIfNotFound(parent: Instance, child: Instance)
+replaceIfNotFound = function(parent: Instance, child: Instance)
 	local addedInstance = nil
 	if not parent:FindFirstChild(child.Name) then
 		local newObject = child:Clone()
@@ -58,78 +72,88 @@ local function replaceIfNotFound(parent: Instance, child: Instance)
 	return addedInstance
 end
 
-local function replaceWithNew(parent: Instance, child: Instance)
+replaceWithNew = function(parent: Instance, child: Instance)
 	removeDupes(parent, child.Name)
 	local newObject = child:Clone()
 	newObject.Parent = parent
 	return newObject
 end
 
-
----------- Set up functions ----------
-
-local function setUpPieToolContainers(): {Instance}
+cloneReparentRecursive = function(oldParent: Instance, newParent: Instance, doNotReplacePaths: FilePath): {Instance}
 	local addedInstances = {}
+	for _, child in oldParent:GetChildren() do
+		-- Check do not replace
+		if doNotReplacePaths[child.Name] then
+			-- Replace if not found
+			local replacedObject = replaceIfNotFound(newParent, child)
+			table.insert(addedInstances, replacedObject)
 
-	for _, object in HeartPie_ContainerScripts.ReplicatedStorage:GetChildren() do
-		-- Special case
-		if object.Name == "PieHikingModules" then
-			table.insert(addedInstances, replaceIfNotFound(ReplicatedStorage, object))
-			for _, object_2 in object:GetChildren() do
-				-- Special case
-				if object_2.Name == "PieHitEffects" or object_2.Name == "EffectsList" then
-					local newReplaced = replaceIfNotFound(ReplicatedStorage[object.Name], object_2)
-					table.insert(addedInstances, newReplaced)
-					continue
-				end
-
-				local newObject = replaceWithNew(ReplicatedStorage[object.Name], object_2)
-				table.insert(addedInstances, newObject)
-			end
-			continue
-		end
-		local newObject = replaceWithNew(ReplicatedStorage, object)
-		table.insert(addedInstances, newObject)
-	end
-	for _, object in HeartPie_ContainerScripts.ServerScriptService:GetChildren() do
-		local newObject = replaceWithNew(ServerScriptService, object)
-		table.insert(addedInstances, newObject)
-	end
-	for _, object in HeartPie_ContainerScripts.ServerStorage:GetChildren() do
-		-- Special case
-		if object.Name == "PieHikingServerStorage" then
-			table.insert(addedInstances, replaceIfNotFound(ServerStorage, object))
-			for _, object_2 in object:GetChildren() do
-				-- Special case
-				if object_2.Name == "PieSkins" or object_2.Name == "PieSkinConditions" then
-					local newReplaced = replaceIfNotFound(ServerStorage[object.Name], object_2)
-					table.insert(addedInstances, newReplaced)
-					continue
-				end
-
-				local newObject = replaceWithNew(ServerStorage[object.Name], object_2)
-				table.insert(addedInstances, newObject)
-			end
+			-- Reparent recursive
+			local newParentChild = newParent:FindFirstChild(child.Name) or replacedObject
+			local tempInstances = cloneReparentRecursive(child, newParentChild, doNotReplacePaths[child.Name])
+			table.move(tempInstances, 1, #tempInstances, #addedInstances + 1, addedInstances)
 			continue
 		end
 
-		local newObject = replaceWithNew(ServerStorage, object)
-		table.insert(addedInstances, newObject)
+		-- Replace
+		table.insert(addedInstances, replaceWithNew(newParent, child))
 	end
+	return addedInstances
+end
+
+
+----- Set up -----
+
+setUpPieToolContainers = function(): {Instance}
+	local addedInstances = {}
+	local tempInstances: {Instance}
+	local containerScripts = Constants.HeartPie_ContainerScripts
+
+	-- Replicated storage
+	tempInstances = cloneReparentRecursive(containerScripts.ReplicatedStorage, ReplicatedStorage, {
+		EffectModules = {
+			Presets = {
+				ImportedHitEffects = {},
+			},
+		},
+	})
+	table.move(tempInstances, 1, #tempInstances, #addedInstances + 1, addedInstances)
+
+	-- Server script service
+	tempInstances = cloneReparentRecursive(containerScripts.ServerScriptService, ServerScriptService, {})
+	table.move(tempInstances, 1, #tempInstances, #addedInstances + 1, addedInstances)
+
+	-- Server storage
+	tempInstances = cloneReparentRecursive(containerScripts.ServerStorage, ServerStorage, {
+		PieHikingServerStorage = {
+			PieSkins = {},
+			PieSkinConditions = {},
+		},
+	})
+	table.move(tempInstances, 1, #tempInstances, #addedInstances + 1, addedInstances)
 
 	return addedInstances
 end
 
 
------------ Calling functions ----------
+----- Main -----
 
-if script then
-	setUpPieToolContainers()
-else
-	ChangeHistoryService:SetWaypoint("Setting up pie container scripts")
-	Selection:Set(setUpPieToolContainers())
-	ChangeHistoryService:SetWaypoint("Set up pie container scripts")
+local function main()
+	if script then
+		setUpPieToolContainers()
+	else
+		ChangeHistoryService:SetWaypoint("Setting up pie container scripts")
+		Selection:Set(setUpPieToolContainers())
+		ChangeHistoryService:SetWaypoint("Set up pie container scripts")
+	end
 end
 
-return {}
 
+----------- Calling function ----------
+
+main()
+
+
+---------- Return module ----------
+
+return {}

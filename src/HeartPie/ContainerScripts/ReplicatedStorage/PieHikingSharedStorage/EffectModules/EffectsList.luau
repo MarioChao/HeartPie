@@ -1,20 +1,25 @@
 --!strict
--- Effects List Module Script
+
+-- Effects List
+
 
 ---------- Services ----------
 
 local CollectionService = game:GetService("CollectionService")
 local Debris = game:GetService("Debris")
-local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 
+
 ---------- Module ----------
-local effectsList = {}
 
----------- Module functions ----------
+local Module = {}
 
--- Effect functions
-function effectsList.damageCharacter(character: Model, amount: number)
+
+----- Module fields -----
+
+--- Effect functions ---
+
+function Module.damageCharacter(character: Model, amount: number)
 	-- Validate
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 	if not (humanoid and humanoid.Health > 0 and tonumber(amount)) then
@@ -25,7 +30,7 @@ function effectsList.damageCharacter(character: Model, amount: number)
 	humanoid:TakeDamage(amount)
 end
 
-function effectsList.changeHealth(character: Model, amount: number)
+function Module.changeHealth(character: Model, amount: number)
 	-- Validate
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 	if not (humanoid and humanoid.Health > 0 and tonumber(amount)) then
@@ -36,7 +41,7 @@ function effectsList.changeHealth(character: Model, amount: number)
 	humanoid.Health += amount
 end
 
-function effectsList.addTagToCharacterHumanoid(character: Model, tag: string)
+function Module.addTagToCharacterHumanoid(character: Model, tag: string)
 	-- Validate
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 	if not humanoid then
@@ -47,7 +52,7 @@ function effectsList.addTagToCharacterHumanoid(character: Model, tag: string)
 	CollectionService:AddTag(humanoid, tag)
 end
 
-function effectsList.removeTagFromCharacterHumanoid(character: Model, tag: string)
+function Module.removeTagFromCharacterHumanoid(character: Model, tag: string)
 	-- Validate
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 	if not humanoid then
@@ -58,7 +63,7 @@ function effectsList.removeTagFromCharacterHumanoid(character: Model, tag: strin
 	CollectionService:RemoveTag(humanoid, tag)
 end
 
-function effectsList.orbEffectAtPart(part: BasePart, orbColor: Color3, initialOrbSizes: {number}, targetOrbSizes: {number}, easingStyle: Enum.EasingStyle, easingDirection: Enum.EasingDirection)
+function Module.orbEffectAtPart(part: BasePart, orbColor: Color3, initialOrbSizes: {number}, targetOrbSizes: {number}, easingStyle: Enum.EasingStyle, easingDirection: Enum.EasingDirection)
 	-- Validate
 	if not (part and part:IsA("BasePart")) then
 		return
@@ -100,8 +105,10 @@ function effectsList.orbEffectAtPart(part: BasePart, orbColor: Color3, initialOr
 	end
 end
 
--- Template effect functions
-function effectsList.customEffectAtCharacter(character: Model)
+
+--- Template effect functions ---
+
+function Module.customEffectAtCharacter(character: Model)
 	-- Validate
 	local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart") :: Part
 	if not humanoidRootPart then
@@ -109,18 +116,20 @@ function effectsList.customEffectAtCharacter(character: Model)
 	end
 
 	-- Effect
-
+	-- put code here
 end
 
-function effectsList.customEffectAtPart(part: BasePart)
+function Module.customEffectAtPart(part: BasePart)
 	-- Validate
 	if not (part and part:IsA("BasePart")) then
 		return
 	end
 
 	-- Effect
-
+	-- put code here
 end
 
 ---------- Return module ----------
-return effectsList
+
+table.freeze(Module)
+return Module

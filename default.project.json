@@ -15,8 +15,14 @@
             "$path": "src/HeartPie/ContainerScripts/ServerStorage",
             "$ignoreUnknownInstances": true,
 
-            "HeartPie_Package": {
-                "$path": "src/HeartPie"
+            "HeartPie_Module": {
+                "$className": "Folder",
+                "MainModule": {
+                    "$path": "src/HeartPieModule/MainModule",
+                    "HeartPie_Package": {
+                        "$path": "src/HeartPie"
+                    }
+                }
             }
         }
     },

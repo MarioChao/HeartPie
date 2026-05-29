@@ -1,15 +1,36 @@
 # Changelog and Plans
 
-
 ## Plans
 
 - [+] Allow pies to be visible if they are initially in the workspace.
 - [ ] Allow unstick & remove time to be modified.
-- [ ] Move `PieHikingEvents` and `PieHikingModules` into `PieHikingSharedStorage`
 
-## [2.0.0] Reorganization + Refactorization | 2026/5/27
+## [2.0.0] Reorganization + Refactorization | 2026/5/27 - 5/29
 
 Renamed `ContainerScripts (see ReadMe)` folder to just `ContainerScripts`.
+
+Removed `_SetupCheckActor` under the pie `Tool`.
+
+Removed many uses of `Actors` and parallel luau.
+
+Refactored bindable events to api `ModuleScripts`.
+- Uses bindable events internally to prevent scripts stopping when `Tool` is destroyed.
+
+Refactored `ReplicatedStorage`:
+- Moved `PieHikingEvents` and `PieHikingModules` to be under `PieHikingSharedStorage`.
+- Renamed folders to `AmmoModules`, `EffectModules`, and `Modules`.
+- Made client pie ammo script into `ClientPieAmmoApi` module and a child `ClientPieAmmoLauncher` client script.
+- Modified effect modules to allow easier customization.
+- Migrated remote events to [BelovedRemote](https://github.com/MarioChao/beloved-remote).
+
+Made scripts cleaner.
+
+Refactored `ContainerSetUp` using `cloneReparentRecursive()`.
+
+Created new `HeartPie_Module` with a child `MainModule`:
+- Wraps around `HeartPie_Package`.
+- Allows customizations like hit effects and pie skins.
+- Call `.setUpAndGetTool()` to set up containers (using `ContainerSetUp`) and retrieve the tool.
 
 ## [1.0.14] More environment validation checks | 2026/03/28 (2)
 
