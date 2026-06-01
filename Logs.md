@@ -13,15 +13,30 @@ Removed `_SetupCheckActor` under the pie `Tool`.
 
 Removed many uses of `Actors` and parallel luau.
 
-Refactored bindable events to api `ModuleScripts`.
-- Uses bindable events internally to prevent scripts stopping when `Tool` is destroyed.
+Refactored bindable instances to api `ModuleScripts`.
+- Uses module methods to allow type-checked calls.
+- Uses bindable events & functions internally to prevent scripts stopping when `Tool` is destroyed.
 
 Refactored `ReplicatedStorage`:
-- Moved `PieHikingEvents` and `PieHikingModules` to be under `PieHikingSharedStorage`.
+- Moved `PieHikingEvents` and `PieHikingModules` to be under `PieHiking_SharedStorage`.
 - Renamed folders to `AmmoModules`, `EffectModules`, and `Modules`.
 - Made client pie ammo script into `ClientPieAmmoApi` module and a child `ClientPieAmmoLauncher` client script.
 - Modified effect modules to allow easier customization.
+    - Added `PieHitEffectsGetter` module to get the default or custom pie hit effects.
 - Migrated remote events to [BelovedRemote](https://github.com/MarioChao/beloved-remote).
+
+Refactored `ServerScriptService` and `ServerStorage`:
+- Renamed folder to `PieHiking_ServerScripts`.
+    - Moved `ServerStorage` instances to be under this folder.
+    - Moved `CSCPieEvent` script from tool scripts to be under this folder.
+- Moved server pie ammo scripts into `ServerPieAmmoApi` module and children scripts.
+    - Refactored `ServerPieAmmoLauncher` script.
+    - Refactored `PieHikingServer` into `ServerPieAmmoSystem` script.
+- Modified skin modules to allow easier customization.
+    - Added `PieSkinsGetter` module to get the default or custom pie skin models `Folder`.
+    - Added `PieSkinConditionsGetter` module to get the default or custom pie skin conditions.
+- Moved pie skin scripts into `PieSkinsApi` module and a child `PieSkinsSystem` script.
+- Migrated badge checking to [BadgeUtil](https://github.com/MarioChao/badge-util).
 
 Made scripts cleaner.
 

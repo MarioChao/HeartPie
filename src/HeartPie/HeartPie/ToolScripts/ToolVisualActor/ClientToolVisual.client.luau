@@ -122,7 +122,7 @@ Tool.Equipped:Connect(onToolEquipped)
 Tool.Unequipped:Connect(onToolUnequipped)
 task.defer(function()
 	while not (PieModel:FindFirstChild("PieSkin") and player) do
-		task.wait(0.03)
+		task.wait()
 	end
 	setPieModelTransparency(nil)
 end)

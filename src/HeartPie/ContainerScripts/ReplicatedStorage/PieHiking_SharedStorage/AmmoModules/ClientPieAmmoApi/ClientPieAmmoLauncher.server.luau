@@ -3,6 +3,14 @@
 -- Client Pie Ammo Launcher
 
 
+---------- Validate container ----------
+
+-- Replicated storage
+if not script:FindFirstAncestorWhichIsA("ReplicatedStorage") then
+	return
+end
+
+
 ---------- Services ----------
 
 local Players = game:GetService("Players")
@@ -11,8 +19,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 ---------- Imports ----------
 
-local _PieHikingSharedStorage = ReplicatedStorage:WaitForChild("PieHikingSharedStorage")
-local _AmmoModules = _PieHikingSharedStorage:WaitForChild("AmmoModules")
+local _PieHiking_SharedStorage = ReplicatedStorage:WaitForChild("PieHiking_SharedStorage")
+local _AmmoModules = _PieHiking_SharedStorage:WaitForChild("AmmoModules")
 local RegularPieAmmo = require(_AmmoModules:WaitForChild("RegularPieAmmo"))
 
 

@@ -3,6 +3,11 @@
 registry = "test"
 
 [[package]]
+name = "mariochao/badge-util"
+version = "0.0.2"
+dependencies = []
+
+[[package]]
 name = "mariochao/beloved-remote"
 version = "0.0.2"
 dependencies = []
@@ -10,4 +15,4 @@ dependencies = []
 [[package]]
 name = "mariochao/heart-pie"
 version = "1.0.14"
-dependencies = [["BelovedRemote", "mariochao/beloved-remote@0.0.2"]]
+dependencies = [["BadgeUtil", "mariochao/badge-util@0.0.2"], ["BelovedRemote", "mariochao/beloved-remote@0.0.2"]]

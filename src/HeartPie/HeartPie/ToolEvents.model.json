@@ -6,10 +6,6 @@
             "ClassName": "BindableEvent"
         },
         {
-            "Name": "CSCPieLaunchRemoteEvent",
-            "ClassName": "RemoteEvent"
-        },
-        {
             "Name": "PieLaunchEvent",
             "ClassName": "BindableEvent"
         },

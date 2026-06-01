@@ -17,6 +17,22 @@ Constants.apiBindableEvent = script:WaitForChild("ApiBindableEvent")
 table.freeze(Constants)
 
 
+---------- Local functions ----------
+
+----- Main -----
+
+local function main()
+	if not RunService:IsClient() then
+		warn(`[Client Pie Ammo Api]: Module should only be called from the Client!`)
+	end
+end
+
+
+---------- Calling function ----------
+
+main()
+
+
 ---------- Module ----------
 
 local Module = {}
@@ -25,10 +41,6 @@ local Module = {}
 ----- Module fields -----
 
 function Module.createAndLaunch(ammoModel: Model)
-	if not RunService:IsClient() then
-		warn(`[Client Pie Ammo Api]: Module should only be called from the Client!`)
-		return
-	end
 	Constants.apiBindableEvent:Fire("Create and Launch", ammoModel)
 end
 

@@ -12,9 +12,6 @@
             "$ignoreUnknownInstances": true
         },
         "ServerStorage": {
-            "$path": "src/HeartPie/ContainerScripts/ServerStorage",
-            "$ignoreUnknownInstances": true,
-
             "HeartPie_Module": {
                 "$className": "Folder",
                 "MainModule": {

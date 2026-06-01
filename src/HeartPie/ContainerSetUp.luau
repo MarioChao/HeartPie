@@ -10,7 +10,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Selection = game:GetService("Selection")
 local ServerScriptService = game:GetService("ServerScriptService")
-local ServerStorage = game:GetService("ServerStorage")
 
 
 ---------- Types ----------
@@ -111,23 +110,23 @@ setUpPieToolContainers = function(): {Instance}
 
 	-- Replicated storage
 	tempInstances = cloneReparentRecursive(containerScripts.ReplicatedStorage, ReplicatedStorage, {
-		EffectModules = {
-			Presets = {
-				ImportedHitEffects = {},
+		PieHiking_SharedStorage = {
+			EffectModules = {
+				Presets = {
+					DefaultHitEffects = {},
+				},
 			},
 		},
 	})
 	table.move(tempInstances, 1, #tempInstances, #addedInstances + 1, addedInstances)
 
 	-- Server script service
-	tempInstances = cloneReparentRecursive(containerScripts.ServerScriptService, ServerScriptService, {})
-	table.move(tempInstances, 1, #tempInstances, #addedInstances + 1, addedInstances)
-
-	-- Server storage
-	tempInstances = cloneReparentRecursive(containerScripts.ServerStorage, ServerStorage, {
-		PieHikingServerStorage = {
-			PieSkins = {},
-			PieSkinConditions = {},
+	tempInstances = cloneReparentRecursive(containerScripts.ServerScriptService, ServerScriptService, {
+		PieHiking_ServerScripts = {
+			Presets = {
+				PieSkins = {},
+				PieSkinConditions = {},
+			},
 		},
 	})
 	table.move(tempInstances, 1, #tempInstances, #addedInstances + 1, addedInstances)

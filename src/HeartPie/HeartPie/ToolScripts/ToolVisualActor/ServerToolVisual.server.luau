@@ -153,33 +153,13 @@ end
 
 local function setUpPieSkins()
 	-- Go through all pie skins
-	task.defer(function()
-		for _, pieSkin in PieSkins:GetChildren() do
-			local pieSkinMainPart: Part = pieSkin:FindFirstChild("SkinMainPart")
-			if not (pieSkin:IsA("Model") and pieSkinMainPart) then
-				continue
-			end
-			setUpPieSkin(pieSkin)
+	for _, pieSkin in PieSkins:GetChildren() do
+		local pieSkinMainPart: Part = pieSkin:FindFirstChild("SkinMainPart")
+		if not (pieSkin:IsA("Model") and pieSkinMainPart) then
+			continue
 		end
-	end)
-
-	-- Go through container scripts pie skins
-	task.defer(function()
-		local containerScripts = Tool:FindFirstChild("ContainerScripts")
-		local containerServerStorage = containerScripts and containerScripts:FindFirstChild("ServerStorage")
-		local containerPieHikingServerStorage = containerServerStorage and containerServerStorage:FindFirstChild("PieHikingServerStorage")
-		local containerPieSkins = containerPieHikingServerStorage and containerPieHikingServerStorage:FindFirstChild("PieSkins")
-		if not containerPieSkins then
-			return
-		end
-		for _, pieSkin in containerPieSkins:GetChildren() do
-			local pieSkinMainPart: Part = pieSkin:FindFirstChild("SkinMainPart")
-			if not (pieSkin:IsA("Model") and pieSkinMainPart) then
-				continue
-			end
-			setUpPieSkin(pieSkin)
-		end
-	end)
+		setUpPieSkin(pieSkin)
+	end
 end
 
 local function setUpPieModel()
@@ -241,6 +221,6 @@ Tool.Equipped:Connect(onEquipped)
 Tool.Unequipped:Connect(onUnequipped)
 task.defer(setUpPieModel)
 task.defer(function()
-	setUpPieSkins()
+	task.defer(setUpPieSkins)
 	PieSkins.ChildAdded:Connect(setUpPieSkin)
 end)

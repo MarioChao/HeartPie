@@ -12,10 +12,16 @@ end
 
 ---------- Services ----------
 
-local Debris = game:GetService("Debris")
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
-local ServerStorage = game:GetService("ServerStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
+
+
+---------- Imports ----------
+
+local _PieHiking_ServerScripts = ServerScriptService:WaitForChild("PieHiking_ServerScripts")
+local _SkinModules = _PieHiking_ServerScripts:WaitForChild("SkinModules")
+local PieSkinsApi = require(_SkinModules:WaitForChild("PieSkinsApi"))
 
 
 ---------- Types ----------
@@ -29,12 +35,6 @@ local Tool = script.Parent.Parent.Parent
 local ToolEvents = Tool:WaitForChild("ToolEvents")
 local PieSkinRemoteEvent = ToolEvents:WaitForChild("PieSkinRemoteEvent")
 local ToolVisualEvent = ToolEvents:WaitForChild("ToolVisualEvent")
-
-local PieHikingServerStorage = ServerStorage:WaitForChild("PieHikingServerStorage")
-local PieHikingServerEvents = PieHikingServerStorage:WaitForChild("PieHikingServerEvents")
-local ConditionalSkinsBindableEvent = PieHikingServerEvents:WaitForChild("ConditionalSkinsBindableEvent")
-local SavedSkinBindableFunction = PieHikingServerEvents:WaitForChild("SavedSkinBindableFunction")
-local SavedSkinBindableEvent = PieHikingServerEvents:WaitForChild("SavedSkinBindableEvent")
 
 local PieModel = Tool:WaitForChild("PieModel")
 local PieMainPart = PieModel:WaitForChild("MainPart")
@@ -65,10 +65,9 @@ local function setSkinIdTo(newSkinId: number, dontSave: boolean?)
 	end
 
 	-- Remove old skin
-	task.synchronize()
 	local oldPieSkinFolder = PieModel:FindFirstChild("PieSkin")
 	if oldPieSkinFolder then
-		Debris:AddItem(oldPieSkinFolder, 0)
+		oldPieSkinFolder:Destroy()
 	end
 
 	-- Update new skin
@@ -82,13 +81,13 @@ local function setSkinIdTo(newSkinId: number, dontSave: boolean?)
 	newPieSkinFolder.Parent = PieModel -- Might cause exception
 
 	-- Update Tool properties
-	local newToolTextureId: string = newPieSkin:GetAttribute("ToolTextureId")
+	local newToolTextureId = newPieSkin:GetAttribute("ToolTextureId")
 	if newToolTextureId then
-		Tool.TextureId = newToolTextureId
+		Tool.TextureId = tostring(newToolTextureId)
 	end
-	local newToolTip: string = newPieSkin:GetAttribute("ToolTip")
+	local newToolTip = newPieSkin:GetAttribute("ToolTip")
 	if newToolTip then
-		Tool.ToolTip = newToolTip
+		Tool.ToolTip = tostring(newToolTip)
 	end
 
 	-- Renew transparency
@@ -98,7 +97,7 @@ local function setSkinIdTo(newSkinId: number, dontSave: boolean?)
 	if not dontSave then
 		local userId = player and player.UserId
 		if userId then
-			SavedSkinBindableEvent:Fire("Save Skin Id", userId, newPieSkinInfo.Id)
+			PieSkinsApi.saveUserSkinId(userId, newPieSkinInfo.Id)
 		end
 	end
 end
@@ -119,7 +118,6 @@ local function changeSkinIdBy(caller: Player, amount: number)
 		changeSkinIdThrottle = true
 
 		-- Validate
-		task.desynchronize()
 		if not (caller == player and tonumber(amount)) then
 			return
 		end
@@ -149,25 +147,33 @@ local function setUpSkinReferences(skin: Model)
     end
 
     -- Get attachment
-    local skinAttachment = skinMainPart:WaitForChild("PieSkinAttachment")
+    local skinAttachment = skinMainPart:FindFirstChild("PieSkinAttachment")
+	if not (skinAttachment and skinAttachment:IsA("Attachment")) then
+		warn(`[Server Pie Skin]: No skin attachment found for skin {skin}.`)
+		return
+	end
 
-    -- Set up rigid constraint
-    local rigidConstraint = skinMainPart:WaitForChild("RigidConstraint")
-    rigidConstraint.Attachment0 = skinAttachment
-    rigidConstraint.Attachment1 = PieMainPartAttachment
+	-- Set up rigid constraint
+	local rigidConstraint = skinMainPart:FindFirstChild("RigidConstraint")
+	if rigidConstraint and rigidConstraint:IsA("RigidConstraint") then
+		rigidConstraint.Attachment0 = skinAttachment
+		rigidConstraint.Attachment1 = PieMainPartAttachment
+	else
+		warn(`[Server Pie Skin]: No rigid constraint found for skin {skin}.`)
+	end
 end
 
 local function setUpPieSkinsTable()
 	changeSkinIdThrottle = true
 
 	-- Set reference properties
-	task.synchronize()
-	for _, pieSkin: Instance in PieSkins:GetChildren() do
-		setUpSkinReferences(pieSkin)
+	for _, pieSkin in PieSkins:GetChildren() do
+		if pieSkin:IsA("Model") then
+			setUpSkinReferences(pieSkin)
+		end
 	end
 
 	-- Record valid pie skins from folder
-	task.desynchronize()
 	local validPieSkinsInfo = {} :: {SkinInfo}
 	for _, pieSkin in PieSkins:GetChildren() do
 		-- Validate pie skin
@@ -214,10 +220,9 @@ local function onNewSkinsAdded(skin: Instance)
 	local realSkinId = pieSkinsTable[oldSkinId] and pieSkinsTable[oldSkinId].Id or 0
 
 	-- Used saved skin id if possible
-	task.synchronize()
 	local userId = player and player.UserId
 	if userId then
-		local savedRealSkinId = SavedSkinBindableFunction:Invoke("Get Skin Id", userId)
+		local savedRealSkinId = PieSkinsApi.getUserSkinId(userId)
 		if savedRealSkinId then
 			realSkinId = savedRealSkinId
 		end
@@ -247,13 +252,13 @@ local function loadSavedSkin()
 
 	-- Populate skins
 	if tempPlayer then
-		ConditionalSkinsBindableEvent:Fire("Populate Tool Skins", Tool)
+		PieSkinsApi.populateToolSkins(Tool)
 	end
 
 	-- Switch skin
 	local userId = tempPlayer and tempPlayer.UserId
 	if userId then
-		local savedRealSkinId = SavedSkinBindableFunction:Invoke("Get Skin Id", userId)
+		local savedRealSkinId = PieSkinsApi.getUserSkinId(userId)
 		if savedRealSkinId then
 			setRealSkinIdTo(savedRealSkinId, true)
 		end

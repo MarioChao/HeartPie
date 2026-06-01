@@ -1,41 +1,51 @@
 --[[
-How to setup Heart Pie's Container Scripts:
+How to set up Heart Pie's Container Scripts:
 
 
 ----- Manually -----
 
 1. Put things inside "ReplicatedStorage" folder into the "ReplicatedStorage" container service.
---- Make sure the script "CSCPieAmmo" under _PlayerScripts > CSCPieActor is enabled.
---- Make sure the scripts "ClientPieAmmo" and "ServerPieAmmo" under _PlayerScripts > PieMotionActor are enabled.
 
 2. Put things inside "ServerScriptService" folder into the "ServerScriptService" container service.
---- Make sure the script "PieHikingServer" is enabled.
-
-3. Put things inside "ServerStorage" folder into the "ServerStorage" container service.
 
 
 ----- Automatically (in studio) -----
 
-1. Select the "HeartPie" tool.
+1. Copy the code inside "ContainerSetUp".
 
-2. Copy the code inside "ContainerSetUp".
+2. Select the "HeartPie_Package" folder.
 
-3. Paste it in the command bar & run.
+3. Paste the copied code in the command bar & run.
 
 
 ----- Automatically (in run time) -----
 
-1. Replace "PieHikingModules" under "ReplicatedStorage" folder with the actual "PieHikingModules" in the "ReplicatedStorage" container service.
-
-2. Do the same for "PieHikingServerStorage" under "ServerStorage".
-
-3. In a server script, require the "ContainerSetUp" module script under the pie package Folder.
+1. In a server script, require the "ContainerSetUp" module script under the pie package Folder.
 --- The script should preferably be under the "ServerScriptService" container service so that set up is done only once.
+
+
+----- Automatically (run time advanced) -----
+
+1. Require the "MainModule" module script under the "HeartPie_Module" folder.
+
+2. Call functions to customize hit effects and pie skins.
+
+3. Call "setUpAndGetTool()" to set up container scripts and retrieve the tool.
 
 Example script:
 ```
-local StarterPack = game:GetService("StarterPack")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
+local ServerStorage = game:GetService("ServerStorage")
 
-require(StarterPack.HeartPie.ContainerSetUp)
+local effectPresets = ReplicatedStorage.CustomData.Presets
+local skinPresets = ServerScriptService.CustomSkinsData.Presets
+
+local hpm = require(ServerStorage.HeartPie_Module.MainModule)
+
+hpm.setHitEffectsModule(effectPresets.NewHitEffects)
+hpm.setPieSkins_conditional(skinPresets.NewCondPieSkinsFolder, skinPresets.NewPieSkinConditions)
+
+hpm.setUpAndGetTool().Parent = game.StarterPack
 ```
 ]]

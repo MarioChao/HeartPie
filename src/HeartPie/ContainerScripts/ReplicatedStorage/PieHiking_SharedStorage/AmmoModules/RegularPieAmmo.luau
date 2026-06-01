@@ -13,23 +13,28 @@ local RunService = game:GetService("RunService")
 
 ---------- Imports ----------
 
-local _PieHikingSharedStorage = ReplicatedStorage:WaitForChild("PieHikingSharedStorage")
-local _EffectModules = _PieHikingSharedStorage:WaitForChild("EffectModules")
-local PieHitEffects = require(_EffectModules:WaitForChild("PieHitEffects"))
+local _PieHiking_SharedStorage = ReplicatedStorage:WaitForChild("PieHiking_SharedStorage")
+local _EffectModules = _PieHiking_SharedStorage:WaitForChild("EffectModules")
+local PieHitEffectsGetter = require(_EffectModules:WaitForChild("PieHitEffectsGetter"))
 
-local _AmmoModules = _PieHikingSharedStorage:WaitForChild("AmmoModules")
+local _AmmoModules = _PieHiking_SharedStorage:WaitForChild("AmmoModules")
 local AmmoUtil = require(_AmmoModules:WaitForChild("AmmoUtil"))
 
-local _Modules = _PieHikingSharedStorage:WaitForChild("Modules")
+local _Modules = _PieHiking_SharedStorage:WaitForChild("Modules")
 local BelovedRemote = require(_Modules:WaitForChild("BelovedRemote"))
+
+local ServerPieAmmoApi
+if RunService:IsServer() then
+	local ServerScriptService = game:GetService("ServerScriptService")
+	local _PieHiking_ServerScripts = ServerScriptService:WaitForChild("PieHiking_ServerScripts")
+	local _ServerAmmoModules = _PieHiking_ServerScripts:WaitForChild("ServerAmmoModules")
+	ServerPieAmmoApi = require(_ServerAmmoModules:WaitForChild("ServerPieAmmoApi"))
+end
 
 
 ---------- Constants ----------
 
 local Constants = {}
-
-local _PieHikingEvents = _PieHikingSharedStorage:WaitForChild("PieHikingEvents")
-Constants.pieHikeBindable = _PieHikingEvents:WaitForChild("PieHikeBindable")
 
 Constants.baseUnstickPieTime = 7.5
 Constants.baseRemovePieTime = 12
@@ -159,19 +164,22 @@ end
 function PieAmmo.launchPie(self: CObjectType)
 	-- Validate ammo main part
 	if not self.ammoMainPart then
-		print("not main part")
+		print(`[Regular Pie Ammo]: not main part.`)
 		return
 	end
 
 	-- Configure and shoot pie with initial velocity
 	self.launchStartTime = Constants.timeFunction()
 	self.ammoSounds.Fire:Play()
+
 	-- Check if ammo is not stuck before giving velocity
 	local ammoMainPart = self.ammoMainPart :: Part
 	local ammoAssemblyRootPart = ammoMainPart.AssemblyRootPart
 	if ammoAssemblyRootPart and ammoAssemblyRootPart:IsDescendantOf(self.ammoModel) then
 		self.ammoMainPart.AssemblyLinearVelocity = self.ammoInternalLaunchVelocity
 	end
+
+	-- Align pie spin
 	if self.ammoPieSpins then
 		self:matchAmmoSpin()
 	end
@@ -182,7 +190,7 @@ function PieAmmo.launchPie(self: CObjectType)
 		if timeUntilUnstick and timeUntilUnstick:IsA("NumberValue") then
 			timeUntilUnstick.Value = self.launchStartTime + Constants.baseUnstickPieTime - Constants.timeFunction()
 		end
-		task.wait(0.03)
+		task.wait()
 	end
 	self:unstickPie()
 
@@ -202,7 +210,7 @@ function PieAmmo.canStickTo(self: CObjectType, hitPart: BasePart): boolean
 	local isHitClientPie = hitPieModel and AmmoUtil.isPieAClientPie(hitPieModel)
 
 	-- Return
-	if (isThrowClientPie) or (not isThrowClientPie and not isHitClientPie) then
+	if isThrowClientPie or not isHitClientPie then
 		return true
 	end
 	return false
@@ -225,7 +233,7 @@ function PieAmmo.runClientHitEffect(self: CObjectType, hitPart: BasePart)
 
 	-- Get parameters
 	local throwPieMainPart = self.ammoMainPart
-	local param: PieHitEffects.EffectParameter = {
+	local param: PieHitEffectsGetter.EffectParameter = {
 		throwerCharacter = throwerCharacter,
 		hitCharacter = nil,
 		pieMainPart = throwPieMainPart,
@@ -238,7 +246,7 @@ function PieAmmo.runClientHitEffect(self: CObjectType, hitPart: BasePart)
 	if not throwPieSkinModel then
 		return
 	end
-	local effectInfo = PieHitEffects[throwPieSkinModel.Name]
+	local effectInfo = PieHitEffectsGetter.getValueAt(throwPieSkinModel.Name)
 	if not effectInfo then
 		return
 	end
@@ -273,7 +281,9 @@ function PieAmmo.stickPieReplicate(self: CObjectType, hitPart: BasePart, relativ
 		-- Server pies can't hit client parts
 
 		--[[ Hit a server part ]]
-		Constants.pieHikeBindable:Fire("Stick Server Pie To Part", self.ammoMainPart, hitPart, hitPart.CFrame, relativeCFrame)
+		if ServerPieAmmoApi then
+			ServerPieAmmoApi.stickServerPieToPart(self.ammoMainPart, hitPart, hitPart.CFrame, relativeCFrame)
+		end
 	else
 		--[[ Current pie is a Client pie ]]
 
@@ -336,7 +346,9 @@ function PieAmmo.unstickPie(self: CObjectType)
 	end
 
 	-- Unstick pie in the server
-	Constants.pieHikeBindable:Fire("Unstick", self.ammoMainPart)
+	if ServerPieAmmoApi then
+		ServerPieAmmoApi.unstickServerPie(self.ammoMainPart)
+	end
 
 	-- Unstick pie in the script
 	for _, instance in self.ammoMainPart:GetChildren() do
@@ -410,8 +422,13 @@ function PieAmmo.onTouched(self: CObjectType, otherPart: BasePart, mainPartRelat
 		self:stickPie(otherPart, mainPartRelativeCFrame)
 
 		-- Hit character effect
-		if creatorPlayer and creatorPlayer:IsA("Player") and touchedCharacter and self.hasHitCharacterEffect then
-			Constants.pieHikeBindable:Fire("Pie Hit Character Effect", creatorPlayer.Character, touchedCharacter, self.ammoMainPart)
+		if creatorPlayer and creatorPlayer:IsA("Player") then
+			local throwerCharacter = creatorPlayer.Character
+			if throwerCharacter and touchedCharacter and self.ammoMainPart and self.hasHitCharacterEffect then
+				if ServerPieAmmoApi then
+					ServerPieAmmoApi.runPieHitCharacterEffect(throwerCharacter, touchedCharacter, self.ammoMainPart)
+				end
+			end
 		end
 	end)
 end
@@ -508,7 +525,9 @@ function PieAmmo.removePie(self: CObjectType)
 	end
 
 	-- Remove pie in the server
-	Constants.pieHikeBindable:Fire("Remove", self.ammoModel)
+	if ServerPieAmmoApi and self.ammoMainPart then
+		ServerPieAmmoApi.removeServerPie(self.ammoMainPart)
+	end
 
 	-- Remove pie in the script
 	Debris:AddItem(self.ammoModel, 0)

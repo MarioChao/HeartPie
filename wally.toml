@@ -12,5 +12,5 @@ repository = "https://github.com/MarioChao/HeartPie"
 private = true
 
 [dependencies]
-
+BadgeUtil = "mariochao/badge-util@0.0.2"
 BelovedRemote = "mariochao/beloved-remote@0.0.2"

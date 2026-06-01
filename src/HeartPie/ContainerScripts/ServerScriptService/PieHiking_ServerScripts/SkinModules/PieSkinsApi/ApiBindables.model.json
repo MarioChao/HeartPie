@@ -1,0 +1,13 @@
+{
+    "className": "Folder",
+    "children": [
+        {
+            "name": "ApiBindableEvent",
+            "className": "BindableEvent"
+        },
+        {
+            "name": "ApiBindableFunction",
+            "className": "BindableFunction"
+        }
+    ]
+}

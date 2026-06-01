@@ -20,9 +20,12 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 ---------- Imports ----------
 
-local _PieHikingSharedStorage = ReplicatedStorage:WaitForChild("PieHikingSharedStorage")
-local _AmmoModules = _PieHikingSharedStorage:WaitForChild("AmmoModules")
+local _PieHiking_SharedStorage = ReplicatedStorage:WaitForChild("PieHiking_SharedStorage")
+local _AmmoModules = _PieHiking_SharedStorage:WaitForChild("AmmoModules")
 local ClientPieAmmoApi = require(_AmmoModules:WaitForChild("ClientPieAmmoApi"))
+
+local _Modules = _PieHiking_SharedStorage:WaitForChild("Modules")
+local BelovedRemote = require(_Modules:WaitForChild("BelovedRemote"))
 
 ---------- Types ----------
 
@@ -33,12 +36,8 @@ type Motion = {["CFrame"]: CFrame?, ["Direction"]: Vector3?}
 local Tool = script.Parent.Parent.Parent
 local ToolEvents = Tool:WaitForChild("ToolEvents")
 local PieLaunchEvent = ToolEvents:WaitForChild("PieLaunchEvent")
-local CSCPieLaunchRemoteEvent = ToolEvents:WaitForChild("CSCPieLaunchRemoteEvent")
 
 local PieModel = Tool:WaitForChild("PieModel")
-
-local _PieHikingEvents = _PieHikingSharedStorage:WaitForChild("PieHikingEvents")
-local PieHikeBindable = _PieHikingEvents:WaitForChild("PieHikeBindable")
 
 ---------- Variables ----------
 
@@ -47,7 +46,6 @@ local EquippedPieSkin: Model
 
 local launchMinIntervalSeconds = 0.7
 local lastLaunchTime = os.clock() - launchMinIntervalSeconds
-local pieAmmoMaxSeconds = 12
 
 local printDebug = Tool:GetAttribute("_PrintDebug")
 
@@ -114,7 +112,7 @@ local function onLaunchPie(caller: Player, launchMotion: Motion)
 		["Direction"] = launchDirection,
 		["Velocity"] = nil
 	}
-	CSCPieLaunchRemoteEvent:FireServer("Launch CSC Pie", finalizedLaunchMotion, clientPieId)
+	BelovedRemote.fire_toServer("Launch CSC Pie", Tool, PieModel, finalizedLaunchMotion, clientPieId)
 
 	-- Setup new pie ammo
 	local newPieAmmoModel = PieAmmoModel:Clone()
@@ -230,7 +228,7 @@ end
 
 local function onPieSkinChange()
 	-- Wait a frame to allow skin to change
-	task.wait(0.03)
+	task.wait()
 	createPieAmmoModel()
 end
 

@@ -4,6 +4,14 @@
 -- Creates & launches client pies fired by other players
 
 
+---------- Validate container ----------
+
+-- Replicated storage
+if not script:FindFirstAncestorWhichIsA("ReplicatedStorage") then
+	return
+end
+
+
 ---------- Services ----------
 
 local CollectionService = game:GetService("CollectionService")
@@ -15,11 +23,11 @@ local RunService = game:GetService("RunService")
 
 local CSCPieAmmo = require(script.Parent:WaitForChild("CSCPieAmmo"))
 
-local _PieHikingSharedStorage = ReplicatedStorage:WaitForChild("PieHikingSharedStorage")
-local _EffectModules = _PieHikingSharedStorage:WaitForChild("EffectModules")
-local PieHitEffects = require(_EffectModules:WaitForChild("PieHitEffects"))
+local _PieHiking_SharedStorage = ReplicatedStorage:WaitForChild("PieHiking_SharedStorage")
+local _EffectModules = _PieHiking_SharedStorage:WaitForChild("EffectModules")
+local PieHitEffectsGetter = require(_EffectModules:WaitForChild("PieHitEffectsGetter"))
 
-local _Modules = _PieHikingSharedStorage:WaitForChild("Modules")
+local _Modules = _PieHiking_SharedStorage:WaitForChild("Modules")
 local BelovedRemote = require(_Modules:WaitForChild("BelovedRemote"))
 
 
@@ -32,7 +40,7 @@ type SpinInfo = {["AlignSpin"]: boolean?, ["ByVelocity"]: boolean?}
 ---------- Local functions ----------
 
 local newAmmo
-local getPieAmmoModel
+local getCopiedPieAmmoModel
 local onLaunchCSCPie
 
 local getPieFromPieId
@@ -53,7 +61,7 @@ newAmmo = function(ammoModel: Model)
 	ammo:launchPie()
 end
 
-getPieAmmoModel = function(pieModel: Model, canCollide: boolean, noCollideTransparency: number): Model
+getCopiedPieAmmoModel = function(pieModel: Model, canCollide: boolean, noCollideTransparency: number): Model
 	-- Clone the pie model
 	local pieAmmoModel = pieModel:Clone()
 	local pieAmmoMainPart = pieAmmoModel:FindFirstChild("MainPart") :: Part
@@ -128,7 +136,7 @@ onLaunchCSCPie = function(creatorPlayer: Player, launchMotion: FinalizedMotion, 
 	local launchVelocity = launchMotion.Velocity :: number
 
 	-- Setup pie ammo
-	local pieAmmoModel = getPieAmmoModel(pieModel, canCollide, noCollideTransparency)
+	local pieAmmoModel = getCopiedPieAmmoModel(pieModel, canCollide, noCollideTransparency)
 	local pieAmmoMainPart = pieAmmoModel:FindFirstChild("MainPart") :: Part
 
 	-- Tag the pie ammo model
@@ -162,9 +170,7 @@ onLaunchCSCPie = function(creatorPlayer: Player, launchMotion: FinalizedMotion, 
 	pieAmmoMainPart.Anchored = false
 
 	-- Launch pie
-	task.defer(function()
-		newAmmo(pieAmmoModel)
-	end)
+	newAmmo(pieAmmoModel)
 end
 
 
@@ -239,7 +245,7 @@ runClientHitEffect = function(throwPieMainPart: Part, hitPart: BasePart)
 	end
 
 	-- Get parameters
-	local param: PieHitEffects.EffectParameter = {
+	local param: PieHitEffectsGetter.EffectParameter = {
 		throwerCharacter = throwerCharacter,
 		hitCharacter = nil,
 		pieMainPart = throwPieMainPart,
@@ -252,7 +258,7 @@ runClientHitEffect = function(throwPieMainPart: Part, hitPart: BasePart)
 	if not throwPieSkinModel then
 		return
 	end
-	local effectInfo = PieHitEffects[throwPieSkinModel.Name]
+	local effectInfo = PieHitEffectsGetter.getValueAt(throwPieSkinModel.Name)
 	if not effectInfo then
 		return
 	end

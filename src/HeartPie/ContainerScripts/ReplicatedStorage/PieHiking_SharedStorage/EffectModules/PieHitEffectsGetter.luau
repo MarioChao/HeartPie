@@ -1,23 +1,28 @@
 --!strict
 
--- Pie Hit Effects
+-- Pie Hit Effects Getter
 
 
 ---------- Imports ----------
 
 local _Presets = script.Parent:WaitForChild("Presets")
-local DefaultPieHitEffects = require(_Presets:WaitForChild("DefaultHitEffects"))
 local PieHitEffects = (function()
+	-- Import default
+	local DefaultHitEffects = require(_Presets:WaitForChild("DefaultHitEffects"))
+
+	-- Attempt to import & return custom
 	local _CustomHitEffectsObjectValue = _Presets:WaitForChild("CustomHitEffectsObjectValue")
 	if _CustomHitEffectsObjectValue.Value then
 		local pcallSuccess, CustomHitEffects = pcall(function()
-			return require(_CustomHitEffectsObjectValue.Value) :: typeof(DefaultPieHitEffects)
+			return require(_CustomHitEffectsObjectValue.Value) :: typeof(DefaultHitEffects)
 		end)
 		if pcallSuccess then
 			return CustomHitEffects
 		end
 	end
-	return DefaultPieHitEffects
+
+	-- Return default
+	return DefaultHitEffects
 end)()
 
 
@@ -40,9 +45,23 @@ type EffectInfo = {
 }
 
 
+---------- Module ----------
+
+local Module = {}
+
+
+----- Module fields -----
+
+function Module.getValueAt(name: string)
+	return PieHitEffects[name]
+end
+
+function Module.getTable()
+	return PieHitEffects
+end
+
+
 ---------- Return module ----------
 
-if not table.isfrozen(PieHitEffects) then
-    table.freeze(PieHitEffects)
-end
-return PieHitEffects
+table.freeze(Module)
+return Module

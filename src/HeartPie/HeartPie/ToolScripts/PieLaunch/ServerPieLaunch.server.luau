@@ -15,10 +15,17 @@ end
 local Debris = game:GetService("Debris")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
 
 ---------- Types ----------
 
 type Motion = {["CFrame"]: CFrame?, ["Direction"]: Vector3?}
+
+---------- Imports ----------
+
+local _PieHiking_ServerScripts = ServerScriptService:WaitForChild("PieHiking_ServerScripts")
+local _ServerAmmoModules = _PieHiking_ServerScripts:WaitForChild("ServerAmmoModules")
+local ServerPieAmmoApi = require(_ServerAmmoModules:WaitForChild("ServerPieAmmoApi"))
 
 ---------- Instances ----------
 local Tool = script.Parent.Parent.Parent
@@ -27,10 +34,6 @@ local PieLaunchRemoteEvent = ToolEvents:WaitForChild("PieLaunchRemoteEvent")
 
 local PieModel = Tool:WaitForChild("PieModel")
 
-local _PieHikingSharedStorage = ReplicatedStorage:WaitForChild("PieHikingSharedStorage")
-local _PieHikingEvents = _PieHikingSharedStorage:WaitForChild("PieHikingEvents")
-local PieHikeBindable = _PieHikingEvents:WaitForChild("PieHikeBindable")
-
 ---------- Variables ----------
 
 local PieAmmoModel: Model
@@ -38,7 +41,6 @@ local EquippedPieSkin: Model
 
 local launchMinIntervalSeconds = 0.7
 local lastLaunchTime = os.clock() - launchMinIntervalSeconds
-local pieAmmoMaxSeconds = 12
 
 local printDebug = Tool:GetAttribute("_PrintDebug")
 
@@ -73,7 +75,7 @@ end
 
 local function onLaunchPie(caller: Player, launchMotion: Motion)
 	-- Sanity check for launch motion
-	if not (caller == player and checkLaunchMotion(caller, launchMotion)) then
+	if not (player and caller == player and checkLaunchMotion(caller, launchMotion)) then
 		if printDebug then
 			print("Fail check")
 		end
@@ -134,10 +136,7 @@ local function onLaunchPie(caller: Player, launchMotion: Motion)
 
 	-- Launch pie
 	lastLaunchTime = os.clock()
-	PieHikeBindable:Fire("Start Launch", newPieAmmoModel, player)
-
-	-- Remove pie after a while
-	Debris:AddItem(newPieAmmoModel, 12)
+	ServerPieAmmoApi.createAndLaunch(newPieAmmoModel, player)
 end
 
 local function createPieAmmoModel()
@@ -205,7 +204,7 @@ end
 
 local function onPieSkinChange()
 	-- Wait a frame to allow skin to change
-	task.wait(0.03)
+	task.wait()
 	createPieAmmoModel()
 end
 
