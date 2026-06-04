@@ -1,0 +1,45 @@
+{
+    "className": "Model",
+    "children": [
+        {
+            "name": "SkinConfig",
+            "className": "Configuration",
+            "attributes": {
+                "SkinId": {"Float64": 888},
+                "ToolTextureId": {"String": "rbxassetid://11060689491"},
+                "ToolTip": {"String": "Heart Pie: Healthier Hiking Tool"}
+            }
+        },
+        {
+            "name": "SkinMainPart",
+            "className": "Part",
+            "properties": {
+                "BrickColor": {"BrickColor": 105},
+                "Size": [2, 2, 1],
+                "Massless": true
+            },
+            "children": [
+                {
+                    "name": "Mesh",
+                    "className": "SpecialMesh",
+                    "properties": {
+                        "MeshId": "rbxassetid://18453224",
+                        "Scale": [0.8, 0.8, 0.8],
+                        "TextureId": "rbxassetid://11084809711"
+                    }
+                },
+                {
+                    "name": "PieSkinAttachment",
+                    "className": "Attachment",
+                    "properties": {
+                        "CFrame": [0, 0, 0.5, 1, 0, 0, 0, 1, 0, 0, 0, 1]
+                    }
+                },
+                {
+                    "name": "RigidConstraint",
+                    "className": "RigidConstraint"
+                }
+            ]
+        }
+    ]
+}

@@ -51,11 +51,20 @@ local removeServerPie
 
 ----- Stick -----
 
-runServerHitEffect = function(throwPieMainPart: Part, hitPart: BasePart)
+runServerHitEffect = function(throwPieMainPart: BasePart, hitPart: BasePart)
 	-- Validate creator
-	local throwPieModel = throwPieMainPart.Parent :: Model
-	local creatorObjectValue = throwPieModel and throwPieModel:FindFirstChild("Creator") :: ObjectValue
-	local creator = creatorObjectValue and creatorObjectValue.Value :: Player
+	local throwPieModel = throwPieMainPart.Parent
+	if not (throwPieModel and throwPieModel:IsA("Model")) then
+		return
+	end
+	local creatorObjectValue = throwPieModel and throwPieModel:FindFirstChild("Creator")
+	if not (creatorObjectValue and creatorObjectValue:IsA("ObjectValue")) then
+		return
+	end
+	local creator = creatorObjectValue and creatorObjectValue.Value
+	if not (creator and creator:IsA("Player")) then
+		return
+	end
 	local throwerCharacter = creator and creator.Character
 	if not throwerCharacter then
 		return
@@ -88,20 +97,24 @@ runServerHitEffect = function(throwPieMainPart: Part, hitPart: BasePart)
 	effectFunction(param)
 end
 
-stickPiePartToPart = function(throwPieModel: Model, throwPieMainPart: Part, hitPart: BasePart?, hitCFrame: CFrame, relativeCFrame: CFrame)
+stickPiePartToPart = function(throwPieModel: Model, throwPieMainPart: BasePart, hitPart: BasePart?, hitCFrame: CFrame, relativeCFrame: CFrame)
 	-- Offset main part and stick
 	if not hitPart then
 		-- Potential actions for sticking Server pies to client parts
 	end
 
 	-- Disable forces and align orientation
-	local upwardsForce = throwPieMainPart:FindFirstChild("UpwardsForce") :: VectorForce
-	if upwardsForce then
+	local upwardsForce = throwPieMainPart:FindFirstChild("UpwardsForce")
+	if upwardsForce and upwardsForce:IsA("VectorForce") then
 		upwardsForce.Enabled = false
+	else
+		warn(`[Server Pie Ammo System]: No upwards force found for pie model.`)
 	end
-	local alignOrientation = throwPieMainPart:FindFirstChild("AlignOrientation") :: AlignOrientation
-	if alignOrientation then
+	local alignOrientation = throwPieMainPart:FindFirstChild("AlignOrientation")
+	if alignOrientation and alignOrientation:IsA("AlignOrientation") then
 		alignOrientation.Enabled = false
+	else
+		warn(`[Server Pie Ammo System]: No align orientation found for pie model.`)
 	end
 
 	if hitPart then
@@ -122,10 +135,13 @@ stickPiePartToPart = function(throwPieModel: Model, throwPieMainPart: Part, hitP
 	end
 end
 
-stickServerPieToPart = function(throwPieMainPart: Part?, hitPart: BasePart?, hitCFrame: CFrame, relativeCFrame: CFrame)
+stickServerPieToPart = function(throwPieMainPart: BasePart?, hitPart: BasePart?, hitCFrame: CFrame, relativeCFrame: CFrame)
 	-- Validate parts
-	local throwPieModel = throwPieMainPart and throwPieMainPart.Parent :: Model
-	if not (throwPieModel and throwPieMainPart and throwPieMainPart:FindFirstChild("PieAttachment") and throwPieMainPart:IsA("Part")) then
+	local throwPieModel = throwPieMainPart and throwPieMainPart.Parent
+	if not (throwPieModel and throwPieModel:IsA("Model")) then
+		return
+	end
+	if not (throwPieMainPart and throwPieMainPart:FindFirstChild("PieAttachment") and throwPieMainPart:IsA("BasePart")) then
 		return
 	end
 	if not (hitPart and hitPart:IsA("BasePart")) then
@@ -146,7 +162,7 @@ end
 
 ----- Hit character effect -----
 
-_runHitCharacterEffect = function(throwerCharacter: Model, hitCharacter: Model, pieMainPart: Part)
+_runHitCharacterEffect = function(throwerCharacter: Model, hitCharacter: Model, pieMainPart: BasePart)
 	-- Quick validation
 	local throwerHumanoid = throwerCharacter and throwerCharacter:FindFirstChildOfClass("Humanoid")
 	local hitHumanoid = hitCharacter and hitCharacter:FindFirstChildOfClass("Humanoid")
@@ -163,8 +179,8 @@ _runHitCharacterEffect = function(throwerCharacter: Model, hitCharacter: Model, 
 	}
 
 	-- Get effect function
-	local pieModel = pieMainPart.Parent :: Model
-	local pieSkinFolder = pieModel:FindFirstChild("PieSkin")
+	local pieModel = pieMainPart.Parent
+	local pieSkinFolder = pieModel and pieModel:FindFirstChild("PieSkin")
 	local pieSkinModel = pieSkinFolder and pieSkinFolder:FindFirstChildOfClass("Model")
 	if not pieSkinModel then
 		return
@@ -182,7 +198,7 @@ _runHitCharacterEffect = function(throwerCharacter: Model, hitCharacter: Model, 
 	effectFunction(param)
 end
 
-runPieHitCharacterEffectProxy = function(throwerCharacter: Model, hitCharacter: Model, pieMainPart: Part)
+runPieHitCharacterEffectProxy = function(throwerCharacter: Model, hitCharacter: Model, pieMainPart: BasePart)
 	-- Stick should be called already, so wait a frame for that to happen
 	task.wait()
 
@@ -190,29 +206,32 @@ runPieHitCharacterEffectProxy = function(throwerCharacter: Model, hitCharacter: 
 	local humanoidRootPart = hitCharacter and hitCharacter:FindFirstChild("HumanoidRootPart") :: Part
 
 	-- Get pie info
-	local pieModel = pieMainPart.Parent :: Model
-	local pieCreatorObject = pieModel and pieModel:FindFirstChild("Creator") :: ObjectValue
-	local pieCreator = pieCreatorObject and pieCreatorObject.Value :: Player
-	local pieWeldConstraint= pieMainPart and pieMainPart:FindFirstChild("WeldConstraint") :: WeldConstraint
-	local pieWeldPart = pieWeldConstraint and pieWeldConstraint.Part1
+	local pieModel = pieMainPart.Parent
+	local pieCreatorObject = pieModel and pieModel:FindFirstChild("Creator")
+	local pieCreator = (pieCreatorObject and pieCreatorObject:IsA("ObjectValue") and pieCreatorObject.Value) or nil
+	local pieWeldConstraint= pieMainPart and pieMainPart:FindFirstChild("WeldConstraint")
+	local pieWeldPart = (pieWeldConstraint and pieWeldConstraint:IsA("WeldConstraint") and pieWeldConstraint.Part1) or nil
 
-	-- Validate hit
-	if not (pieMainPart and pieCreator and humanoidRootPart) then
+	-- Validate pie
+	if not (
+		pieModel and pieModel:IsA("Model")
+		and pieMainPart and pieCreator and humanoidRootPart
+		and pieCreator:IsA("Player") and pieCreator.Character == throwerCharacter
+		and pieMainPart:FindFirstChild("PieAttachment")
+		and pieWeldPart and humanoidRootPart.AssemblyRootPart == pieWeldPart.AssemblyRootPart
+	) then
+		warn(`[Server Pie Ammo System]: Invalid pie detected.`)
 		return
 	end
-	if not (pieCreator.Character == throwerCharacter and pieMainPart:FindFirstChild("PieAttachment")) then
-		return
-	end
-	if not (pieWeldPart and humanoidRootPart.AssemblyRootPart == pieWeldPart.AssemblyRootPart) then
-		return
-	end
+
+	-- Check can hit
 	if not AmmoUtil.checkCanHitCharacter(throwerCharacter, hitCharacter) then
 		return
 	end
 
 	-- Ensure effect only runs once
-	local hasHit = pieModel:FindFirstChild("HasHit") :: BoolValue
-	if hasHit and hasHit.Value then
+	local hasHit = pieModel:FindFirstChild("HasHit")
+	if hasHit and hasHit:IsA("BoolValue") and hasHit.Value then
 		return
 	end
 	if not hasHit then
@@ -220,7 +239,7 @@ runPieHitCharacterEffectProxy = function(throwerCharacter: Model, hitCharacter: 
 		newHasHit.Name = "HasHit"
 		newHasHit.Value = true
 		newHasHit.Parent = pieModel
-	else
+	elseif hasHit:IsA("BoolValue") then
 		hasHit.Value = true
 	end
 
@@ -231,7 +250,7 @@ end
 
 ----- Remove & unstick -----
 
-unstickServerPie = function(mainPart: Part)
+unstickServerPie = function(mainPart: BasePart)
 	-- Validate pie
 	if not (mainPart and mainPart:FindFirstChild("PieAttachment")) then
 		return
@@ -245,7 +264,7 @@ unstickServerPie = function(mainPart: Part)
 	end
 end
 
-removeServerPie = function(mainPart: Part)
+removeServerPie = function(mainPart: BasePart)
 	-- Validate pie
 	if not (mainPart and mainPart:FindFirstChild("PieAttachment")) then
 		return

@@ -1,0 +1,51 @@
+{
+    "className": "Folder",
+    "children": [
+        {
+            "name": "DefaultFireSound",
+            "className": "Sound",
+            "properties": {
+                "SoundId": "rbxassetid://18426149",
+                "Volume": 0.7
+            }
+        },
+        {
+            "name": "DefaultHitSound",
+            "className": "Sound",
+            "properties": {
+                "SoundId": "rbxassetid://18424769"
+            }
+        },
+        {
+            "name": "CuteFireSound",
+            "className": "Sound",
+            "properties": {
+                "SoundId": "rbxassetid://18426149",
+                "Volume": 0.7
+            },
+            "children": [
+                {
+                    "className": "PitchShiftSoundEffect",
+                    "properties": {
+                        "Octave": 1.5
+                    }
+                }
+            ]
+        },
+        {
+            "name": "CuteHitSound",
+            "className": "Sound",
+            "properties": {
+                "SoundId": "rbxassetid://18424769"
+            },
+            "children": [
+                {
+                    "className": "PitchShiftSoundEffect",
+                    "properties": {
+                        "Octave": 1.2
+                    }
+                }
+            ]
+        }
+    ]
+}

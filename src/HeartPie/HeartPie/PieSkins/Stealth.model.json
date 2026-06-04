@@ -1,0 +1,44 @@
+{
+    "className": "Model",
+    "children": [
+        {
+            "name": "SkinConfig",
+            "className": "Configuration",
+            "attributes": {
+                "SkinId": {"Float64": 4},
+                "ToolTextureId": {"String": "rbxassetid://11625852977"},
+                "ToolTip": {"String": "Stealth Pie: These last 500 years just seemed to race by."}
+            }
+        },
+        {
+            "name": "SkinMainPart",
+            "className": "Part",
+            "properties": {
+                "BrickColor": {"BrickColor": 105},
+                "Size": [2, 2, 1]
+            },
+            "children": [
+                {
+                    "name": "Mesh",
+                    "className": "SpecialMesh",
+                    "properties": {
+                        "MeshId": "rbxassetid://18453224",
+                        "Scale": [0.8, 0.8, 0.8],
+                        "TextureId": "rbxassetid://18534909762"
+                    }
+                },
+                {
+                    "name": "PieSkinAttachment",
+                    "className": "Attachment",
+                    "properties": {
+                        "CFrame": [0, 0, 0.5, 1, 0, 0, 0, 1, 0, 0, 0, 1]
+                    }
+                },
+                {
+                    "name": "RigidConstraint",
+                    "className": "RigidConstraint"
+                }
+            ]
+        }
+    ]
+}

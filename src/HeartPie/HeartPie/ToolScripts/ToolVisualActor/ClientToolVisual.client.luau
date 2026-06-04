@@ -48,10 +48,10 @@ local function setPieModelTransparency(transparency: number?)
 	ToolVisualRemoteEvent:FireServer("Set Pie Transparency", transparency)
 	for _, part in PieModel:GetDescendants() do
 		if part:IsA("BasePart") then
-			local originalTransparency = part:FindFirstChild("OriginalTransparency") :: NumberValue
+			local originalTransparency = part:FindFirstChild("OriginalTransparency")
 			if transparency then
 				part.Transparency = transparency
-			elseif originalTransparency then
+			elseif originalTransparency and originalTransparency:IsA("NumberValue") then
 				part.Transparency = originalTransparency.Value
 			end
 		end
@@ -63,18 +63,18 @@ local function onServerDoneSettingPieTransparency(transparency: number?)
 	for _, part in PieModel:GetDescendants() do
 		if part:IsA("BasePart") then
 			-- Client's transparency
-			local originalTransparency = part:FindFirstChild("OriginalTransparency") :: NumberValue
+			local originalTransparency = part:FindFirstChild("OriginalTransparency")
 			local clientTransparency: number? = nil
 			if tonumber(currentTransparency) then
 				clientTransparency = currentTransparency
-			elseif originalTransparency then
+			elseif originalTransparency and originalTransparency:IsA("NumberValue") then
 				clientTransparency = originalTransparency.Value
 			end
 			-- Server's transparency
 			local serverTransparency: number? = nil
 			if tonumber(transparency) then
 				serverTransparency = transparency
-			elseif originalTransparency then
+			elseif originalTransparency and originalTransparency:IsA("NumberValue") then
 				serverTransparency = originalTransparency.Value
 			end
 

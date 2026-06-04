@@ -40,25 +40,40 @@ local RightGripAttachment = Handle:WaitForChild("RightGripAttachment")
 
 ---------- Local functions ----------
 
-local function setUpSkinReferences(skin: Model)
+local function setUpPieSkin(skin: Model)
     -- Validate skin main part
     local skinMainPart = skin:FindFirstChild("SkinMainPart")
-    if not (skinMainPart and skinMainPart:IsA("Part")) then
+    if not (skinMainPart and skinMainPart:IsA("BasePart")) then
         return
     end
 
     -- Get attachment
-    local skinAttachment = skinMainPart:WaitForChild("PieSkinAttachment")
+    local skinAttachment = skinMainPart:FindFirstChild("PieSkinAttachment")
+    if not (skinAttachment and skinAttachment:IsA("Attachment")) then
+		warn(`[Initializer]: No skin attachment found for skin {skin}.`)
+		return
+	end
 
     -- Set up rigid constraint
-    local rigidConstraint = skinMainPart:WaitForChild("RigidConstraint")
-    rigidConstraint.Attachment0 = skinAttachment
-    rigidConstraint.Attachment1 = PieAttachment
+    local rigidConstraint = skinMainPart:FindFirstChild("RigidConstraint")
+    if rigidConstraint and rigidConstraint:IsA("RigidConstraint") then
+		rigidConstraint.Attachment0 = skinAttachment
+		rigidConstraint.Attachment1 = PieAttachment
+	else
+		warn(`[Initializer]: No rigid constraint found for skin {skin}.`)
+	end
+
+    -- Set up mass
+	for _, part in skin:GetDescendants() do
+		if part:IsA("BasePart") then
+			part.Massless = true
+		end
+	end
 end
 
 local function setUpPieSkinsReferences()
     for _, pieSkin in PieSkins:GetChildren() do
-        setUpSkinReferences(pieSkin)
+        setUpPieSkin(pieSkin)
     end
 end
 

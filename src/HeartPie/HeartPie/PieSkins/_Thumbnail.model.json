@@ -1,0 +1,46 @@
+{
+    "className": "Model",
+    "children": [
+        {
+            "name": "SkinConfig",
+            "className": "Configuration",
+            "attributes": {
+                "DoNotLoad": {"Bool": true},
+                "SkinId": {"Float64": -999},
+                "ToolTextureId": {"String": ""},
+                "ToolTip": {"String": ""}
+            }
+        },
+        {
+            "name": "SkinMainPart",
+            "className": "Part",
+            "properties": {
+                "BrickColor": {"BrickColor": 105},
+                "Size": [2, 2, 1],
+                "Massless": true
+            },
+            "children": [
+                {
+                    "name": "Mesh",
+                    "className": "SpecialMesh",
+                    "properties": {
+                        "MeshId": "rbxassetid://18453224",
+                        "Scale": [0.8, 0.8, 0.8],
+                        "TextureId": "rbxassetid://11084809711"
+                    }
+                },
+                {
+                    "name": "PieSkinAttachment",
+                    "className": "Attachment",
+                    "properties": {
+                        "CFrame": [0, 0, 0.75, 1, 0, 0, 0, 1, 0, 0, 0, 1]
+                    }
+                },
+                {
+                    "name": "RigidConstraint",
+                    "className": "RigidConstraint"
+                }
+            ]
+        }
+    ]
+}

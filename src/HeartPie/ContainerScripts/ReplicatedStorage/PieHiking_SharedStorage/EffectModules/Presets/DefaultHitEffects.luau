@@ -13,7 +13,7 @@ local EffectsList = require(script.Parent.Parent:WaitForChild("EffectsList"))
 type EffectParameter = {
 	throwerCharacter: Model,
 	hitCharacter: Model?,
-	pieMainPart: Part,
+	pieMainPart: BasePart,
 	hitPart: BasePart?,
 }
 

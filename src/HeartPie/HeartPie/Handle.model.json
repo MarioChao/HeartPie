@@ -1,6 +1,6 @@
 {
-    "ClassName": "Part",
-    "Properties": {
+    "className": "Part",
+    "properties": {
         "BrickColor": {"BrickColor": 342},
         "Transparency": 1,
         "Locked": true,
@@ -16,9 +16,8 @@
             }
         }
     },
-    "Children": [
+    "children": [
         {
-            "id": "RightGripAttachment",
             "Name": "RightGripAttachment",
             "ClassName": "Attachment",
             "Properties": {

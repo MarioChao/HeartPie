@@ -25,6 +25,8 @@ local PieSkinsFolder = (function()
 	return DefaultPieSkinsFolder
 end)()
 
+local SkinUtil = require(script.Parent:WaitForChild("SkinUtil"))
+
 
 ---------- Globals ----------
 
@@ -43,7 +45,7 @@ local initializePieSkinsTable
 initializePieSkinsTable = function()
 	Globals.pieSkins = {}
 	for _, model in PieSkinsFolder:GetChildren() do
-		if model:IsA("Model") and model:GetAttribute("SkinId") then
+		if SkinUtil.getIsSkinModel(model) then
 			Globals.pieSkins[model.Name] = model
 		end
 	end

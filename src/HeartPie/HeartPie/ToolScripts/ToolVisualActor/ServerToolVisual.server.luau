@@ -13,6 +13,13 @@ end
 ---------- Services ----------
 
 local Players = game:GetService("Players")
+local ServerScriptService = game:GetService("ServerScriptService")
+
+---------- Imports ----------
+
+local _PieHiking_ServerScripts = ServerScriptService:WaitForChild("PieHiking_ServerScripts")
+local _SkinModules = _PieHiking_ServerScripts:WaitForChild("SkinModules")
+local SkinUtil = require(_SkinModules:WaitForChild("SkinUtil"))
 
 ---------- Instances ----------
 
@@ -64,8 +71,8 @@ local function setPieModelTransparency(caller: Player, transparency: number?) --
 			if transparency then
 				part.Transparency = transparency
 			else
-				local originalTransparency = part:FindFirstChild("OriginalTransparency") :: NumberValue
-				if originalTransparency then
+				local originalTransparency = part:FindFirstChild("OriginalTransparency")
+				if originalTransparency and originalTransparency:IsA("NumberValue") then
 					part.Transparency = originalTransparency.Value
 				end
 			end
@@ -85,10 +92,12 @@ end
 
 local function renewPieModelTransparency()
 	-- Renew transparency
-	setPieModelTransparency(player, currentTransparency)
+	if player then
+		setPieModelTransparency(player, currentTransparency)
+	end
 end
 
-local function recordOriginalProperties(part: Part)
+local function recordOriginalProperties(part: BasePart)
 	-- Record original transparency
 	if not part:FindFirstChild("OriginalTransparency") then
 		local originalTransparency = Instance.new("NumberValue")
@@ -118,16 +127,16 @@ local function recordOriginalProperties(part: Part)
 	end
 end
 
-local function setUpPieSkin(pieSkin: Instance)
+local function setUpPieSkin(skinModel: Model)
 	-- Validate pie skin
-	local pieSkinMainPart: Part = pieSkin:FindFirstChild("SkinMainPart")
-	if not (pieSkin:IsA("Model") and pieSkinMainPart) then
+	local pieSkinMainPart = skinModel:FindFirstChild("SkinMainPart")
+	if not (SkinUtil.getIsSkinModel(skinModel) and pieSkinMainPart and pieSkinMainPart:IsA("BasePart")) then
 		return
 	end
 	-- print("visual setting up " .. pieSkin.Name)
 
 	-- Go through all parts in the pie skin
-	for _, part in pieSkin:GetDescendants() do
+	for _, part in skinModel:GetDescendants() do
 		if part:IsA("BasePart") then
 			-- Connect parts together
 			if part.AssemblyRootPart ~= pieSkinMainPart.AssemblyRootPart then
@@ -153,12 +162,12 @@ end
 
 local function setUpPieSkins()
 	-- Go through all pie skins
-	for _, pieSkin in PieSkins:GetChildren() do
-		local pieSkinMainPart: Part = pieSkin:FindFirstChild("SkinMainPart")
-		if not (pieSkin:IsA("Model") and pieSkinMainPart) then
+	for _, skinModel in PieSkins:GetChildren() do
+		local pieSkinMainPart = skinModel:FindFirstChild("SkinMainPart")
+		if not (SkinUtil.getIsSkinModel(skinModel) and pieSkinMainPart and pieSkinMainPart:IsA("BasePart")) then
 			continue
 		end
-		setUpPieSkin(pieSkin)
+		setUpPieSkin(skinModel)
 	end
 end
 

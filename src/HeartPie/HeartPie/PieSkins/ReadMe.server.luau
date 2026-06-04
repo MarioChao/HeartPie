@@ -1,7 +1,7 @@
 --[[
 Pie skins unlocked by default should be placed in this folder.
 
-Conditional pie skins (like Badge skins) should be placed in `ServerStorage` > `PieHikingServerStorage` > `PieSkins`.
+Conditional pie skins (like Badge skins) should be placed in `ServerScriptService / PieHiking_ServerScripts / SkinModules / Presets`.
 
 
 ----- Credits for pie skins -----

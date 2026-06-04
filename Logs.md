@@ -38,13 +38,22 @@ Refactored `ServerScriptService` and `ServerStorage`:
 - Moved pie skin scripts into `PieSkinsApi` module and a child `PieSkinsSystem` script.
 - Migrated badge checking to [BadgeUtil](https://github.com/MarioChao/badge-util).
 
-Made scripts cleaner.
+Refactored pie skins:
+- Converted directories to json models (e.g. `Cherry` → `Cherry.model.json`).
+- Added support for custom pie skin model parts.
+    - When launched, the skin model will be `Massless`.
+    - Since the pie's main part has a mass of 2.8, the pie's assembly mass will also be 2.8.
+- Moved skin attributes from the skin `Model` to the child `Configuration` named `SkinConfig`
+- Added support for custom sound effects.
 
-Refactored `ContainerSetUp` using `cloneReparentRecursive()`.
+Made scripts cleaner.
+- More consistent formats.
+- Refactored `ContainerSetUp` using `cloneReparentRecursive()`.
+- Modified some type annotations.
 
 Created new `HeartPie_Module` with a child `MainModule`:
 - Wraps around `HeartPie_Package`.
-- Allows customizations like hit effects and pie skins.
+- Allows customizations like hit effects, sound effects, and pie skins.
 - Call `.setUpAndGetTool()` to set up containers (using `ContainerSetUp`) and retrieve the tool.
 
 ## [1.0.14] More environment validation checks | 2026/03/28 (2)

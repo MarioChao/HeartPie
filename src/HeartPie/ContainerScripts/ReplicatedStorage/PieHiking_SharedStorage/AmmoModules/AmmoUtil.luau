@@ -87,10 +87,10 @@ function Module.getDescendantParts(instance: Instance): {BasePart}
 end
 
 function Module.isPieAClientPie(pieModel: Model)
-	local pieMainPart = pieModel and pieModel:FindFirstChild("MainPart") :: Part
-	local pieUniqueId = pieModel and pieModel:FindFirstChild("UniquePieId") :: StringValue
-	local pieTag = pieUniqueId and pieUniqueId.Value
-	local _isClientPie = pieMainPart and pieMainPart:IsA("Part") and pieTag and typeof(pieTag) == "string"
+	local pieMainPart = pieModel and pieModel:FindFirstChild("MainPart")
+	local pieUniqueId = pieModel and pieModel:FindFirstChild("UniquePieId")
+	local pieTag = pieUniqueId and pieUniqueId:IsA("StringValue") and pieUniqueId.Value
+	local _isClientPie = pieMainPart and pieMainPart:IsA("BasePart") and pieTag and typeof(pieTag) == "string"
 	return _isClientPie == true
 end
 
@@ -99,8 +99,8 @@ function Module.setPieCollision(pieModel: Model, canCollide: boolean?)
 	for _, part in Module.getDescendantParts(pieModel) do
 		-- Collision
 		if canCollide == nil then
-			local originalCanCollide = part:FindFirstChild("OriginalCanCollide") :: BoolValue
-			if originalCanCollide then
+			local originalCanCollide = part:FindFirstChild("OriginalCanCollide")
+			if originalCanCollide and originalCanCollide:IsA("BoolValue") then
 				part.CanCollide = originalCanCollide.Value
 			end
 		else

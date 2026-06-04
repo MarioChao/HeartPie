@@ -33,8 +33,7 @@ type CFieldData = {
 	isValid: boolean,
 
 	ammoModel: Model,
-	ammoMainPart: Part?,
-	ammoSounds: {Sound},
+	ammoMainPart: BasePart?,
 	ammoInternalLaunchVelocity: Vector3,
 	ammoCreator: ObjectValue,
 	ammoPieSpins: boolean,
@@ -52,20 +51,12 @@ export type CObjectType = typeof(setmetatable({} :: CFieldData, PieAmmo))
 
 --- Constructor ---
 
-function PieAmmo.new(ammoModel: Model, hasHitCharacterEffect: boolean)
+function PieAmmo.new(ammoModel: Model)
 	local self = setmetatable({}, PieAmmo) :: CObjectType
 
 	-- Ammo Info
 	self.ammoModel = ammoModel
-	self.ammoMainPart = self.ammoModel:WaitForChild("MainPart") :: Part
-	if self.ammoMainPart then
-		self.ammoSounds = {
-			["Fire"] = self.ammoMainPart:WaitForChild("FireSound") :: Sound,
-			["Hit"] = self.ammoMainPart:WaitForChild("HitSound") :: Sound
-		}
-	else
-		self.ammoSounds = {}
-	end
+	self.ammoMainPart = self.ammoModel:WaitForChild("MainPart") :: BasePart
 	self.ammoInternalLaunchVelocity = self.ammoModel:GetAttribute("_LaunchVelocity") :: Vector3
 	self.ammoCreator = self.ammoModel:WaitForChild("Creator") :: ObjectValue
 	self.ammoPieSpins = self.ammoModel:GetAttribute("_SpinByVelocity") :: boolean
@@ -73,7 +64,7 @@ function PieAmmo.new(ammoModel: Model, hasHitCharacterEffect: boolean)
 	-- Variables
 	self.isPieStuck = false
 	self.launchStartTime = 0
-	self.hasHitCharacterEffect = hasHitCharacterEffect
+	self.hasHitCharacterEffect = false
 	self.connections = {}
 
 	-- Check valid
@@ -91,7 +82,7 @@ function PieAmmo.new(ammoModel: Model, hasHitCharacterEffect: boolean)
 			local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart") :: Part
 			local throwDistance = humanoidRootPart and (self.ammoMainPart.Position - humanoidRootPart.Position).Magnitude
 			local maxThrowDistance = humanoidRootPart and (20 + humanoidRootPart.AssemblyLinearVelocity.Magnitude / 6)
-			if not humanoidRootPart or (throwDistance > maxThrowDistance) then
+			if not (humanoidRootPart and throwDistance <= maxThrowDistance) then
 				self.isValid = false
 			end
 		end
@@ -113,7 +104,7 @@ function PieAmmo.launchPie(self: CObjectType)
 	-- Configure and shoot pie with initial velocity
 	self.launchStartTime = Constants.timeFunction()
 	-- Check if ammo is not stuck before giving velocity
-	local ammoMainPart = self.ammoMainPart :: Part
+	local ammoMainPart = self.ammoMainPart
 	local ammoAssemblyRootPart = ammoMainPart.AssemblyRootPart
 	if ammoAssemblyRootPart and ammoAssemblyRootPart:IsDescendantOf(self.ammoModel) then
 		self.ammoMainPart.AssemblyLinearVelocity = self.ammoInternalLaunchVelocity
@@ -147,9 +138,9 @@ end
 
 function PieAmmo.matchAmmoSpin(self: CObjectType)
 	-- Validate align orientation
-	local mainPart = self.ammoMainPart :: Part
-	local alignOrientation = mainPart and mainPart:FindFirstChild("AlignOrientation") :: AlignOrientation
-	if not (mainPart and alignOrientation and alignOrientation.Enabled) then
+	local mainPart = self.ammoMainPart
+	local alignOrientation = mainPart and mainPart:FindFirstChild("AlignOrientation")
+	if not (mainPart and alignOrientation and alignOrientation:IsA("AlignOrientation") and alignOrientation.Enabled) then
 		return
 	end
 

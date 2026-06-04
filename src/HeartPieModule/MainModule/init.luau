@@ -13,6 +13,9 @@ local _PieHiking_SharedStorage = _ReplicatedStorage:WaitForChild("PieHiking_Shar
 local _EffectModules = _PieHiking_SharedStorage:WaitForChild("EffectModules")
 local _EffectPresets = _EffectModules:WaitForChild("Presets")
 
+local _SoundModules = _PieHiking_SharedStorage:WaitForChild("SoundModules")
+local _SoundPresets = _SoundModules:WaitForChild("Presets")
+
 local _ServerScriptService = _ContainerScripts:WaitForChild("ServerScriptService")
 local _PieHiking_ServerScripts = _ServerScriptService:WaitForChild("PieHiking_ServerScripts")
 local _SkinModules = _PieHiking_ServerScripts:WaitForChild("SkinModules")
@@ -26,6 +29,8 @@ local Constants = {}
 Constants.heartPie = _Package:WaitForChild("HeartPie")
 
 Constants.customHitEffectsObjectValue = _EffectPresets:WaitForChild("CustomHitEffectsObjectValue")
+
+Constants.customSoundEffectsObjectValue = _SoundPresets:WaitForChild("CustomSoundEffectsObjectValue")
 
 Constants.customPieSkinConditionsObjectValue = _SkinPresets:WaitForChild("CustomPieSkinConditionsObjectValue")
 Constants.customPieSkinsFolderObjectValue = _SkinPresets:WaitForChild("CustomPieSkinsFolderObjectValue")
@@ -42,6 +47,10 @@ local Module = {}
 
 function Module.setHitEffectsModule(hitEffectsModule: ModuleScript)
     Constants.customHitEffectsObjectValue.Value = hitEffectsModule
+end
+
+function Module.setSoundEffectsModule(soundEffectsModule: ModuleScript)
+    Constants.customSoundEffectsObjectValue.Value = soundEffectsModule
 end
 
 function Module.setPieSkins_default(skinsFolder: Folder)

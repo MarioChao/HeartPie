@@ -12,11 +12,9 @@ An easy way is to [install Rojo on VS Code](https://rojo.space/docs/v7/getting-s
 
 The tool requires certain instances to be moved into the containers of the [DataModel](https://create.roblox.com/docs/reference/engine/classes/DataModel).
 
-Open the container scripts (`Heart Pie` > `ContainerScripts`) and follow the instructions in `ReadMe`.
+Open the container scripts (`src / HeartPie / ContainerScripts`) and follow the instructions in `ReadMe`.
 
-> [!NOTE]
->
-> When playtesting, there will be warnings in the output if the container scripts aren't correctly set up.
+You can also require the module script (`src / HeartPieModule / MainModule`).
 
 > [!TIP]
 >
@@ -44,8 +42,6 @@ To set these properties in Roblox Studio:
 1. Select the pie tool (`Heart Pie`) in studio.
 2. Copy & run the [initializer](/src/Heart%20Pie/ToolScripts/-InitializerActor/Initializer.server.luau) script in the command bar.
 3. Disable the tool's initializer script, located at (`Heart Pie` > `ToolScripts` > `-InitializerActor` > `Initializer`).
-
-The reason for the additional script is that [Rojo hasn't released full support for Ref properties](https://github.com/rojo-rbx/rojo/blob/7e2bab921aa71f76d07d0424e4bb4064e8b7c995/CHANGELOG.md) at this time.
 
 
 ## Credits

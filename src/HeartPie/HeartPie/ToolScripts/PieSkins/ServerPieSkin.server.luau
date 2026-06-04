@@ -22,6 +22,7 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local _PieHiking_ServerScripts = ServerScriptService:WaitForChild("PieHiking_ServerScripts")
 local _SkinModules = _PieHiking_ServerScripts:WaitForChild("SkinModules")
 local PieSkinsApi = require(_SkinModules:WaitForChild("PieSkinsApi"))
+local SkinUtil = require(_SkinModules:WaitForChild("SkinUtil"))
 
 
 ---------- Types ----------
@@ -75,19 +76,16 @@ local function setSkinIdTo(newSkinId: number, dontSave: boolean?)
 	local newPieSkinFolder = Instance.new("Folder")
 	newPieSkinFolder.Name = "PieSkin"
 	local newPieSkinInfo = pieSkinsTable[newSkinId]
-	local newPieSkin = newPieSkinInfo.Model:Clone()
-	newPieSkin.Parent = newPieSkinFolder
+	local newPieSkinModel = newPieSkinInfo.Model:Clone()
+	newPieSkinModel.Parent = newPieSkinFolder
 
 	newPieSkinFolder.Parent = PieModel -- Might cause exception
 
-	-- Update Tool properties
-	local newToolTextureId = newPieSkin:GetAttribute("ToolTextureId")
-	if newToolTextureId then
-		Tool.TextureId = tostring(newToolTextureId)
-	end
-	local newToolTip = newPieSkin:GetAttribute("ToolTip")
-	if newToolTip then
-		Tool.ToolTip = tostring(newToolTip)
+	-- Update tool properties
+	local skinConfig = SkinUtil.getSkinConfig(newPieSkinModel)
+	if skinConfig then
+		Tool.TextureId = skinConfig.toolTextureId
+		Tool.ToolTip = skinConfig.toolTip
 	end
 
 	-- Renew transparency
@@ -139,10 +137,10 @@ end
 
 ---------- Skin setup functions ----------
 
-local function setUpSkinReferences(skin: Model)
+local function setUpPieSkin(skin: Model)
     -- Validate skin main part
     local skinMainPart = skin:FindFirstChild("SkinMainPart")
-    if not (skinMainPart and skinMainPart:IsA("Part")) then
+    if not (skinMainPart and skinMainPart:IsA("BasePart")) then
         return
     end
 
@@ -161,29 +159,41 @@ local function setUpSkinReferences(skin: Model)
 	else
 		warn(`[Server Pie Skin]: No rigid constraint found for skin {skin}.`)
 	end
+
+	-- Set up mass
+	for _, part in skin:GetDescendants() do
+		if part:IsA("BasePart") then
+			part.Massless = true
+		end
+	end
 end
 
 local function setUpPieSkinsTable()
 	changeSkinIdThrottle = true
 
 	-- Set reference properties
-	for _, pieSkin in PieSkins:GetChildren() do
-		if pieSkin:IsA("Model") then
-			setUpSkinReferences(pieSkin)
+	for _, skinModel in PieSkins:GetChildren() do
+		if SkinUtil.getIsSkinModel(skinModel) then
+			setUpPieSkin(skinModel)
 		end
 	end
 
 	-- Record valid pie skins from folder
 	local validPieSkinsInfo = {} :: {SkinInfo}
-	for _, pieSkin in PieSkins:GetChildren() do
+	for _, skinModel in PieSkins:GetChildren() do
 		-- Validate pie skin
-		local skinId = pieSkin:GetAttribute("SkinId")
-		if not (pieSkin:IsA("Model") and skinId) then
+		local skinConfig = SkinUtil.getSkinConfig(skinModel)
+		if not (SkinUtil.getIsSkinModel(skinModel) and skinConfig) then
+			continue
+		end
+
+		-- Check do not load
+		if skinConfig.doNotLoad then
 			continue
 		end
 
 		-- Add to valid pie skins
-		local skinInfo = {["Id"] = skinId, ["Model"] = pieSkin}
+		local skinInfo = {["Id"] = skinConfig.skinId, ["Model"] = skinModel}
 		table.insert(validPieSkinsInfo, skinInfo)
 	end
 

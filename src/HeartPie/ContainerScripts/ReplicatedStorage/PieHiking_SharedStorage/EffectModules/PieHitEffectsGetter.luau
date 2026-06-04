@@ -31,7 +31,7 @@ end)()
 export type EffectParameter = {
 	throwerCharacter: Model,
 	hitCharacter: Model?,
-	pieMainPart: Part,
+	pieMainPart: BasePart,
 	hitPart: BasePart?,
 }
 

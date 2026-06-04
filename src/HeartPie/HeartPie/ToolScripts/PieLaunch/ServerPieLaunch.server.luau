@@ -99,14 +99,22 @@ local function onLaunchPie(caller: Player, launchMotion: Motion)
 	end
 
 	-- Calculate actual launch motion
-	local launchCFrame = launchMotion.CFrame :: CFrame
-	local launchDirection = launchMotion.Direction :: Vector3
+	local launchCFrame = launchMotion.CFrame
+	local launchDirection = launchMotion.Direction
 	local launchOffsetStuds = Tool:GetAttribute("LaunchOffsetStuds")
+	if not (launchCFrame and launchDirection) then
+		warn(`[Server Pie Launch]: Incomplete launch motion data.`)
+		return
+	end
 	launchCFrame += launchDirection.Unit * launchOffsetStuds
 
 	-- Setup new pie ammo
 	local newPieAmmoModel = PieAmmoModel:Clone()
-	local newPieAmmoMainPart = newPieAmmoModel:FindFirstChild("MainPart") :: Part
+	local newPieAmmoMainPart = newPieAmmoModel:FindFirstChild("MainPart")
+	if not (newPieAmmoMainPart and newPieAmmoMainPart:IsA("BasePart")) then
+		warn(`[Server Pie Launch]: No main part found for pie model.`)
+		return
+	end
 
 	-- Setup pie values
 	local launchVelocity = Tool:GetAttribute("LaunchVelocity")
@@ -123,7 +131,11 @@ local function onLaunchPie(caller: Player, launchMotion: Motion)
 
 	-- Setup pie align orientation
 	local pieAlignSpin = Tool:GetAttribute("PieAlignSpin")
-	local newPieAlignOrientation = newPieAmmoMainPart:FindFirstChild("AlignOrientation") :: AlignOrientation
+	local newPieAlignOrientation = newPieAmmoMainPart:FindFirstChild("AlignOrientation")
+	if not (newPieAlignOrientation and newPieAlignOrientation:IsA("AlignOrientation")) then
+		warn(`[Server Pie Launch]: No align orientation found for pie model.`)
+		return
+	end
 	newPieAlignOrientation.CFrame = CFrame.new(Vector3.zero, launchDirection.Unit)
 	newPieAlignOrientation.Enabled = pieAlignSpin
 
@@ -131,7 +143,6 @@ local function onLaunchPie(caller: Player, launchMotion: Motion)
 	newPieAmmoModel.Parent = workspace -- Might cause exception
 	newPieAmmoMainPart:PivotTo(launchCFrame)
 	newPieAmmoMainPart.Anchored = false
-	newPieAmmoMainPart.CanCollide = true
 	newPieAmmoMainPart:SetNetworkOwner(nil)
 
 	-- Launch pie
@@ -147,31 +158,31 @@ local function createPieAmmoModel()
 
 	-- Clone the pie model
 	local pieAmmoModel = PieModel:Clone()
-	local pieAmmoMainPart = pieAmmoModel:FindFirstChild("MainPart") :: Part
-	local pieAttachment = pieAmmoMainPart and pieAmmoMainPart:FindFirstChild("PieAttachment") :: Attachment
-	local rigidConstraint = pieAmmoMainPart and pieAmmoMainPart:FindFirstChild("RigidConstraint") :: RigidConstraint
-	local upwardsForce = pieAmmoMainPart and pieAmmoMainPart:FindFirstChild("UpwardsForce") :: VectorForce
+	local pieAmmoMainPart = pieAmmoModel:FindFirstChild("MainPart")
+	local pieAttachment = pieAmmoMainPart and pieAmmoMainPart:FindFirstChild("PieAttachment")
+	local rigidConstraint = pieAmmoMainPart and pieAmmoMainPart:FindFirstChild("RigidConstraint")
+	local upwardsForce = pieAmmoMainPart and pieAmmoMainPart:FindFirstChild("UpwardsForce")
 
 	-- Set up objects
 	for _, part in pieAmmoModel:GetDescendants() do
 		if part:IsA("BasePart") then
 			-- Transparency
-			local originalTransparency = part:FindFirstChild("OriginalTransparency") :: NumberValue
-			if originalTransparency then
+			local originalTransparency = part:FindFirstChild("OriginalTransparency")
+			if originalTransparency and originalTransparency:IsA("NumberValue") then
 				part.Transparency = originalTransparency.Value
 			end
 
 			-- Collision & touch
-			local originalCanCollide = part:FindFirstChild("OriginalCanCollide") :: BoolValue
-			if originalCanCollide then
+			local originalCanCollide = part:FindFirstChild("OriginalCanCollide")
+			if originalCanCollide and originalCanCollide:IsA("BoolValue") then
 				part.CanCollide = originalCanCollide.Value
 			end
-			local originalCanTouch = part:FindFirstChild("OriginalCanTouch") :: BoolValue
-			if originalCanTouch then
+			local originalCanTouch = part:FindFirstChild("OriginalCanTouch")
+			if originalCanTouch and originalCanTouch:IsA("BoolValue") then
 				part.CanTouch = originalCanTouch.Value
 			end
-			local originalCanQuery = part:FindFirstChild("OriginalCanQuery") :: BoolValue
-			if originalCanQuery then
+			local originalCanQuery = part:FindFirstChild("OriginalCanQuery")
+			if originalCanQuery and originalCanQuery:IsA("BoolValue") then
 				part.CanQuery = originalCanQuery.Value
 			end
 		end

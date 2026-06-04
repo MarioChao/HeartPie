@@ -38,14 +38,20 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local ServerStorage = game:GetService("ServerStorage")
 
-local effectPresets = ReplicatedStorage.CustomData.Presets
+local replicatedPresets = ReplicatedStorage.CustomData.Presets
 local skinPresets = ServerScriptService.CustomSkinsData.Presets
 
 local hpm = require(ServerStorage.HeartPie_Module.MainModule)
 
-hpm.setHitEffectsModule(effectPresets.NewHitEffects)
+hpm.setHitEffectsModule(replicatedPresets.NewHitEffects)
+hpm.setSoundEffectsModule(replicatedPresets.NewSoundEffects)
 hpm.setPieSkins_conditional(skinPresets.NewCondPieSkinsFolder, skinPresets.NewPieSkinConditions)
 
-hpm.setUpAndGetTool().Parent = game.StarterPack
+local tool = hpm.setUpAndGetTool()
+
+for _, player in game:GetService("Players"):GetPlayers() do
+	tool:Clone().Parent = player.Backpack
+end
+tool.Parent = game:GetService("StarterPack")
 ```
 ]]

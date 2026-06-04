@@ -1,78 +1,49 @@
 {
-    "id": "PieMainPart",
-    "ClassName": "Part",
-    "Properties": {
+    "className": "Part",
+    "properties": {
         "BrickColor": {"BrickColor": 105},
         "Transparency": 1,
-        "Size": [1, 1, 1],
+        "Size": [2, 2, 1],
         "CanCollide": false,
         "CanQuery": false,
-        "CanTouch": false,
-        "Massless": true
+        "CanTouch": false
     },
-    "Children": [
+    "children": [
         {
-            "Name": "FireSound",
-            "ClassName": "Sound",
-            "Properties": {
-                "SoundId": "rbxassetid://18426149",
-                "Volume": 0.7
-            }
-        },
-        {
-            "Name": "HitSound",
-            "ClassName": "Sound",
-            "Properties": {
-                "SoundId": "rbxassetid://18424769"
-            }
-        },
-        {
-            "Name": "AlignOrientation",
-            "ClassName": "AlignOrientation",
-            "Properties": {
+            "name": "AlignOrientation",
+            "className": "AlignOrientation",
+            "properties": {
                 "Enabled": false,
                 "Mode": "OneAttachment",
                 "RigidityEnabled": true
-            },
-            "Attributes": {
-                "Rojo_Target_Attachment0": "PieAttachment"
             }
         },
         {
-            "id": "PieAttachment",
-            "Name": "PieAttachment",
-            "ClassName": "Attachment",
-            "Properties": {
+            "name": "PieAttachment",
+            "className": "Attachment",
+            "properties": {
                 "CFrame": [0, 0, 0.5, 1, 0, 0, 0, 1, 0, 0, 0, 1]
             }
         },
         {
-            "id": "PieRightGripAttachment",
-            "Name": "PieRightGripAttachment",
-            "ClassName": "Attachment",
-            "Properties": {
+            "name": "PieRightGripAttachment",
+            "className": "Attachment",
+            "properties": {
                 "CFrame": [0, 0, 0.5, 0, 0, -1, 0, 1, 0, 1, 0, 0]
             }
         },
         {
-            "Name": "RigidConstraint",
-            "ClassName": "RigidConstraint",
-            "Attributes": {
-                "Rojo_Target_Attachment0": "PieRightGripAttachment",
-                "Rojo_Target_Attachment1": "RightGripAttachment"
-            }
+            "name": "RigidConstraint",
+            "className": "RigidConstraint"
         },
         {
-            "Name": "UpwardsForce",
-            "ClassName": "VectorForce",
-            "Properties": {
+            "name": "UpwardsForce",
+            "className": "VectorForce",
+            "properties": {
                 "Enabled": false,
                 "ApplyAtCenterOfMass": true,
                 "Force": [0, 240, 0],
                 "RelativeTo": "World"
-            },
-            "Attributes": {
-                "Rojo_Target_Attachment0": "PieAttachment"
             }
         }
     ]

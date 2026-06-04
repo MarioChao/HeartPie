@@ -98,9 +98,13 @@ local function onLaunchPie(caller: Player, launchMotion: Motion)
 	end
 
 	-- Calculate actual launch motion
-	local launchCFrame = launchMotion.CFrame :: CFrame
-	local launchDirection = launchMotion.Direction :: Vector3
+	local launchCFrame = launchMotion.CFrame
+	local launchDirection = launchMotion.Direction
 	local launchOffsetStuds = Tool:GetAttribute("LaunchOffsetStuds")
+	if not (launchCFrame and launchDirection) then
+		warn(`[Client Pie Launch]: Incomplete launch motion data.`)
+		return
+	end
 	launchCFrame += launchDirection.Unit * launchOffsetStuds
 
 	-- Create Client pie's unique id
@@ -114,9 +118,13 @@ local function onLaunchPie(caller: Player, launchMotion: Motion)
 	}
 	BelovedRemote.fire_toServer("Launch CSC Pie", Tool, PieModel, finalizedLaunchMotion, clientPieId)
 
-	-- Setup new pie ammo
+	-- Set up new pie ammo
 	local newPieAmmoModel = PieAmmoModel:Clone()
-	local newPieAmmoMainPart = newPieAmmoModel:FindFirstChild("MainPart") :: Part
+	local newPieAmmoMainPart = newPieAmmoModel:FindFirstChild("MainPart")
+	if not (newPieAmmoMainPart and newPieAmmoMainPart:IsA("BasePart")) then
+		warn(`[Client Pie Launch]: No main part found for pie model.`)
+		return
+	end
 
 	-- Tag the new pie ammo model
 	CollectionService:AddTag(newPieAmmoModel, clientPieId)
@@ -125,38 +133,39 @@ local function onLaunchPie(caller: Player, launchMotion: Motion)
 	uniquePieId.Value = clientPieId
 	uniquePieId.Parent = newPieAmmoModel
 
-
-	-- Setup pie values
+	-- Set up pie values: launch velocity
 	local launchVelocity = Tool:GetAttribute("LaunchVelocity")
 	local launchVelocity_Vector3 = launchDirection.Unit * launchVelocity
 	newPieAmmoModel:SetAttribute("_LaunchVelocity", launchVelocity_Vector3)
 
+	-- Set up pie values: creator
 	local newPieCreator = Instance.new("ObjectValue")
 	newPieCreator.Name = "Creator"
 	newPieCreator.Value = caller
 	newPieCreator.Parent = newPieAmmoModel
 
+	-- Set up pie values: booleans
 	local pieSpinByVelocity = Tool:GetAttribute("PieSpinByVelocity")
 	newPieAmmoModel:SetAttribute("_SpinByVelocity", pieSpinByVelocity)
-
 	local canOverlapPart = Tool:GetAttribute("CanOverlapPart")
 	newPieAmmoModel:SetAttribute("_CanOverlapPart", canOverlapPart)
-
 	local canCollideThrower = Tool:GetAttribute("CanCollideThrower")
 	newPieAmmoModel:SetAttribute("_CanCollideThrower", canCollideThrower)
 
-
-	-- Setup pie align orientation
+	-- Set up pie align orientation
 	local pieAlignSpin = Tool:GetAttribute("PieAlignSpin")
-	local newPieAlignOrientation = newPieAmmoMainPart:FindFirstChild("AlignOrientation") :: AlignOrientation
+	local newPieAlignOrientation = newPieAmmoMainPart:FindFirstChild("AlignOrientation")
+	if not (newPieAlignOrientation and newPieAlignOrientation:IsA("AlignOrientation")) then
+		warn(`[Client Pie Launch]: No align orientation found for pie model.`)
+		return
+	end
 	newPieAlignOrientation.CFrame = CFrame.new(Vector3.zero, launchDirection.Unit)
 	newPieAlignOrientation.Enabled = pieAlignSpin
 
-	-- Setup pie ammo position
+	-- Set up pie ammo position
 	newPieAmmoModel.Parent = workspace
 	newPieAmmoMainPart:PivotTo(launchCFrame)
 	newPieAmmoMainPart.Anchored = false
-	newPieAmmoMainPart.CanCollide = true
 
 	-- Launch pie
 	lastLaunchTime = os.clock()
@@ -171,31 +180,31 @@ local function createPieAmmoModel()
 
 	-- Clone the pie model
 	local pieAmmoModel = PieModel:Clone()
-	local pieAmmoMainPart = pieAmmoModel:FindFirstChild("MainPart") :: Part
-	local pieAttachment = pieAmmoMainPart and pieAmmoMainPart:FindFirstChild("PieAttachment") :: Attachment
-	local rigidConstraint = pieAmmoMainPart and pieAmmoMainPart:FindFirstChild("RigidConstraint") :: RigidConstraint
-	local upwardsForce = pieAmmoMainPart and pieAmmoMainPart:FindFirstChild("UpwardsForce") :: VectorForce
+	local pieAmmoMainPart = pieAmmoModel:FindFirstChild("MainPart")
+	local pieAttachment = pieAmmoMainPart and pieAmmoMainPart:FindFirstChild("PieAttachment")
+	local rigidConstraint = pieAmmoMainPart and pieAmmoMainPart:FindFirstChild("RigidConstraint")
+	local upwardsForce = pieAmmoMainPart and pieAmmoMainPart:FindFirstChild("UpwardsForce")
 
 	-- Set up objects
 	for _, part in pieAmmoModel:GetDescendants() do
 		if part:IsA("BasePart") then
 			-- Transparency
-			local originalTransparency = part:FindFirstChild("OriginalTransparency") :: NumberValue
-			if originalTransparency then
+			local originalTransparency = part:FindFirstChild("OriginalTransparency")
+			if originalTransparency and originalTransparency:IsA("NumberValue") then
 				part.Transparency = originalTransparency.Value
 			end
 
 			-- Collision & touch
-			local originalCanCollide = part:FindFirstChild("OriginalCanCollide") :: BoolValue
-			if originalCanCollide then
+			local originalCanCollide = part:FindFirstChild("OriginalCanCollide")
+			if originalCanCollide and originalCanCollide:IsA("BoolValue") then
 				part.CanCollide = originalCanCollide.Value
 			end
-			local originalCanTouch = part:FindFirstChild("OriginalCanTouch") :: BoolValue
-			if originalCanTouch then
+			local originalCanTouch = part:FindFirstChild("OriginalCanTouch")
+			if originalCanTouch and originalCanTouch:IsA("BoolValue") then
 				part.CanTouch = originalCanTouch.Value
 			end
-			local originalCanQuery = part:FindFirstChild("OriginalCanQuery") :: BoolValue
-			if originalCanQuery then
+			local originalCanQuery = part:FindFirstChild("OriginalCanQuery")
+			if originalCanQuery and originalCanQuery:IsA("BoolValue") then
 				part.CanQuery = originalCanQuery.Value
 			end
 		end

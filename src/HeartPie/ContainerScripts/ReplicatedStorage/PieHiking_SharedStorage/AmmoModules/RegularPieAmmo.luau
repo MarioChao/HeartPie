@@ -23,6 +23,9 @@ local AmmoUtil = require(_AmmoModules:WaitForChild("AmmoUtil"))
 local _Modules = _PieHiking_SharedStorage:WaitForChild("Modules")
 local BelovedRemote = require(_Modules:WaitForChild("BelovedRemote"))
 
+local _SoundModules = _PieHiking_SharedStorage:WaitForChild("SoundModules")
+local SoundEffectsGetter = require(_SoundModules:WaitForChild("SoundEffectsGetter"))
+
 local ServerPieAmmoApi
 if RunService:IsServer() then
 	local ServerScriptService = game:GetService("ServerScriptService")
@@ -56,11 +59,7 @@ type CFieldData = {
 	isValid: boolean,
 
 	ammoModel: Model,
-	ammoMainPart: Part?,
-	ammoSounds: {
-		Fire: Sound,
-		Hit: Sound,
-	},
+	ammoMainPart: BasePart?,
 	ammoInternalLaunchVelocity: Vector3,
 	ammoCreator: ObjectValue,
 	ammoPieSpins: boolean,
@@ -85,13 +84,7 @@ function PieAmmo.new(ammoModel: Model, hasHitCharacterEffect: boolean)
 
 	-- Ammo Info
 	self.ammoModel = ammoModel
-	self.ammoMainPart = self.ammoModel:WaitForChild("MainPart") :: Part
-	if self.ammoMainPart then
-		self.ammoSounds = {
-			["Fire"] = self.ammoMainPart:WaitForChild("FireSound") :: Sound,
-			["Hit"] = self.ammoMainPart:WaitForChild("HitSound") :: Sound
-		}
-	end
+	self.ammoMainPart = self.ammoModel:WaitForChild("MainPart") :: BasePart
 	self.ammoInternalLaunchVelocity = self.ammoModel:GetAttribute("_LaunchVelocity") :: Vector3
 	self.ammoCreator = self.ammoModel:WaitForChild("Creator") :: ObjectValue
 	self.ammoPieSpins = self.ammoModel:GetAttribute("_SpinByVelocity") :: boolean
@@ -170,10 +163,10 @@ function PieAmmo.launchPie(self: CObjectType)
 
 	-- Configure and shoot pie with initial velocity
 	self.launchStartTime = Constants.timeFunction()
-	self.ammoSounds.Fire:Play()
+	self:playSoundEffect("fire")
 
 	-- Check if ammo is not stuck before giving velocity
-	local ammoMainPart = self.ammoMainPart :: Part
+	local ammoMainPart = self.ammoMainPart
 	local ammoAssemblyRootPart = ammoMainPart.AssemblyRootPart
 	if ammoAssemblyRootPart and ammoAssemblyRootPart:IsDescendantOf(self.ammoModel) then
 		self.ammoMainPart.AssemblyLinearVelocity = self.ammoInternalLaunchVelocity
@@ -201,9 +194,9 @@ end
 
 function PieAmmo.canStickTo(self: CObjectType, hitPart: BasePart): boolean
 	-- Check if the current pie is a Client pie
-	local uniquePieId = self.ammoModel:FindFirstChild("UniquePieId") :: StringValue
-	local pieTag = uniquePieId and uniquePieId.Value
-	local isThrowClientPie = pieTag
+	local uniquePieId = self.ammoModel:FindFirstChild("UniquePieId")
+	local pieTag = (uniquePieId and uniquePieId:IsA("StringValue") and uniquePieId.Value) or nil
+	local isThrowClientPie = pieTag ~= nil
 
 	-- Check if hit part is a Client or CSC pie
 	local hitPieModel = AmmoUtil.getPieModel(hitPart)
@@ -221,27 +214,30 @@ function PieAmmo.runClientHitEffect(self: CObjectType, hitPart: BasePart)
 		return
 	end
 
-	-- Quick validation
-	local creatorPlayer = self.ammoCreator.Value :: Player
+	-- Get character
+	local creatorPlayer = self.ammoCreator.Value
+	if not (creatorPlayer and creatorPlayer:IsA("Player")) then
+		warn(`[Regular Pie Ammo]: Invalid creator player.`)
+		return
+	end
 	local throwerCharacter = creatorPlayer.Character
-	local throwPieModel = self.ammoModel
-	local creatorObjectValue = throwPieModel and throwPieModel:FindFirstChild("Creator") :: ObjectValue
-	local creator = creatorObjectValue and creatorObjectValue.Value :: Player
-	if not (creator and throwerCharacter == creator.Character and throwerCharacter and throwerCharacter:IsA("Model")) then
+	if not (throwerCharacter and throwerCharacter:IsA("Model")) then
+		warn(`[Regular Pie Ammo]: Invalid character.`)
 		return
 	end
 
 	-- Get parameters
-	local throwPieMainPart = self.ammoMainPart
+	local ammoModel = self.ammoModel
+	local ammoMainPart = self.ammoMainPart
 	local param: PieHitEffectsGetter.EffectParameter = {
 		throwerCharacter = throwerCharacter,
 		hitCharacter = nil,
-		pieMainPart = throwPieMainPart,
+		pieMainPart = ammoMainPart,
 		hitPart = hitPart,
 	}
 
 	-- Get effect function
-	local throwPieSkinFolder = throwPieModel:FindFirstChild("PieSkin")
+	local throwPieSkinFolder = ammoModel:FindFirstChild("PieSkin")
 	local throwPieSkinModel = throwPieSkinFolder and throwPieSkinFolder:FindFirstChildOfClass("Model")
 	if not throwPieSkinModel then
 		return
@@ -266,9 +262,9 @@ function PieAmmo.stickPieReplicate(self: CObjectType, hitPart: BasePart, relativ
 
 	-- Check if hit part is a Client or CSC pie
 	local hitPieModel = AmmoUtil.getPieModel(hitPart)
-	local hitPieMainPart = hitPieModel and hitPieModel:FindFirstChild("MainPart") :: Part
-	local hitPieUniqueId = hitPieModel and hitPieModel:FindFirstChild("UniquePieId") :: StringValue
-	local hitPieTag = hitPieUniqueId and hitPieUniqueId.Value
+	local hitPieMainPart = hitPieModel and hitPieModel:FindFirstChild("MainPart")
+	local hitPieUniqueId = hitPieModel and hitPieModel:FindFirstChild("UniquePieId")
+	local hitPieTag = (hitPieUniqueId and hitPieUniqueId:IsA("StringValue") and hitPieUniqueId.Value) or nil
 	local isHitClientPie = hitPieModel and AmmoUtil.isPieAClientPie(hitPieModel)
 
 	-- Check if the current pie is a Client pie
@@ -288,17 +284,21 @@ function PieAmmo.stickPieReplicate(self: CObjectType, hitPart: BasePart, relativ
 		--[[ Current pie is a Client pie ]]
 
 		-- Get pie tag
-		local uniquePieId = self.ammoModel:FindFirstChild("UniquePieId") :: StringValue
-		local pieTag = uniquePieId and uniquePieId.Value
+		local uniquePieId = self.ammoModel:FindFirstChild("UniquePieId")
+		if not (uniquePieId and uniquePieId:IsA("StringValue")) then
+			warn(`[Regular Pie Ammo]: No UniquePieId found for pie model.`)
+			return
+		end
+		local pieTag = uniquePieId.Value
 
 		-- Check if hit part is a Client or CSC pie
-		if not (hitPieMainPart and isHitClientPie) then
-			--[[ Hit a non-Client-pie or non-CSC-pie part ]]
-			BelovedRemote.fire_toServer("Stick CSC Pie To Part", pieTag, hitPart, hitPart.CFrame, relativeCFrame)
-		else
+		if isHitClientPie and hitPieMainPart and hitPieMainPart:IsA("BasePart") then
 			--[[ Hit a Client pie or CSC pie ]]
 			relativeCFrame = hitPieMainPart.CFrame:ToObjectSpace(self.ammoMainPart.CFrame)
 			BelovedRemote.fire_toServer("Stick CSC Pie To CSC Pie", pieTag, hitPieTag, hitPieMainPart.CFrame, relativeCFrame)
+		else
+			--[[ Hit a non-Client-pie or non-CSC-pie part ]]
+			BelovedRemote.fire_toServer("Stick CSC Pie To Part", pieTag, hitPart, hitPart.CFrame, relativeCFrame)
 		end
 
 		-- Run hit effect
@@ -319,13 +319,17 @@ function PieAmmo.stickPie(self: CObjectType, hitPart: BasePart, relativeCFrame: 
 	end)
 
 	-- Disable forces and align orientation in current environment
-	local upwardsForce = mainPart:FindFirstChild("UpwardsForce") :: VectorForce
-	if upwardsForce then
+	local upwardsForce = mainPart:FindFirstChild("UpwardsForce")
+	if upwardsForce and upwardsForce:IsA("VectorForce") then
 		upwardsForce.Enabled = false
+	else
+		warn(`[Regular Pie Ammo]: No upwards force found for pie model.`)
 	end
-	local alignOrientation = mainPart:FindFirstChild("AlignOrientation") :: AlignOrientation
-	if alignOrientation then
+	local alignOrientation = mainPart:FindFirstChild("AlignOrientation")
+	if alignOrientation and alignOrientation:IsA("AlignOrientation") then
 		alignOrientation.Enabled = false
+	else
+		warn(`[Regular Pie Ammo]: No align orientation found for pie model.`)
 	end
 
 	-- Stick pie in current environment
@@ -361,8 +365,8 @@ end
 function PieAmmo.matchAmmoSpin(self: CObjectType)
 	-- Validate align orientation
 	local mainPart = self.ammoMainPart
-	local alignOrientation = mainPart and mainPart:FindFirstChild("AlignOrientation") :: AlignOrientation
-	if not (mainPart and alignOrientation and alignOrientation.Enabled) then
+	local alignOrientation = mainPart and mainPart:FindFirstChild("AlignOrientation")
+	if not (mainPart and alignOrientation and alignOrientation:IsA("AlignOrientation") and alignOrientation.Enabled) then
 		return
 	end
 
@@ -409,12 +413,14 @@ function PieAmmo.onTouched(self: CObjectType, otherPart: BasePart, mainPartRelat
 		return
 	end
 
-	-- Stick pie
+	-- Validate not stuck
 	if self.isPieStuck then
 		return
 	end
 	self.isPieStuck = true
-	self.ammoSounds.Hit:Play()
+
+	-- Stick pie
+	self:playSoundEffect("hit")
 	task.defer(function()
 		self:removeNoCollideConstraints()
 	end)
@@ -502,6 +508,26 @@ function PieAmmo.disablePieCollideCharacter(self: CObjectType, character: Model)
 				table.insert(constraints, noCollisionConstraint)
 			end)
 		end
+	end
+end
+
+function PieAmmo.playSoundEffect(self: CObjectType, soundName: SoundEffectsGetter.SoundEffectNames)
+	-- Get skin
+	local throwPieSkinFolder = self.ammoModel:FindFirstChild("PieSkin")
+	local throwPieSkinModel = throwPieSkinFolder and throwPieSkinFolder:FindFirstChildOfClass("Model")
+	local pieSkinName = throwPieSkinModel and throwPieSkinModel.Name or ""
+
+	-- Get sound
+	local soundEffects = SoundEffectsGetter.getValueAt(pieSkinName)
+	local defaultSound = soundEffects[soundName]
+
+	-- Play at main part
+	local parentPart = self.ammoMainPart
+	if parentPart and defaultSound and typeof(defaultSound) == "Instance" and defaultSound:IsA("Sound") then
+		local newSound = defaultSound:Clone()
+		newSound.PlayOnRemove = true
+		newSound.Parent = self.ammoMainPart
+		newSound:Destroy()
 	end
 end
 
