@@ -94,6 +94,11 @@ checkLaunchMotion = function(player: Player, launchMotion: Motion)
 end
 
 onLaunchPie = function(caller: Player, launchMotion: Motion)
+	-- Check equipped
+	if not Tooling.getIsEquipped() then
+		return
+	end
+
 	-- Sanity check for launch motion
 	if not (caller == Tooling.getOwner() and checkLaunchMotion(caller, launchMotion)) then
 		return
