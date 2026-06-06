@@ -1,0 +1,9 @@
+{
+  "name": "HeartPieModule",
+  "tree": {
+    "$path": "HeartPieModule/MainModule",
+    "HeartPie_Package": {
+      "$path": "HeartPie"
+    }
+  }
+}
