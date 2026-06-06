@@ -113,15 +113,13 @@ setUpPieToolContainers = function(): {Instance}
 		PieHiking_SharedStorage = {
 			EffectModules = {
 				Presets = {
-					DefaultHitEffects = {},
 					CustomHitEffectsObjectValue = {},
 				},
 			},
 			SoundModules = {
 				Presets = {
-					DefaultSoundEffects = {},
 					CustomSoundEffectsObjectValue = {},
-				}
+				},
 			},
 		},
 	})
@@ -132,9 +130,6 @@ setUpPieToolContainers = function(): {Instance}
 		PieHiking_ServerScripts = {
 			SkinModules = {
 				Presets = {
-					DefaultConditionalPieSkinsFolder = {},
-					DefaultStarterPieSkinsFolder = {},
-					DefaultPieSkinConditions = {},
 					CustomConditionalPieSkinsFolderObjectValue = {},
 					CustomStarterPieSkinsFolderObjectValue = {},
 					CustomPieSkinConditionsObjectValue = {},

@@ -3,6 +3,14 @@
 -- Server Pie Launch
 
 
+---------- Validate container ----------
+
+-- Under data model (for plugin)
+if not script:FindFirstAncestorWhichIsA("DataModel") then
+	return
+end
+
+
 ---------- Services ----------
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")

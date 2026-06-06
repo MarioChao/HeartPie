@@ -5,6 +5,14 @@
 -- Sets the reference properties of the tool's instances
 
 
+---------- Validate container ----------
+
+-- Under data model (for plugin)
+if not script:FindFirstAncestorWhichIsA("DataModel") then
+	return
+end
+
+
 ---------- Services ----------
 
 local ChangeHistoryService = game:GetService("ChangeHistoryService")
