@@ -4,7 +4,7 @@
 
 - [ ] Allow pies to be visible if they are initially in the workspace.
 
-## [2.0.0] Reorganization + Refactorization | 2026/5/27 - 5/29
+## [2.0.0] Reorganization + Refactorization | 2026/05/27 - 06/06
 
 Renamed `ContainerScripts (see ReadMe)` folder to just `ContainerScripts`.
 
