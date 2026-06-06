@@ -20,7 +20,8 @@ local Players = game:GetService("Players")
 
 local _SkinModules = script.Parent.Parent
 local PieSkinConditionsGetter = require(_SkinModules:WaitForChild("PieSkinConditionsGetter"))
-local PieSkinsGetter = require(_SkinModules:WaitForChild("PieSkinsGetter"))
+local StarterPieSkinsGetter = require(_SkinModules:WaitForChild("StarterPieSkinsGetter"))
+local ConditionalPieSkinsGetter = require(_SkinModules:WaitForChild("ConditionalPieSkinsGetter"))
 
 
 ---------- Constants ----------
@@ -32,6 +33,8 @@ do
 	Constants.apiBindableEvent = _ApiBindables:WaitForChild("ApiBindableEvent")
 	Constants.apiBindableFunction = _ApiBindables:WaitForChild("ApiBindableFunction")
 end
+
+Constants.pieSkinsFolderName = "CurrentPieSkins"
 
 table.freeze(Constants)
 
@@ -48,7 +51,9 @@ Globals.userId_savedSkinId = {} :: {[number]: number}
 local saveUserSkinId
 local getUserSkinId
 
+local populateUniqueSkins
 local populateToolSkins
+local getStarterPieSkins
 local getPlayerConditionalPieSkins
 
 
@@ -65,17 +70,41 @@ end
 
 ----- Pie skins -----
 
+populateUniqueSkins = function(pieSkinsFolder: Folder, skinsToAdd: {Model})
+	-- Check existing skins
+	local isSkinAdded = {} :: {[string]: boolean}
+	for _, pieSkin: Instance in pieSkinsFolder:GetChildren() do
+		isSkinAdded[pieSkin.Name] = true
+	end
+
+	-- Get new pie skins
+	local notAddedSkins = {} :: {Model}
+	for _, pieSkin in skinsToAdd do
+		if isSkinAdded[pieSkin.Name] then
+			continue
+		end
+		table.insert(notAddedSkins, pieSkin)
+		isSkinAdded[pieSkin.Name] = true
+	end
+
+	-- Clone new pie skins to the folder
+	for _, pieSkin in notAddedSkins do
+		local newPieSkin = pieSkin:Clone()
+		newPieSkin.Parent = pieSkinsFolder
+	end
+end
+
 -- Add new skins to the pie tool, if the holder has them unlocked
 populateToolSkins = function(pieTool: Tool)
 	-- Get the skins folder
 	local toolPieSkinsFolder = (function()
-		local child = pieTool:FindFirstChild("PieSkins")
+		local child = pieTool:FindFirstChild(Constants.pieSkinsFolderName)
 		local result
-		if child then
+		if child and child:IsA("Folder") then
 			result = child
 		else
 			result = Instance.new("Folder")
-			result.Name = "PieSkins"
+			result.Name = Constants.pieSkinsFolderName
 		end
 		return result
 	end)()
@@ -100,38 +129,33 @@ populateToolSkins = function(pieTool: Tool)
 		return
 	end
 
-	-- Get player's pie skins
+	-- Populate default pie skins
+	local starterPieSkins = getStarterPieSkins()
+	populateUniqueSkins(toolPieSkinsFolder, starterPieSkins)
+
+	-- Populate conditional pie skins
 	local conditionalPieSkins = getPlayerConditionalPieSkins(player)
+	populateUniqueSkins(toolPieSkinsFolder, conditionalPieSkins)
+end
 
-	-- Go through tool's existing skins
-	local isSkinAdded: {[string]: boolean} = {}
-	for _, pieSkin: Instance in toolPieSkinsFolder:GetChildren() do
-		isSkinAdded[pieSkin.Name] = true
+getStarterPieSkins = function()
+	local result = {}
+
+	-- Go through starter pie skins
+	for skinName, pieSkinModel in StarterPieSkinsGetter.getTable() do
+		-- Add to result
+		table.insert(result, pieSkinModel)
 	end
 
-	-- Go through conditional pie skins
-	local notAddedSkins: {Instance} = {}
-	for _, pieSkin: Instance in conditionalPieSkins do
-		if isSkinAdded[pieSkin.Name] then
-			continue
-		end
-		table.insert(notAddedSkins, pieSkin)
-		isSkinAdded[pieSkin.Name] = true
-	end
-
-	-- Clone new pie skins to the tool
-	for _, pieSkin in notAddedSkins do
-		local newPieSkin = pieSkin:Clone()
-		newPieSkin.Parent = toolPieSkinsFolder
-	end
+	return result
 end
 
 getPlayerConditionalPieSkins = function(player: Player)
 	local userId = player.UserId
-	local conditionalPieSkins: {Instance} = {}
+	local result = {}
 
-	-- Go through instances in the folder
-	for skinName, pieSkinModel in PieSkinsGetter.getTable() do
+	-- Go through conditional pie skins
+	for skinName, pieSkinModel in ConditionalPieSkinsGetter.getTable() do
 		-- Check condition
 		local condition = PieSkinConditionsGetter.getValueAt(skinName)
 		if not (condition and condition(userId)) then
@@ -139,11 +163,11 @@ getPlayerConditionalPieSkins = function(player: Player)
 		end
 
 		-- Add to result
-		table.insert(conditionalPieSkins, pieSkinModel)
+		table.insert(result, pieSkinModel)
 	end
 
 	-- Return result
-	return conditionalPieSkins
+	return result
 end
 
 

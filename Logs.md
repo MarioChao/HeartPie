@@ -2,8 +2,7 @@
 
 ## Plans
 
-- [+] Allow pies to be visible if they are initially in the workspace.
-- [ ] Allow unstick & remove time to be modified.
+- [ ] Allow pies to be visible if they are initially in the workspace.
 
 ## [2.0.0] Reorganization + Refactorization | 2026/5/27 - 5/29
 
@@ -33,7 +32,8 @@ Refactored `ServerScriptService` and `ServerStorage`:
     - Refactored `ServerPieAmmoLauncher` script.
     - Refactored `PieHikingServer` into `ServerPieAmmoSystem` script.
 - Modified skin modules to allow easier customization.
-    - Added `PieSkinsGetter` module to get the default or custom pie skin models `Folder`.
+    - Added `StarterPieSkinsGetter` module to get the default or custom starter pie skin models `Folder`.
+    - Added `ConditionalPieSkinsGetter` module to get the default or custom conditional pie skin models `Folder`.
     - Added `PieSkinConditionsGetter` module to get the default or custom pie skin conditions.
 - Moved pie skin scripts into `PieSkinsApi` module and a child `PieSkinsSystem` script.
 - Migrated badge checking to [BadgeUtil](https://github.com/MarioChao/badge-util).
@@ -43,8 +43,22 @@ Refactored pie skins:
 - Added support for custom pie skin model parts.
     - When launched, the skin model will be `Massless`.
     - Since the pie's main part has a mass of 2.8, the pie's assembly mass will also be 2.8.
-- Moved skin attributes from the skin `Model` to the child `Configuration` named `SkinConfig`
+- Moved skin attributes from the skin `Model` to the child `Configuration` named `SkinConfig`.
 - Added support for custom sound effects.
+
+Refactored tool scripts:
+- Fixed initializer script breaking in command bar.
+- Attributes:
+    - Moved tool attributes to `ToolConfig` under `ToolValues`.
+    - Removed `_PrintDebug` attribute.
+    - Added `PieValues` under `PieModel` to access and customize launch, unstick, and remove time.
+- Added new `Tooling` script to retrieve tool `Instances` and attribute values.
+- Replaced `ToolEvents` with api `ModuleScripts` and `BelovedRemote`.
+- Pie skins:
+    - Renamed `PieSkins` model storage folder to `CurrentPieSkins`.
+    - Moved starter pie skins to `ServerScriptService`.
+- Decreased debounce time in `ServerPieSkin` for setting up pie skins.
+- Modified `PieLaunch` to refresh model prior to every launch.
 
 Made scripts cleaner.
 - More consistent formats.
@@ -52,8 +66,9 @@ Made scripts cleaner.
 - Modified some type annotations.
 
 Created new `HeartPie_Module` with a child `MainModule`:
+- Asset id 98579925732882.
 - Wraps around `HeartPie_Package`.
-- Allows customizations like hit effects, sound effects, and pie skins.
+- Allows customizations like hit effects, sound effects, pie skins, and tool config.
 - Call `.setUpAndGetTool()` to set up containers (using `ContainerSetUp`) and retrieve the tool.
 
 ## [1.0.14] More environment validation checks | 2026/03/28 (2)

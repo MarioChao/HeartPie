@@ -272,8 +272,6 @@ stickPiePartToPart = function(throwPieModel: Model, throwPieMainPart: BasePart, 
 	weldConstraint.Part0 = throwPieMainPart
 	weldConstraint.Part1 = hitPart
 	weldConstraint.Parent = throwPieMainPart
-
-	--print("CSC stick")
 end
 
 onStickCSCPieToPart = function(throwPieId: string, hitPart: BasePart?, hitCFrame: CFrame, relativeCFrame: CFrame)

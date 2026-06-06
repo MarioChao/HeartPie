@@ -1,12 +1,27 @@
 --!strict
 
--- Server Pie Launch
+-- Client Pie Launch
 
 
 ---------- Services ----------
 
+local CollectionService = game:GetService("CollectionService")
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local ServerScriptService = game:GetService("ServerScriptService")
+
+
+---------- Imports ----------
+
+local _PieHiking_SharedStorage = ReplicatedStorage:WaitForChild("PieHiking_SharedStorage")
+local _AmmoModules = _PieHiking_SharedStorage:WaitForChild("AmmoModules")
+local ClientPieAmmoApi = require(_AmmoModules:WaitForChild("ClientPieAmmoApi"))
+
+local _Modules = _PieHiking_SharedStorage:WaitForChild("Modules")
+local BelovedRemote = require(_Modules:WaitForChild("BelovedRemote"))
+
+local _ToolScripts = script.Parent.Parent.Parent
+local Tooling = require(_ToolScripts:WaitForChild("Tooling"))
 
 
 ---------- Types ----------
@@ -14,23 +29,13 @@ local ServerScriptService = game:GetService("ServerScriptService")
 type Motion = {["CFrame"]: CFrame?, ["Direction"]: Vector3?}
 
 
----------- Imports ----------
-
-local _PieHiking_ServerScripts = ServerScriptService:WaitForChild("PieHiking_ServerScripts")
-local _ServerAmmoModules = _PieHiking_ServerScripts:WaitForChild("ServerAmmoModules")
-local ServerPieAmmoApi = require(_ServerAmmoModules:WaitForChild("ServerPieAmmoApi"))
-
-local _PieHiking_SharedStorage = ReplicatedStorage:WaitForChild("PieHiking_SharedStorage")
-local _Modules = _PieHiking_SharedStorage:WaitForChild("Modules")
-local BelovedRemote = require(_Modules:WaitForChild("BelovedRemote"))
-
-local _ToolScripts = script.Parent.Parent
-local Tooling = require(_ToolScripts:WaitForChild("Tooling"))
-
-
 ---------- Constants ----------
 
 local Constants = {}
+
+Constants.apiBindableEvent = script.Parent:WaitForChild("ApiBindableEvent")
+
+Constants.localPlayer = Players.LocalPlayer
 
 Constants.timeFunction = time
 
@@ -86,11 +91,6 @@ onLaunchPie = function(caller: Player, launchMotion: Motion)
 		return
 	end
 
-	-- Sanity check for Client pies
-	if Tooling.configs.getIsClientPieType() then
-		return
-	end
-
 	-- Sanity check for launch time
 	local currentTime = Constants.timeFunction()
 	local launchMinInterval = Tooling.configs.getDurationThrow() + Tooling.configs.getDurationReload() - 0.4
@@ -109,18 +109,36 @@ onLaunchPie = function(caller: Player, launchMotion: Motion)
 	local launchDirection = launchMotion.Direction
 	local launchOffsetStuds = Tooling.configs.getLaunchOffsetStuds()
 	if not (launchCFrame and launchDirection) then
-		warn(`[Server Pie Launch]: Incomplete launch motion data.`)
+		warn(`[Client Pie Launch]: Incomplete launch motion data.`)
 		return
 	end
 	launchCFrame += launchDirection.Unit * launchOffsetStuds
+
+	-- Create Client pie's unique id
+	local clientPieId = HttpService:GenerateGUID(true)
+
+	-- Launch CSC Pie
+	local finalizedLaunchMotion = {
+		["CFrame"] = launchCFrame,
+		["Direction"] = launchDirection,
+		["Velocity"] = nil
+	}
+	BelovedRemote.fire_toServer("Launch CSC Pie", Tooling.tool, Tooling.pieModel, finalizedLaunchMotion, clientPieId)
 
 	-- Set up new pie ammo
 	local newPieAmmoModel = Globals.pieAmmoModel:Clone()
 	local newPieAmmoMainPart = newPieAmmoModel:FindFirstChild("MainPart")
 	if not (newPieAmmoMainPart and newPieAmmoMainPart:IsA("BasePart")) then
-		warn(`[Server Pie Launch]: No main part found for pie model.`)
+		warn(`[Client Pie Launch]: No main part found for pie model.`)
 		return
 	end
+
+	-- Tag the new pie ammo model
+	CollectionService:AddTag(newPieAmmoModel, clientPieId)
+	local uniquePieId = Instance.new("StringValue")
+	uniquePieId.Name = "UniquePieId"
+	uniquePieId.Value = clientPieId
+	uniquePieId.Parent = newPieAmmoModel
 
 	-- Set up pie values: launch velocity
 	local launchVelocity = Tooling.configs.getLaunchVelocity()
@@ -138,26 +156,27 @@ onLaunchPie = function(caller: Player, launchMotion: Motion)
 	newPieAmmoModel:SetAttribute("_SpinByVelocity", pieSpinByVelocity)
 	local canOverlapPart = Tooling.configs.getCanOverlapPart()
 	newPieAmmoModel:SetAttribute("_CanOverlapPart", canOverlapPart)
+	local canCollideThrower = Tooling.configs.getCanCollideThrower()
+	newPieAmmoModel:SetAttribute("_CanCollideThrower", canCollideThrower)
 
 	-- Set up pie align orientation
 	local pieAlignSpin = Tooling.configs.getPieAlignSpin()
 	local newPieAlignOrientation = newPieAmmoMainPart:FindFirstChild("AlignOrientation")
 	if not (newPieAlignOrientation and newPieAlignOrientation:IsA("AlignOrientation")) then
-		warn(`[Server Pie Launch]: No align orientation found for pie model.`)
+		warn(`[Client Pie Launch]: No align orientation found for pie model.`)
 		return
 	end
 	newPieAlignOrientation.CFrame = CFrame.new(Vector3.zero, launchDirection.Unit)
 	newPieAlignOrientation.Enabled = pieAlignSpin
 
 	-- Set up pie ammo position
-	newPieAmmoModel.Parent = workspace -- Might cause exception
+	newPieAmmoModel.Parent = workspace
 	newPieAmmoMainPart:PivotTo(launchCFrame)
 	newPieAmmoMainPart.Anchored = false
-	newPieAmmoMainPart:SetNetworkOwner(nil)
 
 	-- Launch pie
 	Globals.lastLaunchTime = currentTime
-	ServerPieAmmoApi.createAndLaunch(newPieAmmoModel, caller)
+	ClientPieAmmoApi.createAndLaunch(newPieAmmoModel)
 end
 
 
@@ -202,12 +221,12 @@ createPieAmmoModel = function()
 	if rigidConstraint then
 		rigidConstraint.Enabled = false
 	else
-		warn(`[Server Pie Launch]: No rigid constraint found.`)
+		warn(`[Client Pie Launch]: No rigid constraint found.`)
 	end
 	if upwardsForce then
 		upwardsForce.Enabled = true
 	else
-		warn(`[Server Pie Launch]: No upwards force found.`)
+		warn(`[Client Pie Launch]: No upwards force found.`)
 	end
 
 	-- Update pie ammo model
@@ -221,8 +240,11 @@ end
 ----- Main -----
 
 local function main()
-	-- Remote events
-	BelovedRemote.connect_toServer("Launch Server Pie", onLaunchPie)
+	Constants.apiBindableEvent.Event:Connect(function(mode: string, ...)
+		if mode == "Launch Client Pie" then
+			onLaunchPie(Constants.localPlayer, ...)
+		end
+	end)
 end
 
 

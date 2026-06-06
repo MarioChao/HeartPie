@@ -5,16 +5,12 @@
 
 ---------- Services ----------
 
-local Debris = game:GetService("Debris")
 local RunService = game:GetService("RunService")
 
 
 ---------- Constants ----------
 
 local Constants = {}
-
-Constants.baseUnstickPieTime = 7.5
-Constants.baseRemovePieTime = 12
 
 Constants.timeFunction = time
 
@@ -38,6 +34,11 @@ type CFieldData = {
 	ammoCreator: ObjectValue,
 	ammoPieSpins: boolean,
 
+	ammoPieConfig: Configuration,
+	extraUnstickPieDelayConfig: Configuration,
+	extraRemovePieDelayConfig: Configuration,
+	ammoPieStates: Configuration,
+
 	isPieStuck: boolean,
 	launchStartTime: number,
 	hasHitCharacterEffect: boolean,
@@ -60,6 +61,13 @@ function PieAmmo.new(ammoModel: Model)
 	self.ammoInternalLaunchVelocity = self.ammoModel:GetAttribute("_LaunchVelocity") :: Vector3
 	self.ammoCreator = self.ammoModel:WaitForChild("Creator") :: ObjectValue
 	self.ammoPieSpins = self.ammoModel:GetAttribute("_SpinByVelocity") :: boolean
+
+	-- Values
+	local pieValues = self.ammoModel:WaitForChild("PieValues") :: Folder
+	self.ammoPieConfig = pieValues:WaitForChild("PieConfig") :: Configuration
+	self.extraUnstickPieDelayConfig = self.ammoPieConfig:WaitForChild("ExtraUnstickPieDelay") :: Configuration
+	self.extraRemovePieDelayConfig = self.ammoPieConfig:WaitForChild("ExtraRemovePieDelay") :: Configuration
+	self.ammoPieStates = pieValues:WaitForChild("PieStates") :: Configuration
 
 	-- Variables
 	self.isPieStuck = false
@@ -103,6 +111,8 @@ function PieAmmo.launchPie(self: CObjectType)
 
 	-- Configure and shoot pie with initial velocity
 	self.launchStartTime = Constants.timeFunction()
+	self.ammoPieStates:SetAttribute("LaunchStartTime", self.launchStartTime)
+
 	-- Check if ammo is not stuck before giving velocity
 	local ammoMainPart = self.ammoMainPart
 	local ammoAssemblyRootPart = ammoMainPart.AssemblyRootPart
@@ -114,11 +124,21 @@ function PieAmmo.launchPie(self: CObjectType)
 	end
 
 	-- Unstick
-	task.wait(Constants.baseUnstickPieTime + self.launchStartTime - Constants.timeFunction())
+	while true do
+		if Constants.timeFunction() >= self.launchStartTime + self:getUnstickPieDelay() then
+			break
+		end
+		task.wait()
+	end
 	self:unstickPie()
 
 	-- Remove
-	task.wait(Constants.baseRemovePieTime + self.launchStartTime - Constants.timeFunction())
+	while true do
+		if Constants.timeFunction() >= self.launchStartTime + self:getRemovePieDelay() then
+			break
+		end
+		task.wait()
+	end
 	self:cleanup()
 end
 
@@ -153,12 +173,32 @@ function PieAmmo.matchAmmoSpin(self: CObjectType)
 	table.insert(self.connections, connection)
 end
 
+function PieAmmo.getUnstickPieDelay(self: CObjectType)
+	local unstickDelay = tonumber(self.ammoPieConfig:GetAttribute("BaseUnstickPieDelay")) or 0
+	for _, delay in self.extraUnstickPieDelayConfig:GetAttributes() do
+		if type(delay) == "number" then
+			unstickDelay += delay
+		end
+	end
+	return unstickDelay
+end
+
+function PieAmmo.getRemovePieDelay(self: CObjectType)
+	local removeDelay = tonumber(self.ammoPieConfig:GetAttribute("BaseRemovePieDelay")) or 0
+	for _, delay in self.extraRemovePieDelayConfig:GetAttributes() do
+		if type(delay) == "number" then
+			removeDelay += delay
+		end
+	end
+	return removeDelay
+end
+
 
 --- Clean up ---
 
 function PieAmmo.removePie(self: CObjectType)
 	-- Remove pie in the script
-	Debris:AddItem(self.ammoModel, 0)
+	self.ammoModel:Destroy()
 end
 
 function PieAmmo.cleanup(self: CObjectType)

@@ -1,4 +1,5 @@
 --[[
+
 How to set up Heart Pie's Container Scripts:
 
 
@@ -34,18 +35,7 @@ How to set up Heart Pie's Container Scripts:
 
 Example script:
 ```
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local ServerScriptService = game:GetService("ServerScriptService")
-local ServerStorage = game:GetService("ServerStorage")
-
-local replicatedPresets = ReplicatedStorage.CustomData.Presets
-local skinPresets = ServerScriptService.CustomSkinsData.Presets
-
-local hpm = require(ServerStorage.HeartPie_Module.MainModule)
-
-hpm.setHitEffectsModule(replicatedPresets.NewHitEffects)
-hpm.setSoundEffectsModule(replicatedPresets.NewSoundEffects)
-hpm.setPieSkins_conditional(skinPresets.NewCondPieSkinsFolder, skinPresets.NewPieSkinConditions)
+local hpm = require(game:GetService("ServerStorage").HeartPie_Module.MainModule)
 
 local tool = hpm.setUpAndGetTool()
 

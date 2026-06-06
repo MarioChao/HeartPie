@@ -6,7 +6,6 @@
 ---------- Services ----------
 
 local CollectionService = game:GetService("CollectionService")
-local Debris = game:GetService("Debris")
 local TweenService = game:GetService("TweenService")
 
 
@@ -100,7 +99,7 @@ function Module.orbEffectAtPart(part: BasePart, orbColor: Color3, initialOrbSize
 
 			-- Remove part
 			tween.Completed:Wait()
-			Debris:AddItem(orbPart, 0)
+			orbPart:Destroy()
 		end)
 	end
 end

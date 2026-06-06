@@ -28,12 +28,18 @@ local Constants = {}
 
 Constants.heartPie = _Package:WaitForChild("HeartPie")
 
+do
+    local _ToolValues = Constants.heartPie:WaitForChild("ToolValues")
+    Constants.toolConfig = _ToolValues:WaitForChild("ToolConfig")
+end
+
 Constants.customHitEffectsObjectValue = _EffectPresets:WaitForChild("CustomHitEffectsObjectValue")
 
 Constants.customSoundEffectsObjectValue = _SoundPresets:WaitForChild("CustomSoundEffectsObjectValue")
 
+Constants.customStarterPieSkinsFolderObjectValue = _SkinPresets:WaitForChild("CustomStarterPieSkinsFolderObjectValue")
 Constants.customPieSkinConditionsObjectValue = _SkinPresets:WaitForChild("CustomPieSkinConditionsObjectValue")
-Constants.customPieSkinsFolderObjectValue = _SkinPresets:WaitForChild("CustomPieSkinsFolderObjectValue")
+Constants.customConditionalPieSkinsFolderObjectValue = _SkinPresets:WaitForChild("CustomConditionalPieSkinsFolderObjectValue")
 
 table.freeze(Constants)
 
@@ -53,13 +59,17 @@ function Module.setSoundEffectsModule(soundEffectsModule: ModuleScript)
     Constants.customSoundEffectsObjectValue.Value = soundEffectsModule
 end
 
-function Module.setPieSkins_default(skinsFolder: Folder)
-    -- TODO
+function Module.setPieSkins_starter(skinsFolder: Folder)
+    Constants.customStarterPieSkinsFolderObjectValue.Value = skinsFolder
 end
 
 function Module.setPieSkins_conditional(skinsFolder: Folder, skinConditionsModule: ModuleScript)
-    Constants.customPieSkinsFolderObjectValue.Value = skinsFolder
+    Constants.customConditionalPieSkinsFolderObjectValue.Value = skinsFolder
     Constants.customPieSkinConditionsObjectValue.Value = skinConditionsModule
+end
+
+function Module.getToolConfig()
+    return Constants.toolConfig
 end
 
 function Module.setUpAndGetTool()

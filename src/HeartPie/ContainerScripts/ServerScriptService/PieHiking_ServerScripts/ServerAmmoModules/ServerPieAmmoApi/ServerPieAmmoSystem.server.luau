@@ -13,7 +13,6 @@ end
 
 ---------- Services ----------
 
-local Debris = game:GetService("Debris")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 
@@ -272,7 +271,9 @@ removeServerPie = function(mainPart: BasePart)
 
 	-- Remove pie
 	local pieModel = mainPart and mainPart.Parent
-	Debris:AddItem(pieModel, 0)
+	if pieModel then
+		pieModel:Destroy()
+	end
 end
 
 

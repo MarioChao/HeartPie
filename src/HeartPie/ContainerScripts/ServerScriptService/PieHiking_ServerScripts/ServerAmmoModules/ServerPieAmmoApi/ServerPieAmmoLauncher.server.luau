@@ -44,7 +44,7 @@ onCreateAndLaunch = function(ammoModel: Model, player: Player)
 		return
 	end
 	local ammo = RegularPieAmmo.new(ammoModel, true)
-	ammo:setupAmmo()
+	ammo:setUpAmmo()
 	local character = player.Character
 	if character then
 		ammo:disablePieCollideCharacter(character)

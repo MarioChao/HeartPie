@@ -1,12 +1,4 @@
-# Building the Model
-
-Use [Rojo](https://rojo.space/) to build the model from scratch.
-
-An easy way is to [install Rojo on VS Code](https://rojo.space/docs/v7/getting-started/installation/).
-
-
-# About the Tool
-
+# Heart Pie
 
 ## Setting up the Tool
 
@@ -21,11 +13,10 @@ You can also require the module script (`src / HeartPieModule / MainModule`).
 > You can also set up the tool using the [Pie Hiking Creation Kit](https://create.roblox.com/store/asset/18723187294/Pie-Hiking-Creation-Kit) plugin,
 > which also contains a kit for creating pie hiking maps!
 
-
 ## Reference Properites
 
 The project contains several [reference](https://rojo.space/docs/v7/properties/#ref) properties.<br>
-These are dynamically set through the [initializer](/src/Heart%20Pie/ToolScripts/-InitializerActor/Initializer.server.luau) and [PieSkins](./src/Heart%20Pie/ToolScripts/PieSkinsActor/ServerPieSkin.server.luau) script.
+These are dynamically set through the [initializer](/src/HeartPie/HeartPie/ToolScripts/ToolInitializer.server.luau) and [PieSkins](/src/HeartPie/HeartPie/ToolScripts/PieSkins/ServerPieSkin.server.luau) script.
 
 - `SkinMainPart`:
     - RigidConstrant (PieSkinAttachment, PieAttachment)
@@ -40,9 +31,7 @@ There may be cases where you want these properties to be set already.<br>
 To set these properties in Roblox Studio:
 
 1. Select the pie tool (`Heart Pie`) in studio.
-2. Copy & run the [initializer](/src/Heart%20Pie/ToolScripts/-InitializerActor/Initializer.server.luau) script in the command bar.
-3. Disable the tool's initializer script, located at (`Heart Pie` > `ToolScripts` > `-InitializerActor` > `Initializer`).
-
+2. Copy & run the [initializer](/src/HeartPie/HeartPie/ToolScripts/ToolInitializer.server.luau) script in the command bar.
 
 ## Credits
 

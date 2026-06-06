@@ -47,7 +47,7 @@ onCreateAndLaunch = function(ammoModel: Model)
 		return
 	end
 	local ammo = RegularPieAmmo.new(ammoModel, false)
-	ammo:setupAmmo()
+	ammo:setUpAmmo()
 	if not ammoModel:GetAttribute("_CanCollideThrower") then
 		local character = Constants.localPlayer.Character
 		if character then

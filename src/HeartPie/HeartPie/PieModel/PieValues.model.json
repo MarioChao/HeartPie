@@ -1,0 +1,36 @@
+{
+    "className": "Folder",
+    "children": [
+        {
+            "name": "PieConfig",
+            "className": "Configuration",
+            "children": [
+                {
+                    "name": "ExtraRemovePieDelay",
+                    "className": "Configuration",
+                    "attributes": {
+                        "SampleExtra": 0
+                    }
+                },
+                {
+                    "name": "ExtraUnstickPieDelay",
+                    "className": "Configuration",
+                    "attributes": {
+                        "SampleExtra": 0
+                    }
+                }
+            ],
+            "attributes": {
+                "BaseRemovePieDelay": 12,
+                "BaseUnstickPieDelay": 7.5
+            }
+        },
+        {
+            "name": "PieStates",
+            "className": "Configuration",
+            "attributes": {
+                "LaunchStartTime": -1
+            }
+        }
+    ]
+}

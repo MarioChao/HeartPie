@@ -1,6 +1,6 @@
 --!strict
 
--- Client Pie Ammo Api
+-- Client Tool Use Api
 
 
 ---------- Validate environment ----------
@@ -8,7 +8,7 @@
 local RunService = game:GetService("RunService")
 
 if not RunService:IsClient() then
-	warn(`[Client Pie Ammo Api]: Module should only be called from the Client!`)
+    warn(`[Client Tool Use Api]: Module should only be called from the Client!`)
 end
 
 
@@ -28,8 +28,12 @@ local Module = {}
 
 ----- Module fields -----
 
-function Module.createAndLaunch(ammoModel: Model)
-	Constants.apiBindableEvent:Fire("Create and Launch", ammoModel)
+function Module.launchPie()
+	Constants.apiBindableEvent:Fire("Launch Pie")
+end
+
+function Module.setPieLaunchType(launchType: "Client" | "Server")
+	Constants.apiBindableEvent:Fire("Set Pie Launch Type", launchType)
 end
 
 

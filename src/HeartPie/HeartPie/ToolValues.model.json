@@ -1,0 +1,32 @@
+{
+    "className": "Folder",
+    "children": [
+        {
+            "name": "ToolConfig",
+            "className": "Configuration",
+            "attributes": {
+                "AutoReload": {"Bool": true},
+                "CanCollideThrower": {"Bool": true},
+                "CanOverlapPart": {"Bool": false},
+                "CanSwitchType": {"Bool": true},
+                "DurationReload": {"Float64": 0.5},
+                "DurationThrow": {"Float64": 0.6},
+                "IsClientPieType": {"Bool": true},
+                "LaunchOffsetStuds": {"Float64": 10},
+                "LaunchVelocity": {"Float64": 50},
+                "NoCollideTransparency": {"Float64": 0.6},
+                "PieAlignSpin": {"Bool": true},
+                "PieSpinByVelocity": {"Bool": false},
+                "ReloadShowPie": {"Bool": false},
+                "ShowGui": {"Bool": true}
+            }
+        },
+        {
+            "name": "ToolStates",
+            "className": "Configuration",
+            "attributes": {
+                "MouseIconValue": {"Float64": 0}
+            }
+        }
+    ]
+}

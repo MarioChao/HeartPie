@@ -1,19 +1,12 @@
 --!strict
--- Server Pie Skins Script
 
-
----------- Validate container ----------
-
--- Under data model
-if not script:FindFirstAncestorWhichIsA("DataModel") then
-	return
-end
+-- Server Pie Skins
 
 
 ---------- Services ----------
 
 local HttpService = game:GetService("HttpService")
-local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 
@@ -24,75 +17,83 @@ local _SkinModules = _PieHiking_ServerScripts:WaitForChild("SkinModules")
 local PieSkinsApi = require(_SkinModules:WaitForChild("PieSkinsApi"))
 local SkinUtil = require(_SkinModules:WaitForChild("SkinUtil"))
 
+local _PieHiking_SharedStorage = ReplicatedStorage:WaitForChild("PieHiking_SharedStorage")
+local _Modules = _PieHiking_SharedStorage:WaitForChild("Modules")
+local BelovedRemote = require(_Modules:WaitForChild("BelovedRemote"))
+
+local _ToolScripts = script.Parent.Parent
+local Tooling = require(_ToolScripts:WaitForChild("Tooling"))
+
+local _ToolVisual = _ToolScripts:WaitForChild("ToolVisual")
+local ServerToolVisualApi = require(_ToolVisual:WaitForChild("ServerToolVisualApi"))
+
 
 ---------- Types ----------
 
 type SkinInfo = {Id: number, Model: Model}
 
 
----------- Instances ----------
+---------- Globals ----------
 
-local Tool = script.Parent.Parent.Parent
-local ToolEvents = Tool:WaitForChild("ToolEvents")
-local PieSkinRemoteEvent = ToolEvents:WaitForChild("PieSkinRemoteEvent")
-local ToolVisualEvent = ToolEvents:WaitForChild("ToolVisualEvent")
+local Globals = {}
 
-local PieModel = Tool:WaitForChild("PieModel")
-local PieMainPart = PieModel:WaitForChild("MainPart")
-local PieMainPartAttachment = PieMainPart:WaitForChild("PieAttachment")
+Globals.pieSkinsTable = {} :: {SkinInfo}
 
-local PieSkins = Tool:WaitForChild("PieSkins")
+Globals.changeSkinIdThrottle = false
+Globals.skinAddedDebounceId = -1
 
 
----------- Variables ----------
+---------- Local functions ----------
 
-local pieSkinsTable: {SkinInfo}
+local setSkinIdTo
+local setRealSkinIdTo
+local changeSkinIdBy
 
-local character: Model? = nil
-local player: Player? = nil
+local setUpPieSkin
+local setUpPieSkinsTable
+local onNewSkinsAdded
+local loadSavedSkin
+local initSetUp
 
-local changeSkinIdThrottle = false
 
-local skinAddedDebounceId = -1
+----- Skin id -----
 
-
----------- Skin id functions ----------
-
-local function setSkinIdTo(newSkinId: number, dontSave: boolean?)
+setSkinIdTo = function(newSkinId: number, dontSave: boolean?)
 	-- Validate skin
-	newSkinId = (newSkinId - 1) % (#pieSkinsTable) + 1
-	if not pieSkinsTable[newSkinId] then
+	newSkinId = (newSkinId - 1) % (#Globals.pieSkinsTable) + 1
+	if not Globals.pieSkinsTable[newSkinId] then
 		return
 	end
 
 	-- Remove old skin
-	local oldPieSkinFolder = PieModel:FindFirstChild("PieSkin")
+	local oldPieSkinFolder = Tooling.pieModel:FindFirstChild("PieSkin")
 	if oldPieSkinFolder then
 		oldPieSkinFolder:Destroy()
 	end
 
 	-- Update new skin
-	PieModel:SetAttribute("EquippedSkinId", newSkinId)
+	Tooling.pieModel:SetAttribute("EquippedSkinId", newSkinId)
 	local newPieSkinFolder = Instance.new("Folder")
 	newPieSkinFolder.Name = "PieSkin"
-	local newPieSkinInfo = pieSkinsTable[newSkinId]
+	local newPieSkinInfo = Globals.pieSkinsTable[newSkinId]
 	local newPieSkinModel = newPieSkinInfo.Model:Clone()
 	newPieSkinModel.Parent = newPieSkinFolder
 
-	newPieSkinFolder.Parent = PieModel -- Might cause exception
+	newPieSkinFolder.Parent = Tooling.pieModel -- Might cause exception
 
 	-- Update tool properties
 	local skinConfig = SkinUtil.getSkinConfig(newPieSkinModel)
 	if skinConfig then
-		Tool.TextureId = skinConfig.toolTextureId
-		Tool.ToolTip = skinConfig.toolTip
+		Tooling.tool.TextureId = skinConfig.toolTextureId
+		Tooling.tool.ToolTip = skinConfig.toolTip
 	end
 
 	-- Renew transparency
-	ToolVisualEvent:Fire("Renew Pie Transparency")
+	ServerToolVisualApi.renewPieTransparency()
 
 	-- Save skin
 	if not dontSave then
+		local player = Tooling.getOwner()
 		local userId = player and player.UserId
 		if userId then
 			PieSkinsApi.saveUserSkinId(userId, newPieSkinInfo.Id)
@@ -100,9 +101,9 @@ local function setSkinIdTo(newSkinId: number, dontSave: boolean?)
 	end
 end
 
-local function setRealSkinIdTo(realSkinId: number, dontSave: boolean?)
+setRealSkinIdTo = function(realSkinId: number, dontSave: boolean?)
 	local newSkinId = 1
-	for id, pieSkinInfo in pieSkinsTable do
+	for id, pieSkinInfo in Globals.pieSkinsTable do
 		if pieSkinInfo.Id == realSkinId then
 			newSkinId = id
 			break
@@ -111,33 +112,33 @@ local function setRealSkinIdTo(realSkinId: number, dontSave: boolean?)
 	setSkinIdTo(newSkinId, dontSave)
 end
 
-local function changeSkinIdBy(caller: Player, amount: number)
-	if not changeSkinIdThrottle then
-		changeSkinIdThrottle = true
+changeSkinIdBy = function(caller: Player, amount: number)
+	if not Globals.changeSkinIdThrottle then
+		Globals.changeSkinIdThrottle = true
 
 		-- Validate
-		if not (caller == player and tonumber(amount)) then
+		if not (caller == Tooling.getOwner() and tonumber(amount)) then
 			return
 		end
 
 		-- Get new skin id of the pie model
-		local oldSkinId = PieModel:GetAttribute("EquippedSkinId")
-		-- About positive modulo: https://devforum.roblox.com/t/how-to-get-value-which-will-follow-formula-y-x-1-16-1-but-also-for-negative-numbers/2322681
-		local newSkinId = (oldSkinId + amount - 1) % (#pieSkinsTable) + 1
-		if not pieSkinsTable[newSkinId] then
+		local oldSkinId = Tooling.pieModel:GetAttribute("EquippedSkinId")
+		local newSkinId = (oldSkinId + amount - 1) % (#Globals.pieSkinsTable) + 1
+		if not Globals.pieSkinsTable[newSkinId] then
 			return
 		end
 
 		-- Remove old skin
 		setSkinIdTo(newSkinId)
 
-		changeSkinIdThrottle = false
+		Globals.changeSkinIdThrottle = false
 	end
 end
 
----------- Skin setup functions ----------
 
-local function setUpPieSkin(skin: Model)
+----- Skin setup -----
+
+setUpPieSkin = function(skin: Model)
     -- Validate skin main part
     local skinMainPart = skin:FindFirstChild("SkinMainPart")
     if not (skinMainPart and skinMainPart:IsA("BasePart")) then
@@ -155,7 +156,7 @@ local function setUpPieSkin(skin: Model)
 	local rigidConstraint = skinMainPart:FindFirstChild("RigidConstraint")
 	if rigidConstraint and rigidConstraint:IsA("RigidConstraint") then
 		rigidConstraint.Attachment0 = skinAttachment
-		rigidConstraint.Attachment1 = PieMainPartAttachment
+		rigidConstraint.Attachment1 = Tooling.pieMainPartAttachment
 	else
 		warn(`[Server Pie Skin]: No rigid constraint found for skin {skin}.`)
 	end
@@ -168,11 +169,11 @@ local function setUpPieSkin(skin: Model)
 	end
 end
 
-local function setUpPieSkinsTable()
-	changeSkinIdThrottle = true
+setUpPieSkinsTable = function()
+	Globals.changeSkinIdThrottle = true
 
 	-- Set reference properties
-	for _, skinModel in PieSkins:GetChildren() do
+	for _, skinModel in Tooling.pieSkinsFolder:GetChildren() do
 		if SkinUtil.getIsSkinModel(skinModel) then
 			setUpPieSkin(skinModel)
 		end
@@ -180,7 +181,7 @@ local function setUpPieSkinsTable()
 
 	-- Record valid pie skins from folder
 	local validPieSkinsInfo = {} :: {SkinInfo}
-	for _, skinModel in PieSkins:GetChildren() do
+	for _, skinModel in Tooling.pieSkinsFolder:GetChildren() do
 		-- Validate pie skin
 		local skinConfig = SkinUtil.getSkinConfig(skinModel)
 		if not (SkinUtil.getIsSkinModel(skinModel) and skinConfig) then
@@ -203,33 +204,33 @@ local function setUpPieSkinsTable()
 	end)
 
 	-- Store pie skins in table
-	pieSkinsTable = {} :: {SkinInfo}
+	Globals.pieSkinsTable = {} :: {SkinInfo}
 	for _, pieSkinInfo in validPieSkinsInfo do
-		table.insert(pieSkinsTable, pieSkinInfo)
+		table.insert(Globals.pieSkinsTable, pieSkinInfo)
 	end
 
-	changeSkinIdThrottle = false
+	Globals.changeSkinIdThrottle = false
 end
 
-local function onNewSkinsAdded(skin: Instance)
+onNewSkinsAdded = function(skin: Instance)
 	-- Debounce
-	-- If many skins are added in a short period,
+	-- If many skins are added in a short period (1 frame),
 	-- wait until the last one is added, then proceed with the following code
 	local debounceId = HttpService:GenerateGUID()
-	skinAddedDebounceId = debounceId
-	task.wait(0.3)
+	Globals.skinAddedDebounceId = debounceId
+	task.wait()
 
 	-- Check if debounce changed
-	if skinAddedDebounceId ~= debounceId then
+	if Globals.skinAddedDebounceId ~= debounceId then
 		return
 	end
-	-- print("Running skin added, " .. skin.Name)
 
 	-- Store equipped skin id
-	local oldSkinId = PieModel:GetAttribute("EquippedSkinId")
-	local realSkinId = pieSkinsTable[oldSkinId] and pieSkinsTable[oldSkinId].Id or 0
+	local oldSkinId = Tooling.pieModel:GetAttribute("EquippedSkinId")
+	local realSkinId = Globals.pieSkinsTable[oldSkinId] and Globals.pieSkinsTable[oldSkinId].Id or 0
 
 	-- Used saved skin id if possible
+	local player = Tooling.getOwner()
 	local userId = player and player.UserId
 	if userId then
 		local savedRealSkinId = PieSkinsApi.getUserSkinId(userId)
@@ -245,28 +246,17 @@ local function onNewSkinsAdded(skin: Instance)
 	setRealSkinIdTo(realSkinId, true)
 end
 
-local function loadSavedSkin()
+loadSavedSkin = function()
 	-- Check variable
-	local tempPlayer = player
-
-	-- Check character
-	if not tempPlayer then
-		local tempCharacter = Tool.Parent
-		tempPlayer = tempCharacter and Players:GetPlayerFromCharacter(tempCharacter)
-	end
-
-	-- Check player is ancestor
-	if not tempPlayer then
-		tempPlayer = Tool:FindFirstAncestorWhichIsA("Player")
-	end
+	local player = Tooling.getOwner()
 
 	-- Populate skins
-	if tempPlayer then
-		PieSkinsApi.populateToolSkins(Tool)
+	if player then
+		PieSkinsApi.populateToolSkins(Tooling.tool)
 	end
 
 	-- Switch skin
-	local userId = tempPlayer and tempPlayer.UserId
+	local userId = player and player.UserId
 	if userId then
 		local savedRealSkinId = PieSkinsApi.getUserSkinId(userId)
 		if savedRealSkinId then
@@ -275,39 +265,31 @@ local function loadSavedSkin()
 	end
 end
 
-local function onToolEquipped()
-	character = Tool.Parent
-	player = character and Players:GetPlayerFromCharacter(character)
-	loadSavedSkin()
-end
-
-local function onToolUnequipped()
-	character = nil
-	player = nil
-end
-
-local function initSetUp()
+initSetUp = function()
 	setUpPieSkinsTable()
-	setSkinIdTo(PieModel:GetAttribute("EquippedSkinId"), true)
+	setSkinIdTo(Tooling.pieModel:GetAttribute("EquippedSkinId"), true)
 
 	-- Events for changing skins
-	PieSkins.ChildAdded:Connect(onNewSkinsAdded)
-	PieSkins.ChildRemoved:Connect(onNewSkinsAdded)
+	Tooling.pieSkinsFolder.ChildAdded:Connect(onNewSkinsAdded)
+	Tooling.pieSkinsFolder.ChildRemoved:Connect(onNewSkinsAdded)
 end
 
 
----------- Event functions ----------
+----- Main -----
 
-local function onPieSkinServerEvent(caller: Player, mode: string, ...)
-	if mode == "Change Skin Id By" then
-		changeSkinIdBy(caller, ...)
-	end
+local function main()
+	-- Parent changed
+	Tooling.tool:GetPropertyChangedSignal("Parent"):Connect(loadSavedSkin)
+
+	-- Remote events
+	BelovedRemote.connect_toServer("Change Skin Id By", changeSkinIdBy)
+
+	-- Set up
+	loadSavedSkin()
+	initSetUp()
 end
 
 
----------- Calling / connecting functions ----------
+---------- Calling function ----------
 
-Tool.Equipped:Connect(onToolEquipped)
-Tool.Unequipped:Connect(onToolUnequipped)
-PieSkinRemoteEvent.OnServerEvent:Connect(onPieSkinServerEvent)
-initSetUp()
+main()

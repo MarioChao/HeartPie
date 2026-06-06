@@ -5,7 +5,6 @@
 
 ---------- Services ----------
 
-local Debris = game:GetService("Debris")
 local PhysicsService = game:GetService("PhysicsService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -39,9 +38,6 @@ end
 
 local Constants = {}
 
-Constants.baseUnstickPieTime = 7.5
-Constants.baseRemovePieTime = 12
-
 Constants.timeFunction = time
 
 table.freeze(Constants)
@@ -64,6 +60,11 @@ type CFieldData = {
 	ammoCreator: ObjectValue,
 	ammoPieSpins: boolean,
 	ammoCanOverlapPart: boolean,
+
+	ammoPieConfig: Configuration,
+	extraUnstickPieDelayConfig: Configuration,
+	extraRemovePieDelayConfig: Configuration,
+	ammoPieStates: Configuration,
 
 	isPieStuck: boolean,
 	launchStartTime: number,
@@ -89,6 +90,13 @@ function PieAmmo.new(ammoModel: Model, hasHitCharacterEffect: boolean)
 	self.ammoCreator = self.ammoModel:WaitForChild("Creator") :: ObjectValue
 	self.ammoPieSpins = self.ammoModel:GetAttribute("_SpinByVelocity") :: boolean
 	self.ammoCanOverlapPart = self.ammoModel:GetAttribute("_CanOverlapPart") :: boolean
+
+	-- Values
+	local pieValues = self.ammoModel:WaitForChild("PieValues") :: Folder
+	self.ammoPieConfig = pieValues:WaitForChild("PieConfig") :: Configuration
+	self.extraUnstickPieDelayConfig = self.ammoPieConfig:WaitForChild("ExtraUnstickPieDelay") :: Configuration
+	self.extraRemovePieDelayConfig = self.ammoPieConfig:WaitForChild("ExtraRemovePieDelay") :: Configuration
+	self.ammoPieStates = pieValues:WaitForChild("PieStates") :: Configuration
 
 	-- Variables
 	self.isPieStuck = false
@@ -125,12 +133,12 @@ end
 
 --- Pie functions ---
 
-function PieAmmo.setupAmmo(self: CObjectType)
-	-- Validate ammo model
-	if not self.ammoModel then
+function PieAmmo.setUpAmmo(self: CObjectType)
+	-- Validate ammo
+	if not (self.ammoMainPart and self.isValid) then
+		warn(`[Regular Pie Ammo]: Invalid ammo.`)
 		return
 	end
-	self.launchStartTime = Constants.timeFunction()
 
 	-- Connect Touched events on every physical pie parts
 	for _, part in self.ammoModel:GetDescendants() do
@@ -157,12 +165,13 @@ end
 function PieAmmo.launchPie(self: CObjectType)
 	-- Validate ammo main part
 	if not self.ammoMainPart then
-		print(`[Regular Pie Ammo]: not main part.`)
+		warn(`[Regular Pie Ammo]: No main part.`)
 		return
 	end
 
 	-- Configure and shoot pie with initial velocity
 	self.launchStartTime = Constants.timeFunction()
+	self.ammoPieStates:SetAttribute("LaunchStartTime", self.launchStartTime)
 	self:playSoundEffect("fire")
 
 	-- Check if ammo is not stuck before giving velocity
@@ -178,17 +187,21 @@ function PieAmmo.launchPie(self: CObjectType)
 	end
 
 	-- Unstick seconds after launch
-	local timeUntilUnstick = self.ammoModel:FindFirstChild("TimeUntilUnstick")
-	while self.launchStartTime + Constants.baseUnstickPieTime > Constants.timeFunction() do
-		if timeUntilUnstick and timeUntilUnstick:IsA("NumberValue") then
-			timeUntilUnstick.Value = self.launchStartTime + Constants.baseUnstickPieTime - Constants.timeFunction()
+	while true do
+		if Constants.timeFunction() >= self.launchStartTime + self:getUnstickPieDelay() then
+			break
 		end
 		task.wait()
 	end
 	self:unstickPie()
 
 	-- Remove seconds after launch
-	task.wait(Constants.baseRemovePieTime + self.launchStartTime - Constants.timeFunction())
+	while true do
+		if Constants.timeFunction() >= self.launchStartTime + self:getRemovePieDelay() then
+			break
+		end
+		task.wait()
+	end
 	self:cleanup()
 end
 
@@ -391,7 +404,7 @@ function PieAmmo.onTouched(self: CObjectType, otherPart: BasePart, mainPartRelat
 	end
 
 	-- Validate unstick time
-	if not (Constants.timeFunction() - self.launchStartTime <= Constants.baseUnstickPieTime) then
+	if not (Constants.timeFunction() < self.launchStartTime + self:getUnstickPieDelay()) then
 		return
 	end
 
@@ -531,6 +544,26 @@ function PieAmmo.playSoundEffect(self: CObjectType, soundName: SoundEffectsGette
 	end
 end
 
+function PieAmmo.getUnstickPieDelay(self: CObjectType)
+	local unstickDelay = tonumber(self.ammoPieConfig:GetAttribute("BaseUnstickPieDelay")) or 0
+	for _, delay in self.extraUnstickPieDelayConfig:GetAttributes() do
+		if type(delay) == "number" then
+			unstickDelay += delay
+		end
+	end
+	return unstickDelay
+end
+
+function PieAmmo.getRemovePieDelay(self: CObjectType)
+	local removeDelay = tonumber(self.ammoPieConfig:GetAttribute("BaseRemovePieDelay")) or 0
+	for _, delay in self.extraRemovePieDelayConfig:GetAttributes() do
+		if type(delay) == "number" then
+			removeDelay += delay
+		end
+	end
+	return removeDelay
+end
+
 
 --- Clean up ---
 
@@ -538,25 +571,20 @@ function PieAmmo.removeNoCollideConstraints(self: CObjectType)
 	for _, constraints in self.disabledCharacterCollisions do
 		for _, noCollisionConstraint: NoCollisionConstraint in constraints do
 			noCollisionConstraint.Enabled = false
-			Debris:AddItem(noCollisionConstraint, 0)
+			noCollisionConstraint:Destroy()
 		end
 	end
 	self.disabledCharacterCollisions = {}
 end
 
 function PieAmmo.removePie(self: CObjectType)
-	-- Validate ammo model
-	if not self.ammoModel then
-		return
-	end
-
 	-- Remove pie in the server
 	if ServerPieAmmoApi and self.ammoMainPart then
 		ServerPieAmmoApi.removeServerPie(self.ammoMainPart)
 	end
 
 	-- Remove pie in the script
-	Debris:AddItem(self.ammoModel, 0)
+	self.ammoModel:Destroy()
 end
 
 function PieAmmo.cleanup(self: CObjectType)

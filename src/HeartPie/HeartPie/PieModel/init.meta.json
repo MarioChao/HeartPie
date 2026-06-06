@@ -1,6 +1,5 @@
 {
     "className": "Model",
-    "ignoreUnknownInstances": true,
     "properties": {
         "Attributes": {
             "_CanCollideThrower": {"Bool": false},

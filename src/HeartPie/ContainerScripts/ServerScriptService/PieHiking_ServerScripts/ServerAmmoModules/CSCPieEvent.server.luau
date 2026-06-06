@@ -62,7 +62,9 @@ checkFinalizedLaunchMotion = function(tool: Tool, player: Player, launchMotion: 
 		return false
 	end
 	local throwDistance = (humanoidRootPart.Position - launchPosition).Magnitude
-	local launchOffsetStuds = tonumber(tool:GetAttribute("LaunchOffsetStuds"))
+	local _toolValues = tool:FindFirstChild("ToolValues")
+	local _toolConfig = _toolValues and _toolValues:FindFirstChild("ToolConfig")
+	local launchOffsetStuds = _toolConfig and tonumber(_toolConfig:GetAttribute("LaunchOffsetStuds"))
 	if not launchOffsetStuds then
 		return false
 	end
@@ -88,8 +90,15 @@ onLaunchCSCPie = function(caller: Player, tool: Tool, pieModel: Model, launchMot
 		return
 	end
 
+	-- Validate tool config
+	local _toolValues = tool:FindFirstChild("ToolValues")
+	local _toolConfig = _toolValues and _toolValues:FindFirstChild("ToolConfig")
+	if not _toolConfig then
+		return
+	end
+
 	-- Validate and add velocity to launch direction
-	local launchVelocity = tonumber(tool:GetAttribute("LaunchVelocity"))
+	local launchVelocity = tonumber(_toolConfig:GetAttribute("LaunchVelocity"))
 	if not launchVelocity then
 		return
 	end
@@ -97,9 +106,9 @@ onLaunchCSCPie = function(caller: Player, tool: Tool, pieModel: Model, launchMot
 
 	-- Fire event for CSC Pie
 	local canCollide = false
-	local transparency = tool:GetAttribute("NoCollideTransparency")
-	local pieAlignSpin = tool:GetAttribute("PieAlignSpin")
-	local pieSpinByVelocity = tool:GetAttribute("PieSpinByVelocity")
+	local transparency = _toolConfig:GetAttribute("NoCollideTransparency")
+	local pieAlignSpin = _toolConfig:GetAttribute("PieAlignSpin")
+	local pieSpinByVelocity = _toolConfig:GetAttribute("PieSpinByVelocity")
 	local pieSpinInfo = {
 		["AlignSpin"] = pieAlignSpin,
 		["ByVelocity"] = pieSpinByVelocity
