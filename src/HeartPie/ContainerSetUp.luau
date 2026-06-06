@@ -114,7 +114,14 @@ setUpPieToolContainers = function(): {Instance}
 			EffectModules = {
 				Presets = {
 					DefaultHitEffects = {},
+					CustomHitEffectsObjectValue = {},
 				},
+			},
+			SoundModules = {
+				Presets = {
+					DefaultSoundEffects = {},
+					CustomSoundEffectsObjectValue = {},
+				}
 			},
 		},
 	})
@@ -123,9 +130,15 @@ setUpPieToolContainers = function(): {Instance}
 	-- Server script service
 	tempInstances = cloneReparentRecursive(containerScripts.ServerScriptService, ServerScriptService, {
 		PieHiking_ServerScripts = {
-			Presets = {
-				PieSkins = {},
-				PieSkinConditions = {},
+			SkinModules = {
+				Presets = {
+					DefaultConditionalPieSkinsFolder = {},
+					DefaultStarterPieSkinsFolder = {},
+					DefaultPieSkinConditions = {},
+					CustomConditionalPieSkinsFolderObjectValue = {},
+					CustomStarterPieSkinsFolderObjectValue = {},
+					CustomPieSkinConditionsObjectValue = {},
+				},
 			},
 		},
 	})
