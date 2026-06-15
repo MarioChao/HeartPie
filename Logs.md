@@ -4,7 +4,14 @@
 
 - [ ] Allow pies to be visible if they are initially in the workspace.
 
-## [2.0.0] Reorganization + Refactorization | 2026/05/27 - 06/06
+## [v2.0.1] Fixed center-of-mass + Fixed swapping skins | 2026/06/15
+
+Fixed significant center-of-mass angle glitch caused by the main part having mass.
+- The main part's massless property is disabled in the launched ammo.
+
+Fixed swapping skins breaking when there's multiple players.
+
+## [v2.0.0] Reorganization + Refactorization | 2026/05/27 - 06/06
 
 Renamed `ContainerScripts (see ReadMe)` folder to just `ContainerScripts`.
 
@@ -71,7 +78,7 @@ Created new `HeartPie_Module` with a child `MainModule`:
 - Allows customizations like hit effects, sound effects, pie skins, and tool config.
 - Call `.setUpAndGetTool()` to set up containers (using `ContainerSetUp`) and retrieve the tool.
 
-## [1.0.14] More environment validation checks | 2026/03/28 (2)
+## [v1.0.14] More environment validation checks | 2026/03/28 (2)
 
 Added environment validation checks to all tool scripts.
 - Checks if the script is under a DataModel.
@@ -86,7 +93,7 @@ Added environment validation checks to all tool scripts.
 > - Remove the container scripts from `StarterPlayerScripts`.
 >   - Add the new **PieHiking_PlayerScripts** in `ReplicatedStorage`.
 
-## [1.0.13] Package reorganization + Moved player scripts + Renamed directory | 2026/03/28 (1)
+## [v1.0.13] Package reorganization + Moved player scripts + Renamed directory | 2026/03/28 (1)
 
 Reorganized the pie tool:
 - Container scripts are no longer under the pie Tool.
@@ -100,7 +107,7 @@ Added more validation checks to container scripts.
 
 Modified the Rojo project file to sync as a Roblox place file.
 
-## [1.0.12] Thrower Pie Collision + Cherry Pie Skin + About Me | 2025/07/26
+## [v1.0.12] Thrower Pie Collision + Cherry Pie Skin + About Me | 2025/07/26
 
 Toggle whether pie can collide the thrower through the attribute `CanCollideThrower` (enabled by default).
 
@@ -128,7 +135,7 @@ Created an [**AboutMe**](src/Heart%20Pie/AboutMe.server.luau) explaining pie ski
 > Add the disabled script **AboutMe** (pie tool).
 
 
-## [1.0.11] Attribute Changes | 2025/07/26
+## [v1.0.11] Attribute Changes | 2025/07/26
 
 Moved attribute `CanOverlapPart` from the `PieModel` to the `HeartPie` tool.
 
@@ -150,7 +157,7 @@ Renamed attribute `PrintDebug` to `_PrintDebug`.
 > Rename the pie tool attribute to `_PrintDebug`.
 
 
-## [1.0.10] Auto Reload + Reload Show Pie | 2025/07/25
+## [v1.0.10] Auto Reload + Reload Show Pie | 2025/07/25
 
 Added auto reloading the pie through the `AutoReload` attribute (enabled by default).
 

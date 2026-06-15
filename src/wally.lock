@@ -14,5 +14,5 @@ dependencies = []
 
 [[package]]
 name = "mariochao/heart-pie"
-version = "2.0.0"
+version = "2.0.1"
 dependencies = [["BadgeUtil", "mariochao/badge-util@0.0.2"], ["BelovedRemote", "mariochao/beloved-remote@0.0.2"]]

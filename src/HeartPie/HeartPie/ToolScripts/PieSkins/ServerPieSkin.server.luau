@@ -55,7 +55,8 @@ Globals.skinAddedDebounceId = -1
 
 local setSkinIdTo
 local setRealSkinIdTo
-local changeSkinIdBy
+local _changeSkinIdBy
+local changeSkinIdByThrottled
 
 local setUpPieSkin
 local setUpPieSkinsTable
@@ -120,24 +121,28 @@ setRealSkinIdTo = function(realSkinId: number, dontSave: boolean?)
 	setSkinIdTo(newSkinId, dontSave)
 end
 
-changeSkinIdBy = function(caller: Player, amount: number)
+_changeSkinIdBy = function(caller: Player, amount: number)
+	-- Validate
+	if not (caller == Tooling.getOwner() and tonumber(amount)) then
+		return
+	end
+
+	-- Get new skin id of the pie model
+	local oldSkinId = Tooling.pieModel:GetAttribute("EquippedSkinId")
+	local newSkinId = (oldSkinId + amount - 1) % (#Globals.pieSkinsTable) + 1
+	if not Globals.pieSkinsTable[newSkinId] then
+		return
+	end
+
+	-- Remove old skin
+	setSkinIdTo(newSkinId)
+end
+
+changeSkinIdByThrottled = function(caller: Player, amount: number)
 	if not Globals.changeSkinIdThrottle then
 		Globals.changeSkinIdThrottle = true
 
-		-- Validate
-		if not (caller == Tooling.getOwner() and tonumber(amount)) then
-			return
-		end
-
-		-- Get new skin id of the pie model
-		local oldSkinId = Tooling.pieModel:GetAttribute("EquippedSkinId")
-		local newSkinId = (oldSkinId + amount - 1) % (#Globals.pieSkinsTable) + 1
-		if not Globals.pieSkinsTable[newSkinId] then
-			return
-		end
-
-		-- Remove old skin
-		setSkinIdTo(newSkinId)
+		_changeSkinIdBy(caller, amount)
 
 		Globals.changeSkinIdThrottle = false
 	end
@@ -290,7 +295,7 @@ local function main()
 	Tooling.tool:GetPropertyChangedSignal("Parent"):Connect(loadSavedSkin)
 
 	-- Remote events
-	BelovedRemote.connect_toServer("Change Skin Id By", changeSkinIdBy)
+	BelovedRemote.connect_toServer("Change Skin Id By", changeSkinIdByThrottled)
 
 	-- Set up
 	loadSavedSkin()

@@ -16,8 +16,7 @@
             "className": "Part",
             "properties": {
                 "BrickColor": {"BrickColor": 105},
-                "Size": [2, 2, 1],
-                "Massless": true
+                "Size": [2, 2, 1]
             },
             "children": [
                 {

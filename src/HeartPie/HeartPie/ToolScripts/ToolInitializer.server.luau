@@ -93,6 +93,9 @@ setUpPieModelReferences = function()
 	-- Model primary part
 	Constants.pieModel.PrimaryPart = Constants.pieMainPart
 
+	-- Main part mass
+	Constants.pieMainPart.Massless = true
+
 	-- Align orientation
 	local alignOrientation = Constants.pieMainPart:WaitForChild("AlignOrientation")
 	alignOrientation.Attachment0 = Constants.pieAttachment

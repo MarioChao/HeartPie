@@ -110,6 +110,7 @@ function PieAmmo.launchPie(self: CObjectType)
 	end
 
 	-- Configure and shoot pie with initial velocity
+	self.ammoMainPart.Massless = false
 	self.launchStartTime = Constants.timeFunction()
 	self.ammoPieStates:SetAttribute("LaunchStartTime", self.launchStartTime)
 

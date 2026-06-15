@@ -2,7 +2,7 @@
 name = "mariochao/heart-pie"
 description = "A complete revamp of the classic pie hiking gear."
 
-version = "2.0.0"
+version = "2.0.1"
 license = "MIT"
 authors = ["Mario Chao"]
 realm = "shared"
