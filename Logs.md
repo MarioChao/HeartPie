@@ -4,6 +4,18 @@
 
 - [ ] Allow pies to be visible if they are initially in the workspace.
 
+## [v2.0.2] Network ownership fix + Pie sound fix | 2026/06/22
+
+Fixed network ownership issue for server pies.
+- Issue: network ownership resets to "auto" after setting the massless property of the main part.
+- Solution: set the massless property first through `:setUpAmmo()`, then set the network ownership when calling `:launchPie()`.
+
+Fixed pie sound sometimes not playing when firing server pie.
+
+Modified wally dependencies to use `:WaitForChild()` instead of direct indexing.
+- The issue is that direct indexing on the client can lead to nil indexing error (especially for dynamically loaded modules).
+- Note: this change isn't visible in the commit.
+
 ## [v2.0.1] Fixed center-of-mass + Fixed swapping skins | 2026/06/15
 
 Fixed significant center-of-mass angle glitch caused by the main part having mass.

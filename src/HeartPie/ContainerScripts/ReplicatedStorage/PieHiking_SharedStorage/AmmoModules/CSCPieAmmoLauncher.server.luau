@@ -54,6 +54,7 @@ newAmmo = function(ammoModel: Model)
 		return
 	end
 	local ammo = CSCPieAmmo.new(ammoModel)
+	ammo:setUpAmmo()
 	ammo:launchPie()
 end
 
@@ -177,7 +178,6 @@ onLaunchCSCPie = function(creatorPlayer: Player, launchMotion: FinalizedMotion, 
 	end
 
 	-- Setup pie ammo position
-	pieAmmoModel.Parent = workspace
 	pieAmmoMainPart:PivotTo(launchCFrame)
 	pieAmmoMainPart.Anchored = false
 

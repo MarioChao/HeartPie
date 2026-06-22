@@ -103,14 +103,26 @@ end
 
 --- Pie functions ---
 
+function PieAmmo.setUpAmmo(self: CObjectType)
+	-- Validate ammo
+	if not (self.ammoMainPart and self.isValid) then
+		return
+	end
+
+	-- Set massless
+	self.ammoMainPart.Massless = false
+end
+
 function PieAmmo.launchPie(self: CObjectType)
 	-- Validate ammo
 	if not (self.ammoMainPart and self.isValid) then
 		return
 	end
 
+	-- Parent to workspace
+	self.ammoModel.Parent = workspace
+
 	-- Configure and shoot pie with initial velocity
-	self.ammoMainPart.Massless = false
 	self.launchStartTime = Constants.timeFunction()
 	self.ammoPieStates:SetAttribute("LaunchStartTime", self.launchStartTime)
 

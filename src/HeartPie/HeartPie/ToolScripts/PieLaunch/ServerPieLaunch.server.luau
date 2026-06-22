@@ -163,10 +163,8 @@ onLaunchPie = function(caller: Player, launchMotion: Motion)
 	newPieAlignOrientation.Enabled = pieAlignSpin
 
 	-- Set up pie ammo position
-	newPieAmmoModel.Parent = workspace -- Might cause exception
 	newPieAmmoMainPart:PivotTo(launchCFrame)
 	newPieAmmoMainPart.Anchored = false
-	newPieAmmoMainPart:SetNetworkOwner(nil)
 
 	-- Launch pie
 	Globals.lastLaunchTime = currentTime

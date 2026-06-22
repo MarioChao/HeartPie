@@ -160,6 +160,9 @@ function PieAmmo.setUpAmmo(self: CObjectType)
 			end
 		end
 	end
+
+	-- Set massless
+	self.ammoMainPart.Massless = false
 end
 
 function PieAmmo.launchPie(self: CObjectType)
@@ -169,8 +172,15 @@ function PieAmmo.launchPie(self: CObjectType)
 		return
 	end
 
+	-- Parent to workspace
+	self.ammoModel.Parent = workspace
+
+	-- Set network owner
+	if RunService:IsServer() then
+		self.ammoMainPart:SetNetworkOwner(nil)
+	end
+
 	-- Configure and shoot pie with initial velocity
-	self.ammoMainPart.Massless = false
 	self.launchStartTime = Constants.timeFunction()
 	self.ammoPieStates:SetAttribute("LaunchStartTime", self.launchStartTime)
 	self:playSoundEffect("fire")
@@ -539,9 +549,12 @@ function PieAmmo.playSoundEffect(self: CObjectType, soundName: SoundEffectsGette
 	local parentPart = self.ammoMainPart
 	if parentPart and defaultSound and typeof(defaultSound) == "Instance" and defaultSound:IsA("Sound") then
 		local newSound = defaultSound:Clone()
-		newSound.PlayOnRemove = true
+		newSound.PlayOnRemove = false
 		newSound.Parent = self.ammoMainPart
-		newSound:Destroy()
+		newSound:Play()
+		newSound.Ended:Once(function()
+			newSound:Destroy()
+		end)
 	end
 end
 

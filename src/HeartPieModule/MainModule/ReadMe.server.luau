@@ -14,6 +14,7 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local ServerStorage = game:GetService("ServerStorage")
 local StarterPack = game:GetService("StarterPack")
 
+-- Presets folders
 local replicatedPresets = ReplicatedStorage.CustomData.Presets
 local skinPresets = ServerScriptService.CustomSkinsData.Presets
 

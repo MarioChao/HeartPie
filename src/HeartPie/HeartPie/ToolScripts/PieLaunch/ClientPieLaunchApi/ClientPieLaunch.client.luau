@@ -183,7 +183,6 @@ onLaunchPie = function(caller: Player, launchMotion: Motion)
 	newPieAlignOrientation.Enabled = pieAlignSpin
 
 	-- Set up pie ammo position
-	newPieAmmoModel.Parent = workspace
 	newPieAmmoMainPart:PivotTo(launchCFrame)
 	newPieAmmoMainPart.Anchored = false
 
